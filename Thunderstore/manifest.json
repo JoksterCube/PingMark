@@ -1,0 +1,9 @@
+{
+  "name": "PingDistance",
+  "version_number": "1.0.0",
+  "website_url": "https://github.com/JoksterCube/PingDistance",
+  "description": "Adds your distance to world pings in Valheim.",
+  "dependencies": [
+    "denikson-BepInExPack_Valheim-5.4.2333"
+  ]
+}
