@@ -1,3 +1,4 @@
 | Version | Update Notes |
 |----------|---------------|
+| **1.0.1** | - Fixed oversized gameplay screenshots on Thunderstore by using proportional widths instead of height attributes. |
 | **1.0.0** | - Initial release with configurable distance labels for world pings and a toggle shortcut. |
