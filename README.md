@@ -17,6 +17,12 @@ Spot useful loot, point out creatures, and see how far you have to travel. With 
 	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Boar.jpg" alt="Friendly creature highlights with names and distances" width="323">
 </p>
 
+<p align="center">
+	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/RuneStone.jpg" alt="Runestone marked with a colored outline and distance label" width="330">
+	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Spawner.jpg" alt="Greydwarf nest marked with a colored outline and distance label" width="281">
+	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Treasure.jpg" alt="Treasure chest and hostile skeleton highlighted with distinct colors" width="497">
+</p>
+
 **Choose what your party can mark.** The admin menu organizes objects and locations into searchable, color-coded collections.
 
 <p align="center">
@@ -194,5 +200,5 @@ Report bugs or suggest improvements on [GitHub](https://github.com/JoksterCube/P
 ---
 
 **Author:** JoksterCube<br>
-**Version:** 1.0.3<br>
+**Version:** 1.0.4<br>
 **License:** MIT
