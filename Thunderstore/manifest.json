@@ -1,9 +1,9 @@
 {
-  "name": "PingDistance",
+  "name": "PingMark",
   "version_number": "1.0.0",
-  "website_url": "https://github.com/JoksterCube/PingDistance",
-  "description": "Adds your distance to world pings in Valheim.",
+  "website_url": "https://github.com/JoksterCube/PingMark",
+  "description": "Mark loot, creatures, and locations with named pings, colored outlines, and live distances. Share discoveries with your party.",
   "dependencies": [
-    "denikson-BepInExPack_Valheim-5.4.2333"
+    "denikson-BepInExPack_Valheim-5.4.2351"
   ]
 }

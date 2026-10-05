@@ -1,19 +1,14 @@
 using BepInEx.Configuration;
 using UnityEngine;
+using System.Linq;
 
-namespace JoksterCube.PingDistance.Common;
+namespace JoksterCube.PingMark.Common;
 
 internal static class KeyboardShortcutExtensions
 {
-    internal static bool IsKeyDown(this KeyboardShortcut shortcut)
-    {
-        if (shortcut.MainKey == KeyCode.None || !Input.GetKeyDown(shortcut.MainKey)) return false;
+    internal static bool IsKeyDown(this KeyboardShortcut shortcut) =>
+        shortcut.MainKey != KeyCode.None && Input.GetKeyDown(shortcut.MainKey) && shortcut.Modifiers.All(Input.GetKey);
 
-        foreach (KeyCode modifier in shortcut.Modifiers)
-        {
-            if (!Input.GetKey(modifier)) return false;
-        }
-
-        return true;
-    }
+    internal static bool IsKeyHeld(this KeyboardShortcut shortcut) =>
+        shortcut.MainKey != KeyCode.None && Input.GetKey(shortcut.MainKey) && shortcut.Modifiers.All(Input.GetKey);
 }

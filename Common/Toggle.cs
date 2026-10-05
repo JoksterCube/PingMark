@@ -1,4 +1,4 @@
-namespace JoksterCube.PingDistance.Common;
+namespace JoksterCube.PingMark.Common;
 
 internal enum Toggle
 {

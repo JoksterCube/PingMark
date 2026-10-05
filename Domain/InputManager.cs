@@ -1,28 +1,42 @@
-﻿using JoksterCube.PingDistance.Common;
+using JoksterCube.PingMark.Common;
+using JoksterCube.PingMark.Common.Networking;
+using JoksterCube.PingMark.Domain.Collections;
+using JoksterCube.PingMark.Domain.PingTargets;
 using TMPro;
+using UnityEngine;
 using UnityEngine.EventSystems;
-using static JoksterCube.PingDistance.Settings.PluginConfig;
+using static JoksterCube.PingMark.Settings.PluginConfig;
 
-namespace JoksterCube.PingDistance.Domain;
+namespace JoksterCube.PingMark.Domain;
 
 internal static class InputManager
 {
     internal static void Update(Plugin plugin)
     {
-        var toggleModPressed = ToggleModShortcut.Value.IsKeyDown();
-        var mobHighlightPressed = MobHighlightShortcut.Value.IsKeyDown();
-        if (!toggleModPressed && !mobHighlightPressed) return;
-        if (!CanTakeInput()) return;
-
-        if (toggleModPressed)
+        PrefabCollectionEditor.Update();
+        bool allowed = !RpcHandlers.ShouldWaitForInitialConfigSync && !PrefabCollectionEditor.BlocksInput && CanTakeInput();
+        bool editorShortcutEnabled = PrefabEditorShortcutEnabled.IsOn();
+        bool editorPressed = PrefabEditorShortcut.Value.IsKeyDown();
+        bool editorHeld = PrefabEditorShortcut.Value.IsKeyHeld();
+        bool togglePressed = !editorHeld && ToggleModShortcut.Value.IsKeyDown();
+        if (!allowed) return;
+        if (editorShortcutEnabled && editorPressed)
         {
-            Enabled.Value = Enabled.Value == Toggle.On ? Toggle.Off : Toggle.On;
+            PrefabCollectionEditor.Open();
+            return;
+        }
+        var mobHighlightPressed = MobHighlightShortcut.Value.IsKeyDown();
+        if (!togglePressed && !mobHighlightPressed) return;
+
+        if (togglePressed)
+        {
+            Enabled.Value = Enabled.Value.Not();
 
             plugin.Config.Save();
             return;
         }
 
-        if (Enabled.Value != Toggle.On || !mobHighlightPressed) return;
+        if (!Enabled.IsOn() || !mobHighlightPressed) return;
 
         MobTargeting.TryHighlight();
     }

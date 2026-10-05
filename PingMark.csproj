@@ -1,6 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="environment.props" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -8,9 +7,12 @@
     <ProjectGuid>{4358610B-F3F4-4843-B7AF-98B7BC60DCDE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>JoksterCube.PingDistance</RootNamespace>
-    <AssemblyName>PingDistance</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <RootNamespace>JoksterCube.PingMark</RootNamespace>
+    <AssemblyName>PingMark</AssemblyName>
+    <TargetFramework>net48</TargetFramework>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <RuntimeIdentifiers>win</RuntimeIdentifiers>
     <FileAlignment>512</FileAlignment>
     <LangVersion>14.0</LangVersion>
@@ -58,7 +60,7 @@
         <CorlibPath Condition="!Exists('$(CorlibPath)') AND Exists('$(GamePath)')">$(GamePath)\valheim_Data\Managed</CorlibPath>
         <CorlibPath Condition="!Exists('$(CorlibPath)') AND Exists('$(GamePath)')">$(GamePath)\unstripped_corlib</CorlibPath>
         <PublicizedAssembliesPath Condition="!Exists('$(PublicizedAssembliesPath)') AND Exists('$(GamePath)')">$(GamePath)\valheim_Data\Managed\publicized_assemblies</PublicizedAssembliesPath>
-        <AfterTargets Condition="'$(AfterTargets)' == ''">Build</AfterTargets>
+        <AfterTargets Condition="'$(AfterTargets)' == ''">ILRepacker</AfterTargets>
       </PropertyGroup>
     </When>
   </Choose>
@@ -68,6 +70,9 @@
     </Reference>
     <Reference Include="assembly_valheim">
       <HintPath>$(PublicizedAssembliesPath)\assembly_valheim_publicized.dll</HintPath>
+    </Reference>
+    <Reference Include="assembly_utils">
+      <HintPath>$(PublicizedAssembliesPath)\assembly_utils_publicized.dll</HintPath>
     </Reference>
     <Reference Include="assembly_guiutils">
       <HintPath>$(CorlibPath)\assembly_guiutils.dll</HintPath>
@@ -94,22 +99,76 @@
     <Reference Include="UnityEngine.InputLegacyModule">
       <HintPath>$(CorlibPath)\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>$(CorlibPath)\UnityEngine.IMGUIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>$(CorlibPath)\UnityEngine.TextRenderingModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.PhysicsModule">
       <HintPath>$(CorlibPath)\UnityEngine.PhysicsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule">
+      <HintPath>$(CorlibPath)\UnityEngine.ParticleSystemModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AudioModule">
+      <HintPath>$(CorlibPath)\UnityEngine.AudioModule.dll</HintPath>
+    </Reference>
+    <Reference Include="SoftReferenceableAssets">
+      <HintPath>$(CorlibPath)\SoftReferenceableAssets.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\KeyboardShortcutExtensions.cs" />
-    <Compile Include="Common\ConfigOptions.cs" />
+    <Compile Include="Common\PlayerExtensions.cs" />
     <Compile Include="Common\Toggle.cs" />
-    <Compile Include="Domain\MobTargeting.cs" />
+    <Compile Include="Common\ToggleExtensions.cs" />
+    <Compile Include="Common\Networking\RegisterAndCheckVersion.cs" />
+    <Compile Include="Common\Networking\RemoveDisconnectedPeerFromVerified.cs" />
+    <Compile Include="Common\Networking\RpcHandlers.cs" />
+    <Compile Include="Common\Networking\ShowConnectionError.cs" />
+    <Compile Include="Common\Networking\VerifyClient.cs" />
+    <Compile Include="Common\Networking\ZRpcExtensions.cs" />
     <Compile Include="Domain\MobHighlight.cs" />
+    <Compile Include="Domain\OutlineManager.cs" />
+    <Compile Include="Domain\Enums\PrefabBrowserKind.cs" />
+    <Compile Include="Domain\Enums\PingCategory.cs" />
+    <Compile Include="Domain\Enums\ShortcutAction.cs" />
+    <Compile Include="Domain\Models\PrefabCollectionSection.cs" />
+    <Compile Include="Domain\Models\SerializedSection.cs" />
+    <Compile Include="Domain\Models\SerializedSections.cs" />
+    <Compile Include="Domain\Models\PingTarget.cs" />
+    <Compile Include="Domain\Networking\ZPingNetwork.cs" />
+    <Compile Include="Domain\PingTargets\MobTargeting.cs" />
+    <Compile Include="Domain\PingTargets\PingTargetResolver.cs" />
     <Compile Include="Domain\InputManager.cs" />
-    <Compile Include="Patches\ChatPingDistancePatch.cs" />
-    <Compile Include="Patches\GroundPingLabelPatch.cs" />
-    <Compile Include="Patches\MobHighlightPatch.cs" />
+    <Compile Include="Domain\Collections\PrefabAutoSort.cs" />
+    <Compile Include="Domain\Collections\PrefabBrowserFilter.cs" />
+    <Compile Include="Domain\Collections\PrefabCollectionEditor.cs" />
+    <Compile Include="Domain\Collections\PrefabCollectionEditorUI.cs" />
+    <Compile Include="Domain\Collections\PrefabCollectionSectionConfig.cs" />
+    <Compile Include="Domain\Collections\PrefabCollections.cs" />
+    <Compile Include="Domain\Collections\PrefabFeatureClassifier.cs" />
+    <Compile Include="Domain\ShortcutHold.cs" />
+    <Compile Include="Patches\PingLabels\PingMapLabelPatch.cs" />
+    <Compile Include="Patches\PingLabels\PingMarkLabels.cs" />
+    <Compile Include="Patches\PingLabels\PingWorldTextLabelPatch.cs" />
+    <Compile Include="Patches\PingLabels\PingWorldTextRefreshPatch.cs" />
+    <Compile Include="Patches\GroundPing\GroundPingAddLabelPatch.cs" />
+    <Compile Include="Patches\GroundPing\GroundPingLabelAnchors.cs" />
+    <Compile Include="Patches\GroundPing\GroundPingUpdateLabelPatch.cs" />
+    <Compile Include="Patches\MobHighlight\MobHighlightNamePatch.cs" />
+    <Compile Include="Patches\MobHighlight\MobHighlightVisibilityPatch.cs" />
+    <Compile Include="Patches\PrefabEditor\PrefabEditorActivePatch.cs" />
+    <Compile Include="Patches\PrefabEditor\PrefabEditorMenuInputPatch.cs" />
+    <Compile Include="Patches\PrefabEditor\PrefabEditorMouseCapturePatch.cs" />
+    <Compile Include="Patches\PrefabEditor\PrefabEditorVisiblePatch.cs" />
+    <Compile Include="Patches\ZPing\ZPingServerRoutingPatch.cs" />
+    <Compile Include="Patches\ZPing\ZPingVanillaFallbackPatch.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Settings\ConfigInfo.cs" />
+    <Compile Include="Settings\ConfigOptions.cs" />
     <Compile Include="Settings\Constants.cs" />
     <Compile Include="Settings\PluginConfig.cs" />
   </ItemGroup>
@@ -134,7 +193,6 @@
   <ItemGroup>
     <Folder Include="Patches\" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
          Other similar extension points exist, see Microsoft.Common.targets.
     <Target Name="BeforeBuild">
@@ -142,7 +200,7 @@
     <Target Name="AfterBuild">
     </Target>
     -->
-  <Target Name="GetAssemblyVersion" AfterTargets="$(AfterTargets)">
+  <Target Name="PingMarkGetAssemblyVersion" AfterTargets="$(AfterTargets)">
     <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
       <Output TaskParameter="Assemblies" ItemName="Targets" />
     </GetAssemblyIdentity>
@@ -161,7 +219,7 @@
       <PackageDir>$(ProjectDir)\Thunderstore\$(PackageName)</PackageDir>
     </PropertyGroup>
   </Target>
-  <Target Name="CopyOutputDLL" AfterTargets="GetAssemblyVersion">
+  <Target Name="CopyOutputDLL" AfterTargets="PingMarkGetAssemblyVersion">
     <Error Text="DLL not found in target directory." Condition="!Exists('$(TargetDir)$(AssemblyName).dll')" />
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(CopyOutputDLLPath)" OverwriteReadOnlyFiles="true" />
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(CopyOutputDLLPath2)" OverwriteReadOnlyFiles="true" Condition="Exists('$(CopyOutputDLLPath2)')" />
@@ -183,7 +241,7 @@ if (!System.IO.File.Exists(ManifestFile))
 string content = @"{
   ""name"": """ + AssemblyName + @""",
   ""version_number"": ""1.0.0"",
-  ""website_url"": ""https://github.com/JoksterCube/PingDistance"",
+  ""website_url"": ""https://github.com/JoksterCube/PingMark"",
   ""description"": ""Adds configurable distance labels to Valheim world pings."",
   ""dependencies"": [
     ""denikson-BepInExPack_Valheim-5.4.2333""

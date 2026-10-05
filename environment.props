@@ -5,6 +5,7 @@
         <CorlibPath>$(ValheimGamePath)\valheim_Data\Managed</CorlibPath>
         <PublicizedAssembliesPath>$(ValheimGamePath)\valheim_Data\Managed\publicized_assemblies</PublicizedAssembliesPath>
         <CopyOutputDLLPath>$(ValheimGamePath)\BepInEx\plugins</CopyOutputDLLPath>
+        <CopyOutputDLLPath2>E:\Shared</CopyOutputDLLPath2>
         <AfterTargets>ILRepacker</AfterTargets>
     </PropertyGroup>
 </Project>
