@@ -1,5 +1,6 @@
 | Version | Update Notes |
 |----------|---------------|
+| **1.0.7** | - Hardened server routing: malformed or oversized ping packets are dropped safely and each player is rate limited. Ping names are capped at 64 characters. Ping Cooldown now also applies to creature and player highlights. |
 | **1.0.6** | - Fixed creature nameplate labels reading their style from an expired world ping label. Labels now always use the minimap label style. |
 | **1.0.5** | - Fixed an invalid Prefab Sections config value overwriting all collections with defaults. The last valid sections are kept and the config is no longer rewritten while reading. |
 | **1.0.4** | - Added runestone, Greydwarf nest, and treasure screenshots to the README. Updated the admin menu screenshot with a higher-quality source image. |

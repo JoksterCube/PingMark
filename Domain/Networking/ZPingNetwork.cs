@@ -11,6 +11,7 @@ internal static class ZPingNetwork
     internal const string MobRpc = "JoksterCube.PingMark.ZMobPing";
     internal const string PlayerRpc = "JoksterCube.PingMark.ZPlayerPing";
     internal const string VanillaPingMarker = "JoksterCube.PingMark.ZPingFallback";
+    internal const int MaxTargetNameLength = 64;
     private static ZRoutedRpc? _registeredRpc;
 
     internal static void Update()
@@ -43,7 +44,7 @@ internal static class ZPingNetwork
         Player player = Player.m_localPlayer;
         if (!player) return;
         ZRoutedRpc.instance?.InvokeRoutedRPC(ZRoutedRpc.Everybody, LocationRpc,
-            player.transform.position, ZPingBroadcastDistance.Value, position, UserInfo.GetLocalUser(), targetName);
+            player.transform.position, ZPingBroadcastDistance.Value, position, UserInfo.GetLocalUser(), Truncate(targetName));
         SendVanillaPing(position);
     }
 
@@ -71,8 +72,11 @@ internal static class ZPingNetwork
     private static void ReceiveLocation(long sender, Vector3 origin, float range, Vector3 position, UserInfo user, string name)
     {
         if (CanReceive(sender, origin, range) && Chat.instance)
-            Chat.instance.OnNewChatMessage(null, sender, position, Talker.Type.Ping, user, name);
+            Chat.instance.OnNewChatMessage(null, sender, position, Talker.Type.Ping, user, Truncate(name));
     }
+
+    private static string Truncate(string? name) =>
+        name == null ? string.Empty : name.Length <= MaxTargetNameLength ? name : name.Substring(0, MaxTargetNameLength);
 
     private static void ReceiveMob(long sender, Vector3 origin, float range, ZDOID id, UserInfo user)
     {

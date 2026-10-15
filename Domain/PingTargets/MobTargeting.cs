@@ -45,7 +45,11 @@ internal static class MobTargeting
         if (!Enabled.IsOn()) return;
 
         Player player = Player.m_localPlayer;
-        if (!player || !TakeInput(player) || !GameCamera.instance) return;
+        if (!player || !TakeInput(player) || !GameCamera.instance || ZRoutedRpc.instance == null) return;
+
+        float now = Time.realtimeSinceStartup;
+        if (_lastPingTime.HasValue && now - _lastPingTime.Value < PingCooldown.Value) return;
+        _lastPingTime = now;
 
         Transform cameraTransform = GameCamera.instance.transform;
         Ray ray = new(cameraTransform.position, cameraTransform.forward);
@@ -105,12 +109,8 @@ internal static class MobTargeting
             target = PingTargetResolver.Resolve(targetHit.Value.collider, position);
         }
 
-        if (ZRoutedRpc.instance == null) return;
-        float now = Time.realtimeSinceStartup;
-        if (_lastPingTime.HasValue && now - _lastPingTime.Value < PingCooldown.Value) return;
         string? targetName = target.HasValue && target.Value.Name.Length > 0 ? target.Value.Name : null;
         RegisterPendingGroundPing(position, targetName, target);
         ZPingNetwork.SendLocation(position, targetName ?? "");
-        _lastPingTime = now;
     }
 }

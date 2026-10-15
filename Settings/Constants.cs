@@ -9,7 +9,7 @@ internal static class Constants
     internal static class Plugin
     {
         internal const string ModName = "PingMark";
-        internal const string ModVersion = "1.0.6";
+        internal const string ModVersion = "1.0.7";
         internal const string Author = "JoksterCube";
         internal const string ModGUID = $"{Author}.{ModName}";
         internal const string Description = "Mark loot, creatures, and locations with named pings, colored outlines, and live distances. Share discoveries with your party.";
@@ -66,7 +66,7 @@ internal static class Constants
                 Group,
                 "Ping Cooldown",
                 new ConfigDescription(
-                    "Minimum seconds between location pings sent with Z. Set to 0 to disable.",
+                    "Minimum seconds between Z pings and character highlights. Set to 0 to disable.",
                     new AcceptableValueRange<float>(0f, 60f)),
                 0f,
                 true);

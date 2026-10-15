@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using HarmonyLib;
 using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Common.Networking;
@@ -11,6 +13,13 @@ namespace JoksterCube.PingMark.Patches.ZPing;
 [HarmonyPatch(typeof(ZRoutedRpc), "RouteRPC")]
 internal static class ZPingServerRoutingPatch
 {
+    // Generous for a location name; anything larger is dropped instead of being forwarded to every peer.
+    private const int MaxPackageSize = 1024;
+    private const float RateCapacity = 10f;
+    private const float RatePerSecond = 4f;
+
+    private static readonly Dictionary<long, (float Tokens, float Time)> RateLimits = [];
+
     private static bool Prefix(ZRoutedRpc.RoutedRPCData rpcData)
     {
         ZNet net = ZNet.instance;
@@ -20,14 +29,7 @@ internal static class ZPingServerRoutingPatch
         bool vanillaFallback = false;
         if (rpcData.m_methodHash == "ChatMessage".GetStableHashCode())
         {
-            rpcData.m_parameters.SetPos(0);
-            rpcData.m_parameters.ReadVector3();
-            int type = rpcData.m_parameters.ReadInt();
-            UserInfo user = new();
-            user.Deserialize(ref rpcData.m_parameters);
-            string text = rpcData.m_parameters.ReadString();
-            rpcData.m_parameters.SetPos(0);
-            if (type != (int)Talker.Type.Ping || text != ZPingNetwork.VanillaPingMarker) return true;
+            if (!TryReadFallbackMarker(rpcData.m_parameters, out bool isFallback) || !isFallback) return true;
             if (!SendZPingsToUnmoddedPlayers.IsOn()) return false;
             vanillaFallback = true;
         }
@@ -35,9 +37,22 @@ internal static class ZPingServerRoutingPatch
             && rpcData.m_methodHash != ZPingNetwork.MobRpc.GetStableHashCode()
             && rpcData.m_methodHash != ZPingNetwork.PlayerRpc.GetStableHashCode()) return true;
 
-        rpcData.m_parameters.SetPos(0);
-        Vector3 origin = rpcData.m_parameters.ReadVector3();
-        rpcData.m_parameters.SetPos(0);
+        if (rpcData.m_parameters.Size() > MaxPackageSize || !TryConsumeRate(rpcData.m_senderPeerID)) return false;
+
+        Vector3 origin;
+        try
+        {
+            rpcData.m_parameters.SetPos(0);
+            origin = rpcData.m_parameters.ReadVector3();
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+        finally
+        {
+            rpcData.m_parameters.SetPos(0);
+        }
         ZNetPeer sender = net.GetPeer(rpcData.m_senderPeerID);
         if (sender != null) origin = sender.m_refPos;
 
@@ -51,5 +66,42 @@ internal static class ZPingServerRoutingPatch
                 peer.m_rpc.Invoke("RoutedRPC", package);
         }
         return false;
+    }
+
+    internal static void ForgetPeer(long peerId) => RateLimits.Remove(peerId);
+
+    private static bool TryReadFallbackMarker(ZPackage parameters, out bool isFallback)
+    {
+        isFallback = false;
+        try
+        {
+            parameters.SetPos(0);
+            parameters.ReadVector3();
+            int type = parameters.ReadInt();
+            if (type != (int)Talker.Type.Ping) return true;
+            UserInfo user = new();
+            user.Deserialize(ref parameters);
+            isFallback = parameters.ReadString() == ZPingNetwork.VanillaPingMarker;
+            return true;
+        }
+        catch (Exception)
+        {
+            // Malformed chat data is left to vanilla routing, exactly as without the mod.
+            return false;
+        }
+        finally
+        {
+            parameters.SetPos(0);
+        }
+    }
+
+    private static bool TryConsumeRate(long senderId)
+    {
+        float now = Time.realtimeSinceStartup;
+        (float tokens, float time) = RateLimits.TryGetValue(senderId, out var state) ? state : (RateCapacity, now);
+        tokens = Mathf.Min(RateCapacity, tokens + (now - time) * RatePerSecond);
+        bool allowed = tokens >= 1f;
+        RateLimits[senderId] = (allowed ? tokens - 1f : tokens, now);
+        return allowed;
     }
 }
