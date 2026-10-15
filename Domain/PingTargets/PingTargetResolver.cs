@@ -59,6 +59,24 @@ internal static class PingTargetResolver
         return null;
     }
 
+    // The networked object the hit belongs to, so other players can resolve exactly the same object.
+    internal static ZDOID GetNetworkId(Collider collider)
+    {
+        GameObject root = GetPrefabRoot(collider);
+        return root.TryGetComponent(out ZNetView view) && view.GetZDO() is { } zdo ? zdo.m_uid : ZDOID.None;
+    }
+
+    // Resolves a target from its network ID; null when the object is not loaded here.
+    internal static PingTarget? ResolveInstance(ZDOID id, Vector3 position)
+    {
+        if (id.IsNone() || !ZNetScene.instance) return null;
+        GameObject instance = ZNetScene.instance.FindInstance(id);
+        if (!instance) return null;
+        foreach (Collider collider in instance.GetComponentsInChildren<Collider>(true))
+            if (IsPingCollider(collider) && GetPrefabRoot(collider) == instance) return Resolve(collider, position);
+        return null;
+    }
+
     internal static PingTarget? FindTarget(Vector3 position)
     {
         PingTarget? nearest = null;

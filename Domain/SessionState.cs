@@ -13,6 +13,7 @@ internal static class SessionState
         PrefabCollectionEditor.Close();
         RpcHandlers.ClearSession();
         PingRateLimiter.Clear();
+        ZPingNetwork.ClearSession();
         MobHighlight.Clear();
         MobTargeting.Clear();
         OutlineManager.ClearSession();

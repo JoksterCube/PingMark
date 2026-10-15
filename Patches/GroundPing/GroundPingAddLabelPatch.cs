@@ -4,6 +4,7 @@ using HarmonyLib;
 using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Domain;
 using JoksterCube.PingMark.Domain.Models;
+using JoksterCube.PingMark.Domain.Networking;
 using JoksterCube.PingMark.Domain.PingTargets;
 using UnityEngine;
 using static JoksterCube.PingMark.Settings.PluginConfig;
@@ -50,7 +51,9 @@ internal static class GroundPingAddLabelPatch
         }
         else if (type == Talker.Type.Ping)
         {
-            PingTarget? localTarget = PingTargetResolver.FindTarget(position);
+            // Prefer the exact object the sender hit; fall back to whatever is at the ping position.
+            PingTarget? localTarget = (ZPingNetwork.TryTakeRemoteTarget(senderID, position, out ZDOID targetId)
+                ? PingTargetResolver.ResolveInstance(targetId, position) : null) ?? PingTargetResolver.FindTarget(position);
             OutlineManager.SetPingTarget(worldText, localTarget);
             // The sender's name is localized in the sender's language; prefer our own resolution of the same target.
             if (!string.IsNullOrWhiteSpace(text) && localTarget is { Name.Length: > 0 } resolved)

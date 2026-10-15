@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Common.Networking;
 using UnityEngine;
@@ -7,12 +8,14 @@ namespace JoksterCube.PingMark.Domain.Networking;
 
 internal static class ZPingNetwork
 {
-    internal const string LocationRpc = "JoksterCube.PingMark.ZLocationPing";
+    // Versioned name: clients with a different location payload ignore each other instead of misreading it.
+    internal const string LocationRpc = "JoksterCube.PingMark.ZLocationPing.v3";
     internal const string MobRpc = "JoksterCube.PingMark.ZMobPing";
     internal const string PlayerRpc = "JoksterCube.PingMark.ZPlayerPing";
     internal const string VanillaPingMarker = "JoksterCube.PingMark.ZPingFallback";
     internal const int MaxTargetNameLength = 64;
     private static ZRoutedRpc? _registeredRpc;
+    private static readonly Dictionary<long, (ZDOID Id, Vector3 Position)> RemoteTargets = [];
 
     internal static void Update()
     {
@@ -21,7 +24,7 @@ internal static class ZPingNetwork
         _registeredRpc = rpc;
         if (rpc == null) return;
 
-        rpc.Register<Vector3, float, Vector3, UserInfo, string>(LocationRpc, ReceiveLocation);
+        rpc.Register<Vector3, float, Vector3, UserInfo, string, ZDOID>(LocationRpc, ReceiveLocation);
         rpc.Register<Vector3, float, ZDOID, UserInfo>(MobRpc, ReceiveMob);
         rpc.Register<Vector3, float, ZDOID, UserInfo>(PlayerRpc, ReceivePlayer);
     }
@@ -40,13 +43,13 @@ internal static class ZPingNetwork
             && (RpcHandlers.ServerHasMod || IsInRange(origin, position, range));
     }
 
-    internal static void SendLocation(Vector3 position, string targetName)
+    internal static void SendLocation(Vector3 position, string targetName, ZDOID targetId)
     {
         Update();
         Player player = Player.m_localPlayer;
         if (!player) return;
         ZRoutedRpc.instance?.InvokeRoutedRPC(ZRoutedRpc.Everybody, LocationRpc,
-            player.transform.position, ZPingBroadcastDistance.Value, position, UserInfo.GetLocalUser(), Truncate(targetName));
+            player.transform.position, ZPingBroadcastDistance.Value, position, UserInfo.GetLocalUser(), Truncate(targetName), targetId);
         SendVanillaPing(position);
     }
 
@@ -71,10 +74,23 @@ internal static class ZPingNetwork
             position, (int)Talker.Type.Ping, UserInfo.GetLocalUser(), VanillaPingMarker);
     }
 
-    private static void ReceiveLocation(long sender, Vector3 origin, float range, Vector3 position, UserInfo user, string name)
+    // Consumed by the label patch when the ping's world text is created for this sender.
+    internal static bool TryTakeRemoteTarget(long sender, Vector3 position, out ZDOID id)
     {
-        if (CanReceive(sender, origin, range) && Chat.instance)
-            Chat.instance.OnNewChatMessage(null, sender, position, Talker.Type.Ping, user, Truncate(name));
+        id = ZDOID.None;
+        if (!RemoteTargets.TryGetValue(sender, out var target) || (target.Position - position).sqrMagnitude > 0.01f) return false;
+        RemoteTargets.Remove(sender);
+        id = target.Id;
+        return true;
+    }
+
+    internal static void ClearSession() => RemoteTargets.Clear();
+
+    private static void ReceiveLocation(long sender, Vector3 origin, float range, Vector3 position, UserInfo user, string name, ZDOID targetId)
+    {
+        if (!CanReceive(sender, origin, range) || !Chat.instance) return;
+        if (!targetId.IsNone()) RemoteTargets[sender] = (targetId, position);
+        Chat.instance.OnNewChatMessage(null, sender, position, Talker.Type.Ping, user, Truncate(name));
     }
 
     private static string Truncate(string? name) =>

@@ -103,6 +103,7 @@ internal static class MobTargeting
         }
 
         PingTarget? target = null;
+        ZDOID targetId = ZDOID.None;
         if (targetHit.HasValue)
         {
             if (DebugPrefabId.IsOn() && Player.m_localPlayer)
@@ -112,10 +113,11 @@ internal static class MobTargeting
             }
 
             target = PingTargetResolver.Resolve(targetHit.Value.collider, position);
+            targetId = PingTargetResolver.GetNetworkId(targetHit.Value.collider);
         }
 
         string? targetName = target.HasValue && target.Value.Name.Length > 0 ? target.Value.Name : null;
         RegisterPendingGroundPing(position, targetName, target);
-        ZPingNetwork.SendLocation(position, targetName ?? "");
+        ZPingNetwork.SendLocation(position, targetName ?? "", targetId);
     }
 }
