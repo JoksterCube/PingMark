@@ -29,6 +29,7 @@ internal static class RpcHandlers
         _waitingForServerVersion = true;
         _serverVersionReceived = false;
         _serverVersionCheckStartedAt = Time.realtimeSinceStartup;
+        Plugin.ConnectionError = string.Empty;
     }
 
     internal static void ResetServerVersionCheck()
