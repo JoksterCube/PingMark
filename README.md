@@ -102,6 +102,8 @@ Most players never need to change anything. These are the settings worth knowing
 | Outline Width | 2 px | | `0` hides all outlines. |
 | Lock Configuration | On | ✔ | Only admins can change synced settings. |
 
+> 💡 Some settings are hidden as **Advanced** in [Configuration Manager](https://thunderstore.io/c/valheim/p/Azumatt/Official_BepInEx_ConfigurationManager/). Turn on *Advanced settings* there to see them. They are marked with ⚙️ in the full reference below.
+
 <details>
 <summary><b>Full settings reference</b></summary>
 
@@ -111,11 +113,11 @@ Most players never need to change anything. These are the settings worth knowing
 | --- | --- | :---: | --- |
 | Enabled | On | | Turn all PingMark features on or off. |
 | Lock Configuration | On | ✔ | Only admins can change synced settings. |
-| Refresh Interval | 0.25 s | ✔ | How often distances update (0.05–5 s). |
+| Refresh Interval ⚙️ | 0.25 s | ✔ | How often distances update (0.05–5 s). |
 | Ping Cooldown | 0 s | ✔ | Minimum time between Z pings and highlights (0–60 s). |
 | Z Ping Broadcast Distance | 200 m | ✔ | Sender-to-recipient range (0–10,000 m, `0` = unlimited). Without a modded server, the shorter of both players' ranges applies. |
 | Send Z Pings To Unmodded Players | On | ✔ | Send ordinary pings to players without PingMark, at any distance. |
-| Debug Ping Names | Off | | Show the detected object/location IDs when pinging. Useful for editing collections. |
+| Debug Ping Names ⚙️ | Off | | Show the detected object/location IDs when pinging. Useful for editing collections. |
 
 #### 2 - Ping Label
 
@@ -125,7 +127,7 @@ Most players never need to change anything. These are the settings worth knowing
 | Show Distance | On | | Show your distance to pings and highlights. |
 | Show Target Name | On | | Show the pinged object's name. |
 | Use Kilometers | On | | Show 1,000 m and above as km. |
-| Empty Label Text | PING | | Text shown when everything above is hidden. |
+| Empty Label Text ⚙️ | PING | | Text shown when everything above is hidden. |
 | Ping Color | White | | Label color. |
 | Match Ping Text To Outline | Off | | Use the outline color for the label instead. |
 
@@ -134,7 +136,7 @@ Most players never need to change anything. These are the settings worth knowing
 | Setting | Default | Synced | What it does |
 | --- | --- | :---: | --- |
 | Max Distance | 500 m | | How far you can aim (10–2,000 m). |
-| Max Underwater Depth | 10 m | | Deeper targets ping the water surface instead (0–100 m). |
+| Max Underwater Depth ⚙️ | 10 m | | Deeper targets ping the water surface instead (0–100 m). |
 
 #### 4 - Ping Targets
 
@@ -169,8 +171,8 @@ Most players never need to change anything. These are the settings worth knowing
 
 | Setting | Default | Synced | What it does |
 | --- | --- | :---: | --- |
-| Color 1 – Color 12 | Gray, White, Red, Orange, Gold, Lime, Green, Teal, Cyan, Blue, Violet, Pink | | Palette that collection sections pick from. |
-| Unassigned Section Color ID | 1 | | Palette slot for the menu's Unassigned column. |
+| Color 1 – Color 12 ⚙️ | Gray, White, Red, Orange, Gold, Lime, Green, Teal, Cyan, Blue, Violet, Pink | | Palette that collection sections pick from. |
+| Unassigned Section Color ID ⚙️ | 1 | | Palette slot for the menu's Unassigned column. |
 
 #### 8 - Player Highlight
 
@@ -186,7 +188,7 @@ Most players never need to change anything. These are the settings worth knowing
 | Ping Shortcut | Z | | Ping what you aim at, or highlight the creature you aim at. |
 | Toggle Mod Shortcut | Right Ctrl + P | | Turn PingMark on or off. |
 | Prefab Editor Shortcut | Right Ctrl + Right Shift + P | | Open the Prefab Collections menu. |
-| Enable Prefab Editor Shortcut | On | | Turn the menu shortcut on or off. |
+| Enable Prefab Editor Shortcut ⚙️ | On | | Turn the menu shortcut on or off. |
 
 </details>
 
