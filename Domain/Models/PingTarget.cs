@@ -17,6 +17,10 @@ internal readonly struct PingTarget(PingCategory category, string name, GameObje
     private static string FormatName(string name)
     {
         if (string.IsNullOrWhiteSpace(name)) return string.Empty;
+        name = name.Trim();
+        // Only prefab-style IDs ("MineRock_Copper2") are reformatted; display names may contain meaningful digits.
+        if (name.IndexOf(' ') >= 0) return Spaces.Replace(name, " ");
+
         StringBuilder builder = new(name.Length);
         foreach (char c in name)
         {
