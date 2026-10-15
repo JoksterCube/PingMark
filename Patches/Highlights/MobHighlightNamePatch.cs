@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using HarmonyLib;
 using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Domain;
 using TMPro;
 using UnityEngine;
+using Object = UnityEngine.Object;
 using static JoksterCube.PingMark.Settings.PluginConfig;
 
 namespace JoksterCube.PingMark.Patches.Highlights;
@@ -11,6 +13,8 @@ namespace JoksterCube.PingMark.Patches.Highlights;
 [HarmonyPatch(typeof(EnemyHud), nameof(EnemyHud.LateUpdate))]
 internal static class MobHighlightNamePatch
 {
+    private const string Feature = "Creature nameplates";
+
     private static readonly Dictionary<TMP_Text, Nameplate> Nameplates = [];
     private static readonly List<TMP_Text> Expired = [];
     private static float _distanceTimer;
@@ -39,11 +43,25 @@ internal static class MobHighlightNamePatch
 
     private static void Prefix(Dictionary<Character, EnemyHud.HudData> ___m_huds)
     {
+        if (PatchGuard.IsDisabled(Feature)) return;
+        try { PrefixCore(___m_huds); }
+        catch (Exception exception) { PatchGuard.Fail(Feature, exception); }
+    }
+
+    private static void PrefixCore(Dictionary<Character, EnemyHud.HudData> ___m_huds)
+    {
         foreach (KeyValuePair<Character, EnemyHud.HudData> entry in ___m_huds)
             if (MobHighlight.IsMarked(entry.Key)) entry.Value.m_hoverTimer = 0f;
     }
 
     private static void Postfix(Dictionary<Character, EnemyHud.HudData> ___m_huds)
+    {
+        if (PatchGuard.IsDisabled(Feature)) return;
+        try { PostfixCore(___m_huds); }
+        catch (Exception exception) { PatchGuard.Fail(Feature, exception); }
+    }
+
+    private static void PostfixCore(Dictionary<Character, EnemyHud.HudData> ___m_huds)
     {
         _distanceTimer += Time.deltaTime;
         if (_distanceTimer >= RefreshInterval.Value)

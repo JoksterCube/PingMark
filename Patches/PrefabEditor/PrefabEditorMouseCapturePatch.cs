@@ -1,6 +1,6 @@
 using HarmonyLib;
-using JoksterCube.PingMark.Domain.Collections;
 using JoksterCube.PingMark.Domain;
+using JoksterCube.PingMark.Domain.Collections;
 
 namespace JoksterCube.PingMark.Patches.PrefabEditor;
 

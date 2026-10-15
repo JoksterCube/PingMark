@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HarmonyLib;
 using JoksterCube.PingMark.Common;
@@ -12,10 +13,19 @@ namespace JoksterCube.PingMark.Patches.PingLabels;
 [HarmonyPatch(typeof(Chat), nameof(Chat.UpdateWorldTexts))]
 internal static class WorldTextsUpdatePatch
 {
+    private const string Feature = "Ping labels";
+
     private static readonly List<Chat.WorldTextInstance> Expired = [];
     private static TMP_FontAsset? _mapFont;
 
     private static void Prefix(float dt)
+    {
+        if (PatchGuard.IsDisabled(Feature)) return;
+        try { PrefixCore(dt); }
+        catch (Exception exception) { PatchGuard.Fail(Feature, exception); }
+    }
+
+    private static void PrefixCore(float dt)
     {
         if (!Enabled.IsOn())
         {
@@ -40,6 +50,13 @@ internal static class WorldTextsUpdatePatch
     }
 
     private static void Postfix(float dt, List<Chat.WorldTextInstance> ___m_worldTexts)
+    {
+        if (PatchGuard.IsDisabled(Feature)) return;
+        try { PostfixCore(dt, ___m_worldTexts); }
+        catch (Exception exception) { PatchGuard.Fail(Feature, exception); }
+    }
+
+    private static void PostfixCore(float dt, List<Chat.WorldTextInstance> ___m_worldTexts)
     {
         OutlineManager.UpdatePings(___m_worldTexts);
         if (!Enabled.IsOn()) return;

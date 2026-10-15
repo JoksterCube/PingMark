@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Domain.Models;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Object = UnityEngine.Object;
 using static JoksterCube.PingMark.Settings.PluginConfig;
 
 namespace JoksterCube.PingMark.Domain;
@@ -114,7 +116,20 @@ internal static class OutlineManager
         ExpiredOutlineTargets.Clear();
     }
 
+    private const string Feature = "Outlines";
+
     private static void OnPreRender(Camera camera)
+    {
+        if (PatchGuard.IsDisabled(Feature)) return;
+        try { DrawOutlines(camera); }
+        catch (Exception exception)
+        {
+            _buffer?.Clear();
+            PatchGuard.Fail(Feature, exception);
+        }
+    }
+
+    private static void DrawOutlines(Camera camera)
     {
         GameCamera gameCamera = GameCamera.instance;
         if (!gameCamera || camera.gameObject != gameCamera.gameObject) return;

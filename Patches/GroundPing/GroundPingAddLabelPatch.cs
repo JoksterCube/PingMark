@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
 using HarmonyLib;
 using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Domain;
-using JoksterCube.PingMark.Domain.PingTargets;
 using JoksterCube.PingMark.Domain.Models;
+using JoksterCube.PingMark.Domain.PingTargets;
 using UnityEngine;
 using static JoksterCube.PingMark.Settings.PluginConfig;
 
@@ -12,10 +13,19 @@ namespace JoksterCube.PingMark.Patches.GroundPing;
 [HarmonyPatch(typeof(Chat), nameof(Chat.AddInworldText))]
 internal static class GroundPingAddLabelPatch
 {
+    private const string Feature = "Ping labels";
+
     // Vanilla overwrites the `text` argument with "PING" for pings, so keep the original for the postfix.
     private static void Prefix(string text, out string __state) => __state = text;
 
     private static void Postfix(long senderID, Vector3 position, Talker.Type type, string __state, List<Chat.WorldTextInstance> ___m_worldTexts)
+    {
+        if (PatchGuard.IsDisabled(Feature)) return;
+        try { PostfixCore(senderID, position, type, __state, ___m_worldTexts); }
+        catch (Exception exception) { PatchGuard.Fail(Feature, exception); }
+    }
+
+    private static void PostfixCore(long senderID, Vector3 position, Talker.Type type, string __state, List<Chat.WorldTextInstance> ___m_worldTexts)
     {
         string text = __state;
         Chat.WorldTextInstance? worldText = ___m_worldTexts.Find(world => world.m_talkerID == senderID);

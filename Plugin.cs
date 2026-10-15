@@ -4,6 +4,7 @@ using System.IO;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
+using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Domain.Collections;
 using JoksterCube.PingMark.Domain;
 using JoksterCube.PingMark.Domain.Networking;
@@ -35,6 +36,8 @@ public class Plugin : BaseUnityPlugin
     private FileSystemWatcher? _configWatcher;
     private DateTime _lastConfigWrite;
 
+    private const string UpdateFeature = "Ping input and highlights";
+
     private readonly Harmony _harmony = new(ModGUID);
 
     private void Awake()
@@ -51,9 +54,17 @@ public class Plugin : BaseUnityPlugin
 
     private void Update()
     {
-        ZPingNetwork.Update();
-        MobHighlight.Update();
-        InputManager.Update();
+        if (PatchGuard.IsDisabled(UpdateFeature)) return;
+        try
+        {
+            ZPingNetwork.Update();
+            MobHighlight.Update();
+            InputManager.Update();
+        }
+        catch (Exception exception)
+        {
+            PatchGuard.Fail(UpdateFeature, exception);
+        }
     }
 
     private void OnDestroy()

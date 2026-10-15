@@ -12,10 +12,23 @@ namespace JoksterCube.PingMark.Patches.ZPing;
 [HarmonyPatch(typeof(ZRoutedRpc), nameof(ZRoutedRpc.RouteRPC))]
 internal static class ZPingServerRoutingPatch
 {
+    private const string Feature = "Server ping routing";
+
     // Generous for a location name; anything larger is dropped instead of being forwarded to every peer.
     private const int MaxPackageSize = 1024;
 
     private static bool Prefix(ZRoutedRpc.RoutedRPCData rpcData)
+    {
+        if (PatchGuard.IsDisabled(Feature)) return true;
+        try { return PrefixCore(rpcData); }
+        catch (Exception exception)
+        {
+            PatchGuard.Fail(Feature, exception);
+            return true;
+        }
+    }
+
+    private static bool PrefixCore(ZRoutedRpc.RoutedRPCData rpcData)
     {
         ZNet net = ZNet.instance;
         if (!net || !net.IsServer() || rpcData.m_targetPeerID != ZRoutedRpc.Everybody

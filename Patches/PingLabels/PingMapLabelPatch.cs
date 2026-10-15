@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HarmonyLib;
 using JoksterCube.PingMark.Common;
@@ -10,7 +11,16 @@ namespace JoksterCube.PingMark.Patches.PingLabels;
 [HarmonyPatch(typeof(Minimap), nameof(Minimap.UpdatePingPins))]
 internal static class PingMapLabelPatch
 {
+    private const string Feature = "Map ping labels";
+
     private static void Postfix(List<Minimap.PinData> ___m_pingPins, List<Chat.WorldTextInstance> ___m_tempShouts)
+    {
+        if (PatchGuard.IsDisabled(Feature)) return;
+        try { PostfixCore(___m_pingPins, ___m_tempShouts); }
+        catch (Exception exception) { PatchGuard.Fail(Feature, exception); }
+    }
+
+    private static void PostfixCore(List<Minimap.PinData> ___m_pingPins, List<Chat.WorldTextInstance> ___m_tempShouts)
     {
         if (!Enabled.IsOn()) return;
 
