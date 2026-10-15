@@ -9,7 +9,7 @@ internal static class Constants
     internal static class Plugin
     {
         internal const string ModName = "PingMark";
-        internal const string ModVersion = "1.1.21";
+        internal const string ModVersion = "1.1.22";
         // Bump ProtocolVersion only when RPCs or synced data formats change, and set
         // MinimumCompatibleVersion to the first release with that protocol. Other releases stay compatible.
         internal const int ProtocolVersion = 3;
@@ -65,7 +65,7 @@ internal static class Constants
                     "How often, in seconds, distances on visible pings and highlighted mobs are recalculated.",
                     new AcceptableValueRange<float>(0.05f, 5f)),
                 0.25f,
-                true);
+                true) { IsAdvanced = true };
 
             internal static readonly ConfigInfo<float> PingCooldown = new(
                 Group,
@@ -97,7 +97,7 @@ internal static class Constants
                 "Debug Ping Names",
                 "Show all names found on the hit object (prefab ID, location ID, hover, piece, etc.) in a top-left message when camera pinging.",
                 Toggle.Off,
-                false);
+                false) { IsAdvanced = true };
         }
 
         internal static class PingLabel
@@ -123,7 +123,7 @@ internal static class Constants
                 "Empty Label Text",
                 "Text shown when the pinger name, target name, and distance are all hidden.",
                 "PING",
-                false);
+                false) { IsAdvanced = true };
 
             internal static readonly ConfigInfo<Toggle> UseKilometers = new(
                 Group,
@@ -224,18 +224,18 @@ internal static class Constants
             internal const int Color11Id = 11;
             internal const int Color12Id = 12;
 
-            internal static readonly ConfigInfo<Color> Color1 = new(Group, "Color 1", "Section palette color 1.", new Color(0.8f, 0.8f, 0.8f), false);
-            internal static readonly ConfigInfo<Color> Color2 = new(Group, "Color 2", "Section palette color 2.", Color.white, false);
-            internal static readonly ConfigInfo<Color> Color3 = new(Group, "Color 3", "Section palette color 3.", new Color(0.95f, 0.25f, 0.2f), false);
-            internal static readonly ConfigInfo<Color> Color4 = new(Group, "Color 4", "Section palette color 4.", new Color(1f, 0.5f, 0.15f), false);
-            internal static readonly ConfigInfo<Color> Color5 = new(Group, "Color 5", "Section palette color 5.", new Color(1f, 0.82f, 0.3f), false);
-            internal static readonly ConfigInfo<Color> Color6 = new(Group, "Color 6", "Section palette color 6.", new Color(0.65f, 0.85f, 0.25f), false);
-            internal static readonly ConfigInfo<Color> Color7 = new(Group, "Color 7", "Section palette color 7.", new Color(0.25f, 0.75f, 0.35f), false);
-            internal static readonly ConfigInfo<Color> Color8 = new(Group, "Color 8", "Section palette color 8.", new Color(0.25f, 0.8f, 0.7f), false);
-            internal static readonly ConfigInfo<Color> Color9 = new(Group, "Color 9", "Section palette color 9.", new Color(0.25f, 0.75f, 1f), false);
-            internal static readonly ConfigInfo<Color> Color10 = new(Group, "Color 10", "Section palette color 10.", new Color(0.35f, 0.45f, 1f), false);
-            internal static readonly ConfigInfo<Color> Color11 = new(Group, "Color 11", "Section palette color 11.", new Color(0.7f, 0.45f, 0.9f), false);
-            internal static readonly ConfigInfo<Color> Color12 = new(Group, "Color 12", "Section palette color 12.", new Color(1f, 0.45f, 0.7f), false);
+            internal static readonly ConfigInfo<Color> Color1 = new(Group, "Color 1", "Section palette color 1.", new Color(0.8f, 0.8f, 0.8f), false) { IsAdvanced = true };
+            internal static readonly ConfigInfo<Color> Color2 = new(Group, "Color 2", "Section palette color 2.", Color.white, false) { IsAdvanced = true };
+            internal static readonly ConfigInfo<Color> Color3 = new(Group, "Color 3", "Section palette color 3.", new Color(0.95f, 0.25f, 0.2f), false) { IsAdvanced = true };
+            internal static readonly ConfigInfo<Color> Color4 = new(Group, "Color 4", "Section palette color 4.", new Color(1f, 0.5f, 0.15f), false) { IsAdvanced = true };
+            internal static readonly ConfigInfo<Color> Color5 = new(Group, "Color 5", "Section palette color 5.", new Color(1f, 0.82f, 0.3f), false) { IsAdvanced = true };
+            internal static readonly ConfigInfo<Color> Color6 = new(Group, "Color 6", "Section palette color 6.", new Color(0.65f, 0.85f, 0.25f), false) { IsAdvanced = true };
+            internal static readonly ConfigInfo<Color> Color7 = new(Group, "Color 7", "Section palette color 7.", new Color(0.25f, 0.75f, 0.35f), false) { IsAdvanced = true };
+            internal static readonly ConfigInfo<Color> Color8 = new(Group, "Color 8", "Section palette color 8.", new Color(0.25f, 0.8f, 0.7f), false) { IsAdvanced = true };
+            internal static readonly ConfigInfo<Color> Color9 = new(Group, "Color 9", "Section palette color 9.", new Color(0.25f, 0.75f, 1f), false) { IsAdvanced = true };
+            internal static readonly ConfigInfo<Color> Color10 = new(Group, "Color 10", "Section palette color 10.", new Color(0.35f, 0.45f, 1f), false) { IsAdvanced = true };
+            internal static readonly ConfigInfo<Color> Color11 = new(Group, "Color 11", "Section palette color 11.", new Color(0.7f, 0.45f, 0.9f), false) { IsAdvanced = true };
+            internal static readonly ConfigInfo<Color> Color12 = new(Group, "Color 12", "Section palette color 12.", new Color(1f, 0.45f, 0.7f), false) { IsAdvanced = true };
             internal static readonly ConfigInfo<Color>[] Colors =
             [Color1, Color2, Color3, Color4, Color5, Color6, Color7, Color8, Color9, Color10, Color11, Color12];
 
@@ -244,7 +244,7 @@ internal static class Constants
                 "Unassigned Section Color ID",
                 new ConfigDescription("Palette color ID for the Unassigned section.", new AcceptableValueRange<int>(Color1Id, Color12Id)),
                 Color1Id,
-                false);
+                false) { IsAdvanced = true };
         }
 
         internal static class MobHighlight
@@ -306,7 +306,7 @@ internal static class Constants
             internal static readonly ConfigInfo<Toggle> PrefabEditorShortcutEnabled = new(
                 Group, "Enable Prefab Editor Shortcut",
                 "Enable the Prefab Editor Shortcut.",
-                Toggle.On, false);
+                Toggle.On, false) { IsAdvanced = true };
         }
 
         internal static class PlayerHighlight
@@ -348,7 +348,7 @@ internal static class Constants
                     "Maximum depth in meters below the water surface at which objects can be pinged. Deeper targets ping the water surface instead.",
                     new AcceptableValueRange<float>(0f, 100f)),
                 10f,
-                false);
+                false) { IsAdvanced = true };
         }
 
         internal static class PingTargets

@@ -59,10 +59,9 @@ internal static class PluginConfig
     {
         ConfigOptions.Initialize(config, configSync);
 
+        Enabled = ConfigOptions.Config(General.Enabled);
         _serverConfigLocked = ConfigOptions.Config(General.Lock);
         configSync.AddLockingConfigEntry(_serverConfigLocked);
-
-        Enabled = ConfigOptions.Config(General.Enabled);
         RefreshInterval = ConfigOptions.Config(General.RefreshInterval);
         PingCooldown = ConfigOptions.Config(General.PingCooldown);
         ZPingBroadcastDistance = ConfigOptions.Config(General.ZPingBroadcastDistance);

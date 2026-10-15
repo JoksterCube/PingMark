@@ -9,6 +9,8 @@ internal sealed class ConfigInfo<T>
     internal ConfigDescription Description { get; }
     internal T DefaultValue { get; }
     internal bool Synchronized { get; }
+    // Hidden behind "Advanced settings" in Configuration Manager.
+    internal bool IsAdvanced { get; set; }
 
     internal ConfigInfo(string group, string name, string description, T defaultValue, bool synchronized = true) :
         this(group, name, new ConfigDescription(description), defaultValue, synchronized)
