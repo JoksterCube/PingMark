@@ -85,10 +85,14 @@ internal static class MobHighlightNamePatch
                     playerLabelObject.name = $"{name.gameObject.name} PingMark";
                     TMP_Text playerLabel = playerLabelObject.GetComponent<TMP_Text>();
                     RectTransform playerRect = playerLabel.rectTransform;
-                    TMP_Text styleSource = PingMarkLabels.MapLabelTemplate ?? name;
+                    TMP_Text styleSource = PingMarkLabels.StyleSource(name);
                     float lineHeight = styleSource.GetPreferredValues("Mg").y;
                     List<(Transform Transform, Vector3 Position)> markers = [];
-                    Transform?[] markerTransforms = [entry.Value.m_alerted?.transform, entry.Value.m_aware?.transform];
+                    Transform?[] markerTransforms =
+                    [
+                        entry.Value.m_alerted ? entry.Value.m_alerted.transform : null,
+                        entry.Value.m_aware ? entry.Value.m_aware.transform : null
+                    ];
                     foreach (Transform? marker in markerTransforms)
                     {
                         if (!marker) continue;
@@ -171,7 +175,7 @@ internal static class MobHighlightNamePatch
 
     private static void UpdateLabelStyle(TMP_Text name, TMP_Text label)
     {
-        TMP_Text source = PingMarkLabels.MapLabelTemplate ?? name;
+        TMP_Text source = PingMarkLabels.StyleSource(name);
         var style = (label, PingMarkLabels.MapFont, source.fontSize, source.enableAutoSizing,
             source.fontSizeMin, source.fontSizeMax, source.fontStyle, source.lineSpacing,
             source.characterSpacing, source.wordSpacing, source.paragraphSpacing, name.rectTransform.rect.width);

@@ -21,8 +21,9 @@ internal static class PingWorldTextRefreshPatch
 
         if (!_mapFont && Minimap.instance && PinNamePrefabField.GetValue(Minimap.instance) is GameObject pinNamePrefab && pinNamePrefab)
         {
-            PingMarkLabels.MapLabelTemplate = pinNamePrefab.GetComponentInChildren<TMP_Text>(true);
-            _mapFont = PingMarkLabels.MapLabelTemplate?.font;
+            TMP_Text template = pinNamePrefab.GetComponentInChildren<TMP_Text>(true);
+            PingMarkLabels.MapLabelTemplate = template;
+            _mapFont = template ? template.font : null;
         }
         PingMarkLabels.MapFont = _mapFont;
 
@@ -36,7 +37,6 @@ internal static class PingWorldTextRefreshPatch
                 ? outlineColor
                 : PingColor.Value;
             if (label.color != color) label.color = color;
-            PingMarkLabels.MapLabelTemplate = label;
         }
 
         Player localPlayer = Player.m_localPlayer;

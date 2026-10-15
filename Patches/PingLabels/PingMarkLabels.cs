@@ -18,6 +18,9 @@ internal static class PingMarkLabels
     internal static TMP_FontAsset? MapFont { get; set; }
     internal static TMP_Text? MapLabelTemplate { get; set; }
 
+    // Unity-aware fallback: `??` would return a destroyed template instead of the fallback.
+    internal static TMP_Text StyleSource(TMP_Text fallback) => MapLabelTemplate ? MapLabelTemplate! : fallback;
+
     internal static string Get(Chat.WorldTextInstance worldText, Player localPlayer)
     {
         if (!Cache.TryGetValue(worldText, out string label))
@@ -36,7 +39,7 @@ internal static class PingMarkLabels
         Cache.Clear();
         foreach (Chat.WorldTextInstance worldText in worldTexts)
         {
-            if (worldText.m_type == Talker.Type.Ping)
+            if (worldText.m_type == Talker.Type.Ping && worldText.m_textMeshField)
                 worldText.m_textMeshField.text = Get(worldText, localPlayer);
         }
     }
