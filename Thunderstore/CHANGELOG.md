@@ -1,5 +1,6 @@
 | Version | Update Notes |
 |----------|---------------|
+| **1.1.8** | - Removed unused code and stale build-script leftovers. No gameplay changes. |
 | **1.1.7** | - World ping anchoring and label refresh now run in one fixed order, so distances are always measured from the anchored position. |
 | **1.1.6** | - The mod's menu drawing now runs only while the Prefab Collections menu is open, removing per-frame UI overhead during normal play. |
 | **1.1.5** | - Faster object ID lookups when pinging and when loading the Prefab Collections menu. |

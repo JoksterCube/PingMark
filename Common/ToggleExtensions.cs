@@ -15,6 +15,4 @@ internal static class ToggleExtensions
     internal static bool IsOn(this Toggle toggle) => toggle == Toggle.On;
 
     internal static bool IsOn(this ConfigEntry<Toggle> toggleConfig) => toggleConfig.Value.IsOn();
-
-    internal static Toggle ToToggle(this bool value) => value ? Toggle.On : Toggle.Off;
 }

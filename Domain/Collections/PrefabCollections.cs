@@ -10,11 +10,6 @@ internal sealed class PrefabCollections
     private readonly Stack<(string Name, int Source)[]> _undo = new();
     private readonly List<HashSet<string>> _collections = [new(StringComparer.OrdinalIgnoreCase)];
 
-    internal PrefabCollections(IEnumerable<string> available, string valuables, string locations, string useful)
-        : this(available, [valuables, locations, useful])
-    {
-    }
-
     internal PrefabCollections(IEnumerable<string> available, IEnumerable<PrefabCollectionSection> sections)
         : this(available, sections.Select(section => section.Prefabs))
     {

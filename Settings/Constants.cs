@@ -9,7 +9,7 @@ internal static class Constants
     internal static class Plugin
     {
         internal const string ModName = "PingMark";
-        internal const string ModVersion = "1.1.7";
+        internal const string ModVersion = "1.1.8";
         internal const string Author = "JoksterCube";
         internal const string ModGUID = $"{Author}.{ModName}";
         internal const string Description = "Mark loot, creatures, and locations with named pings, colored outlines, and live distances. Share discoveries with your party.";
@@ -394,10 +394,6 @@ internal static class Constants
                 "Temporarily highlight pinged players instead of sending a ground ping. Player nameplates show distance when Show Distance is on.",
                 Toggle.Off,
                 true);
-
-            internal static readonly ConfigInfo<float> PlayerHighlightDuration = PlayerHighlight.Duration;
-
-            internal static readonly ConfigInfo<Toggle> HideOwnPlayerOutline = PlayerHighlight.HideOwnOutline;
 
             internal static readonly ConfigInfo<Toggle> OthersEnabled = new(
                 Group,
