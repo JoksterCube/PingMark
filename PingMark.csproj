@@ -136,6 +136,9 @@
     <Compile Include="Domain\Models\SerializedSections.cs" />
     <Compile Include="Domain\Models\PingTarget.cs" />
     <Compile Include="Domain\Networking\ZPingNetwork.cs" />
+    <Compile Include="Domain\Networking\PingRateLimiter.cs" />
+    <Compile Include="Domain\SessionState.cs" />
+    <Compile Include="Patches\Session\SessionResetPatch.cs" />
     <Compile Include="Domain\PingTargets\MobTargeting.cs" />
     <Compile Include="Domain\PingTargets\PingTargetResolver.cs" />
     <Compile Include="Domain\InputManager.cs" />

@@ -18,6 +18,14 @@ internal static class MobTargeting
     private static PingTarget? _pendingGroundPingTarget;
     private static float? _lastPingTime;
 
+    internal static void Clear()
+    {
+        _pendingGroundPing = null;
+        _pendingGroundPingName = null;
+        _pendingGroundPingTarget = null;
+        _lastPingTime = null;
+    }
+
     internal static void RegisterPendingGroundPing(Vector3 position, string? targetName = null, PingTarget? target = null)
     {
         _pendingGroundPing = position;

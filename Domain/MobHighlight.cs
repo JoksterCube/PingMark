@@ -15,7 +15,6 @@ internal static class MobHighlight
     private static readonly List<ZDOID> Expired = [];
     private static readonly List<long> ExpiredPlayers = [];
     private static long _nextOrder;
-    private static ZRoutedRpc? _registeredRpc;
     private static int _indexedFrame = -1;
     private static int _indexedLimit;
     private static bool _indexedMobsEnabled;
@@ -23,26 +22,22 @@ internal static class MobHighlight
 
     internal static void Update()
     {
-        ZRoutedRpc? rpc = ZRoutedRpc.instance;
-        if (rpc != _registeredRpc)
-        {
-            Highlights.Clear();
-            ActiveHighlights.Clear();
-            _indexedFrame = -1;
-            _registeredRpc = rpc;
-        }
-
         if (!Enabled.IsOn() || !Player.m_localPlayer || (!MobHighlightEnabled.IsOn() && !PlayersEnabled.IsOn()))
         {
-            Highlights.Clear();
-            ActiveHighlights.Clear();
-            _indexedFrame = -1;
+            Clear();
             return;
         }
 
         if (_indexedFrame != Time.frameCount || _indexedLimit != MaxHighlightedMobs.Value
             || _indexedMobsEnabled != MobHighlightEnabled.IsOn() || _indexedPlayersEnabled != PlayersEnabled.IsOn())
             Trim();
+    }
+
+    internal static void Clear()
+    {
+        Highlights.Clear();
+        ActiveHighlights.Clear();
+        _indexedFrame = -1;
     }
 
     internal static void Mark(Character character)

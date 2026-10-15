@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using HarmonyLib;
 using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Common.Networking;
@@ -15,10 +14,6 @@ internal static class ZPingServerRoutingPatch
 {
     // Generous for a location name; anything larger is dropped instead of being forwarded to every peer.
     private const int MaxPackageSize = 1024;
-    private const float RateCapacity = 10f;
-    private const float RatePerSecond = 4f;
-
-    private static readonly Dictionary<long, (float Tokens, float Time)> RateLimits = [];
 
     private static bool Prefix(ZRoutedRpc.RoutedRPCData rpcData)
     {
@@ -37,7 +32,7 @@ internal static class ZPingServerRoutingPatch
             && rpcData.m_methodHash != ZPingNetwork.MobRpc.GetStableHashCode()
             && rpcData.m_methodHash != ZPingNetwork.PlayerRpc.GetStableHashCode()) return true;
 
-        if (rpcData.m_parameters.Size() > MaxPackageSize || !TryConsumeRate(rpcData.m_senderPeerID)) return false;
+        if (rpcData.m_parameters.Size() > MaxPackageSize || !PingRateLimiter.TryConsume(rpcData.m_senderPeerID)) return false;
 
         Vector3 origin;
         try
@@ -68,8 +63,6 @@ internal static class ZPingServerRoutingPatch
         return false;
     }
 
-    internal static void ForgetPeer(long peerId) => RateLimits.Remove(peerId);
-
     private static bool TryReadFallbackMarker(ZPackage parameters, out bool isFallback)
     {
         isFallback = false;
@@ -93,15 +86,5 @@ internal static class ZPingServerRoutingPatch
         {
             parameters.SetPos(0);
         }
-    }
-
-    private static bool TryConsumeRate(long senderId)
-    {
-        float now = Time.realtimeSinceStartup;
-        (float tokens, float time) = RateLimits.TryGetValue(senderId, out var state) ? state : (RateCapacity, now);
-        tokens = Mathf.Min(RateCapacity, tokens + (now - time) * RatePerSecond);
-        bool allowed = tokens >= 1f;
-        RateLimits[senderId] = (allowed ? tokens - 1f : tokens, now);
-        return allowed;
     }
 }

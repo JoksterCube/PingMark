@@ -92,6 +92,13 @@ internal static class OutlineManager
         ExistingPings.Clear();
     }
 
+    internal static void ClearSession()
+    {
+        PingTargets.Clear();
+        RendererCaches.Clear();
+        ActiveOutlineTargets.Clear();
+    }
+
     internal static void Dispose()
     {
         Camera.onPreRender -= OnPreRender;

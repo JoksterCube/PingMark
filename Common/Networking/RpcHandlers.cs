@@ -34,6 +34,12 @@ internal static class RpcHandlers
         PrefabCollectionStore.ResetServerValue();
     }
 
+    internal static void ClearSession()
+    {
+        ValidatedPeers.Clear();
+        ResetServerVersionCheck();
+    }
+
     internal static void ResetServerVersionCheck()
     {
         _waitingForServerVersion = false;

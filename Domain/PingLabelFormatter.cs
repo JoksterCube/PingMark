@@ -29,6 +29,8 @@ internal static class PingLabelFormatter
 
     internal static void Invalidate(Chat.WorldTextInstance worldText) => Cache.Remove(worldText);
 
+    internal static void Clear() => Cache.Clear();
+
     internal static void Tick(float dt, List<Chat.WorldTextInstance> worldTexts, Player localPlayer)
     {
         _timer += dt;

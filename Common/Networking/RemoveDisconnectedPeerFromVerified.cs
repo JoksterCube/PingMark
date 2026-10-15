@@ -14,6 +14,6 @@ internal static class RemoveDisconnectedPeerFromVerified
         }
         Plugin.ModLogger.LogInfo($"Peer ({peer.m_rpc.GetPeerHostName()}) disconnected, removing from validated list");
         _ = RpcHandlers.ValidatedPeers.Remove(peer.m_rpc);
-        Patches.ZPing.ZPingServerRoutingPatch.ForgetPeer(peer.m_uid);
+        Domain.Networking.PingRateLimiter.Forget(peer.m_uid);
     }
 }
