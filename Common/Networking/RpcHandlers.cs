@@ -50,6 +50,8 @@ internal static class RpcHandlers
     internal static void RPC_VersionCheck(ZRpc rpc, ZPackage pkg)
     {
         string version = pkg.ReadString();
+        // Releases before the protocol number only sent their mod version; treat them as protocol 1.
+        int protocol = pkg.GetPos() < pkg.Size() ? pkg.ReadInt() : 1;
         var instance = ZNet.instance;
         if (!instance) return;
 
@@ -57,17 +59,17 @@ internal static class RpcHandlers
         if (!isServer)
             _serverVersionReceived = true;
 
-        Plugin.ModLogger.LogInfo($"Version check, local: {ModVersion},  remote: {version}");
-        if (version != ModVersion)
+        Plugin.ModLogger.LogInfo($"Version check, local: {ModVersion} (protocol {ProtocolVersion}), remote: {version} (protocol {protocol})");
+        if (protocol != ProtocolVersion)
         {
-            Plugin.ConnectionError = $"{ModName} Installed: {ModVersion}\n Needed: {version}";
+            Plugin.ConnectionError = $"{ModName} Installed: {ModVersion}\n Needed: {version} or another compatible version";
             if (!isServer) return;
             Plugin.ModLogger.LogWarning($"Peer ({rpc.GetPeerHostName()}) has incompatible version, disconnecting...");
             rpc.Invoke("Error", 3);
         }
         else if (!isServer)
         {
-            Plugin.ModLogger.LogInfo("Received same version from server!");
+            Plugin.ModLogger.LogInfo("Server uses a compatible PingMark version.");
         }
         else
         {

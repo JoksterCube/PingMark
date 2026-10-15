@@ -83,7 +83,7 @@ Installing on the server is **optional**. It syncs settings, filters ping range 
 - ✅ Works in single-player and on servers **without** PingMark.
 - ✅ Players **without** the mod can join. They see ordinary pings (no names, outlines or highlights).
 - 📏 Z pings reach players within **200 m of you** by default. Map pings stay global.
-- ⚠️ On a PingMark server, every modded player needs the **same version** as the server.
+- ⚠️ On a PingMark server, modded players need a **compatible version**. Updates only require everyone to update when the network format changes (noted in the changelog).
 
 ---
 
@@ -198,5 +198,5 @@ Report bugs or suggest improvements on [GitHub](https://github.com/JoksterCube/P
 ---
 
 **Author:** JoksterCube<br>
-**Version:** 1.1.16<br>
+**Version:** 1.1.17<br>
 **License:** MIT

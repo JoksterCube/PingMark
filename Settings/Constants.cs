@@ -9,7 +9,11 @@ internal static class Constants
     internal static class Plugin
     {
         internal const string ModName = "PingMark";
-        internal const string ModVersion = "1.1.16";
+        internal const string ModVersion = "1.1.17";
+        // Bump ProtocolVersion only when RPCs or synced data formats change, and set
+        // MinimumCompatibleVersion to the first release with that protocol. Other releases stay compatible.
+        internal const int ProtocolVersion = 2;
+        internal const string MinimumCompatibleVersion = "1.1.17";
         internal const string Author = "JoksterCube";
         internal const string ModGUID = $"{Author}.{ModName}";
         internal const string Description = "Mark loot, creatures, and locations with named pings, colored outlines, and live distances. Share discoveries with your party.";

@@ -24,7 +24,7 @@ public class Plugin : BaseUnityPlugin
     {
         DisplayName = ModName,
         CurrentVersion = ModVersion,
-        MinimumRequiredVersion = ModVersion
+        MinimumRequiredVersion = MinimumCompatibleVersion
     };
 
     internal static bool InitialConfigSyncDone => ConfigSync.InitialSyncDone;

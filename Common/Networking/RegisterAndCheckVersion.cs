@@ -21,6 +21,7 @@ internal static class RegisterAndCheckVersion
         Plugin.ModLogger.LogInfo("Invoking version check");
         ZPackage zpackage = new();
         zpackage.Write(ModVersion);
+        zpackage.Write(ProtocolVersion);
         peer.m_rpc.Invoke($"{ModName}_VersionCheck", zpackage);
     }
 }
