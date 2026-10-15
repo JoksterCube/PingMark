@@ -78,6 +78,8 @@ internal static class PrefabCollectionEditor
     private static string _original = string.Empty;
     private static string _initialStaged = string.Empty;
     private static string _staged = string.Empty;
+    private static bool _stagedDirty;
+    private static readonly Dictionary<string, float> RowWidths = new(StringComparer.Ordinal);
     private static string _search = string.Empty;
     private static string _status = string.Empty;
     private static int _openColorPicker = -1;
@@ -193,14 +195,14 @@ internal static class PrefabCollectionEditor
         string[] names = classifier.Names();
         _collections = new PrefabCollections(names, _sections);
         yield return names.Length;
-        Refresh(false);
+        Refresh(updateWidths: false);
         for (int index = 0; index < _collections!.CollectionCount; index++)
         {
             ColumnWidths[index] = DefaultColumnWidth;
             foreach (string name in Visible[index])
             {
                 if (_row != null)
-                    ColumnWidths[index] = Mathf.Max(ColumnWidths[index], _row.CalcSize(new GUIContent(name)).x + ColumnTextPadding);
+                    ColumnWidths[index] = Mathf.Max(ColumnWidths[index], RowWidth(name));
                 yield return names.Length;
             }
         }
@@ -255,7 +257,7 @@ internal static class PrefabCollectionEditor
                 _search = search;
                 Selected.Clear();
                 ResetScrollPositions();
-                Refresh();
+                Refresh(contentChanged: false);
             }
             if (Button(new Rect(946, 64, 230, 32), new GUIContent("Select Visible")))
                 foreach (string[] column in Visible)
@@ -265,7 +267,7 @@ internal static class PrefabCollectionEditor
             {
                 Selected.Clear();
                 ResetScrollPositions();
-                Refresh();
+                Refresh(contentChanged: false);
             }
 
             DrawColumn(0, 292, true);
@@ -333,14 +335,14 @@ internal static class PrefabCollectionEditor
             if (name != section.Name)
             {
                 section.Name = name;
-                _staged = StagedConfig();
+                _stagedDirty = true;
             }
             bool enabled = GUI.Toggle(new Rect(left + 8, 142 + yOffset, 20, 18), section.Enabled,
                 new GUIContent(string.Empty, $"Enable {section.Name}"));
             if (enabled != section.Enabled)
             {
                 section.Enabled = enabled;
-                _staged = StagedConfig();
+                _stagedDirty = true;
             }
         }
         Rect colorButton = new(left + (unassigned ? 178 : 150), 116 + yOffset, 28, 24);
@@ -505,7 +507,7 @@ internal static class PrefabCollectionEditor
                 if (PrefabCollectionEditorUI.ColorSwatch(panel, option).Contains(current.mousePosition))
                 {
                     SetColumnColor(index, option + SectionColorPalette.Color1Id);
-                    _staged = StagedConfig();
+                    _stagedDirty = true;
                     _openColorPicker = -1;
                     break;
                 }
@@ -553,7 +555,21 @@ internal static class PrefabCollectionEditor
         _collectionScroll = Vector2.zero;
     }
 
-    private static bool HasPendingChanges() => _initialStaged != _staged || _unassignedColorId != _initialUnassignedColorId;
+    private static bool HasPendingChanges() => _initialStaged != Staged || _unassignedColorId != _initialUnassignedColorId;
+
+    // Serialized lazily: HasPendingChanges runs for every IMGUI event, mutations only flag the change.
+    private static string Staged
+    {
+        get
+        {
+            if (_stagedDirty)
+            {
+                _staged = StagedConfig();
+                _stagedDirty = false;
+            }
+            return _staged;
+        }
+    }
 
     private static void SaveHeaderColors()
     {
@@ -569,6 +585,7 @@ internal static class PrefabCollectionEditor
             return;
         }
         if (!ValidateSectionNames()) return;
+        StagedConfig();
         bool saveOnSet = plugin.Config.SaveOnConfigSet;
         try
         {
@@ -614,13 +631,13 @@ internal static class PrefabCollectionEditor
         return true;
     }
 
-    private static void Refresh(bool updateWidths = true)
+    private static void Refresh(bool contentChanged = true, bool updateWidths = true)
     {
         if (_collections == null) return;
         EnsureColumnState();
         for (int index = 0; index < _collections.CollectionCount; index++)
             Visible[index] = _collections.Names(index, _search).Where(name => _filter.Includes(name, _hiddenKinds, _onlyKinds)).ToArray();
-        _staged = StagedConfig();
+        if (contentChanged) _stagedDirty = true;
         if (updateWidths) UpdateColumnWidths();
     }
 
@@ -631,9 +648,16 @@ internal static class PrefabCollectionEditor
         {
             float width = DefaultColumnWidth;
             foreach (string name in Visible[index])
-                width = Mathf.Max(width, _row.CalcSize(new GUIContent(name)).x + ColumnTextPadding);
+                width = Mathf.Max(width, RowWidth(name));
             ColumnWidths[index] = width;
         }
+    }
+
+    private static float RowWidth(string name)
+    {
+        if (!RowWidths.TryGetValue(name, out float width))
+            RowWidths[name] = width = _row!.CalcSize(new GUIContent(name)).x + ColumnTextPadding;
+        return width;
     }
 
     private static void EnsureStyles()
@@ -647,6 +671,7 @@ internal static class PrefabCollectionEditor
         _title = new GUIStyle(_text) { fontSize = 22 };
         _count = new GUIStyle(_text) { fontSize = 12 };
         _count.normal.textColor = new Color(0.72f, 0.72f, 0.65f);
+        RowWidths.Clear();
         _row = new GUIStyle(_text) { fontSize = 14, wordWrap = false, clipping = TextClipping.Clip, padding = new RectOffset(6, 6, 0, 0) };
         _row.hover.textColor = Color.white;
         _button = new GUIStyle(GUI.skin.button) { font = _text.font, fontSize = 14, wordWrap = false, clipping = TextClipping.Clip };
