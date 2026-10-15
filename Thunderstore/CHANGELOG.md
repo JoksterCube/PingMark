@@ -1,5 +1,6 @@
 | Version | Update Notes |
 |----------|---------------|
+| **1.0.14** | - Removing a section in the Prefab Collections menu can now be undone, and Undo no longer discards a removal after an auto sort. |
 | **1.0.13** | - Fixed digits being removed from translated target names. Only raw prefab IDs are reformatted. |
 | **1.0.12** | - Ping target names from other players are now shown in your own game language when the target is loaded nearby. |
 | **1.0.11** | - Fixed the Unassigned section color not being saved for admins editing collections on a remote server. |

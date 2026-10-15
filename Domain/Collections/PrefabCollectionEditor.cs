@@ -86,7 +86,7 @@ internal static class PrefabCollectionEditor
     private static int _initialUnassignedColorId;
     private static bool _showClosePrompt;
     private static bool _showAutoSortPrompt;
-    private static readonly Stack<(PrefabCollections Collections, List<PrefabCollectionSection> Sections)> AutoSortUndo = new();
+    private static readonly Stack<(PrefabCollections Collections, List<PrefabCollectionSection> Sections)> SnapshotUndo = new();
     private static int _closedFrame = -1;
     private static GUIStyle? _text;
     private static GUIStyle? _title;
@@ -117,7 +117,7 @@ internal static class PrefabCollectionEditor
         _openColorPicker = -1;
         _showClosePrompt = false;
         _showAutoSortPrompt = false;
-        AutoSortUndo.Clear();
+        SnapshotUndo.Clear();
         LoadHeaderColors();
         _collectionScroll = Vector2.zero;
         ResetColumnState();
@@ -143,7 +143,7 @@ internal static class PrefabCollectionEditor
         Selected.Clear();
         _showClosePrompt = false;
         _showAutoSortPrompt = false;
-        AutoSortUndo.Clear();
+        SnapshotUndo.Clear();
         _closedFrame = Time.frameCount;
     }
 
@@ -283,13 +283,13 @@ internal static class PrefabCollectionEditor
                 Selected.Clear();
             GUI.enabled = previousEnabled && !_showClosePrompt && !_showAutoSortPrompt;
             Label(new Rect(24, 656, 1152, 26), _status.Length > 0 ? _status : GUI.tooltip, _text);
-            GUI.enabled = previousEnabled && _loading == null && (_collections?.CanUndo == true || AutoSortUndo.Count > 0)
+            GUI.enabled = previousEnabled && _loading == null && (_collections?.CanUndo == true || SnapshotUndo.Count > 0)
                 && !_showClosePrompt && !_showAutoSortPrompt;
-            if (Button(new Rect(708, 690, 156, 34), new GUIContent("Undo", "Undo last move")))
+            if (Button(new Rect(708, 690, 156, 34), new GUIContent("Undo", "Undo the last move, removal or auto sort")))
             {
-                if (_collections?.Undo() != true && AutoSortUndo.Count > 0)
+                if (_collections?.Undo() != true && SnapshotUndo.Count > 0)
                 {
-                    (_collections, _sections) = AutoSortUndo.Pop();
+                    (_collections, _sections) = SnapshotUndo.Pop();
                     _openColorPicker = -1;
                     ResetColumnState();
                     ResetScrollPositions();
@@ -357,6 +357,8 @@ internal static class PrefabCollectionEditor
         GUI.enabled = wasEnabled;
         if (removeSection)
         {
+            // Removal shifts section indexes and clears move history, so undo it via a full snapshot.
+            SnapshotUndo.Push((_collections.Clone(), _sections.Select(section => section.Copy()).ToList()));
             _sections.RemoveAt(index - 1);
             _collections.RemoveSection(index);
             Selected.Clear();
@@ -413,7 +415,7 @@ internal static class PrefabCollectionEditor
             .SelectMany(index => _collections.Names(index, string.Empty)).ToArray();
         List<PrefabCollectionSection> sections = PrefabAutoSort.CreateSections(names, _filter);
         PrefabCollections collections = new(names, sections);
-        AutoSortUndo.Push((_collections, _sections));
+        SnapshotUndo.Push((_collections, _sections));
         _sections = sections;
         _collections = collections;
         _showAutoSortPrompt = false;

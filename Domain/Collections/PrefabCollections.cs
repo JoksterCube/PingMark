@@ -37,6 +37,17 @@ internal sealed class PrefabCollections
                 _collections[0].Add(name);
     }
 
+    private PrefabCollections(PrefabCollections source)
+    {
+        _collections.Clear();
+        foreach (HashSet<string> collection in source._collections)
+            _collections.Add(new(collection, StringComparer.OrdinalIgnoreCase));
+        foreach ((string Name, int Source)[] changes in source._undo.Reverse())
+            _undo.Push(changes);
+    }
+
+    internal PrefabCollections Clone() => new(this);
+
     internal string[] Names(int collection, string search) => _collections[collection]
         .Where(name => name.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0)
         .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
