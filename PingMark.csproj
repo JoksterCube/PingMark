@@ -153,10 +153,9 @@
     <Compile Include="Patches\PingLabels\PingMapLabelPatch.cs" />
     <Compile Include="Patches\PingLabels\PingMarkLabels.cs" />
     <Compile Include="Patches\PingLabels\PingWorldTextLabelPatch.cs" />
-    <Compile Include="Patches\PingLabels\PingWorldTextRefreshPatch.cs" />
+    <Compile Include="Patches\PingLabels\WorldTextsUpdatePatch.cs" />
     <Compile Include="Patches\GroundPing\GroundPingAddLabelPatch.cs" />
     <Compile Include="Patches\GroundPing\GroundPingLabelAnchors.cs" />
-    <Compile Include="Patches\GroundPing\GroundPingUpdateLabelPatch.cs" />
     <Compile Include="Patches\MobHighlight\MobHighlightNamePatch.cs" />
     <Compile Include="Patches\MobHighlight\MobHighlightVisibilityPatch.cs" />
     <Compile Include="Patches\PrefabEditor\PrefabEditorActivePatch.cs" />
