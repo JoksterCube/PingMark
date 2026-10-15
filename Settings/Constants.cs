@@ -97,7 +97,7 @@ internal static class Constants
                 "Debug Ping Names",
                 "Show all names found on the hit object (prefab ID, location ID, hover, piece, etc.) in a top-left message when camera pinging.",
                 Toggle.Off,
-                false) { IsAdvanced = true };
+                false);
         }
 
         internal static class PingLabel
@@ -296,10 +296,13 @@ internal static class Constants
                 new KeyboardShortcut(KeyCode.P, KeyCode.RightControl, KeyCode.RightShift),
                 false);
 
-            internal static readonly ConfigInfo<KeyboardShortcut> MobHighlightShortcut = new(
+            // Called "Mob Highlight Shortcut" before 1.2.0; PluginConfig carries a customized value over.
+            internal const string LegacyPingShortcutName = "Mob Highlight Shortcut";
+
+            internal static readonly ConfigInfo<KeyboardShortcut> PingShortcut = new(
                 Group,
-                "Mob Highlight Shortcut",
-                "Temporarily highlight a mob or enabled player under the camera crosshair, or ping the aimed location otherwise.",
+                "Ping Shortcut",
+                "Ping what is under the camera crosshair: highlights a creature (or an enabled player), otherwise pings the aimed object or location.",
                 new KeyboardShortcut(KeyCode.Z),
                 false);
 

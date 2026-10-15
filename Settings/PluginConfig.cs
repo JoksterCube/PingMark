@@ -52,7 +52,7 @@ internal static class PluginConfig
 
     internal static ConfigEntry<KeyboardShortcut> ToggleModShortcut = null!;
     internal static ConfigEntry<KeyboardShortcut> PrefabEditorShortcut = null!;
-    internal static ConfigEntry<KeyboardShortcut> MobHighlightShortcut = null!;
+    internal static ConfigEntry<KeyboardShortcut> PingShortcut = null!;
     internal static ConfigEntry<Toggle> PrefabEditorShortcutEnabled = null!;
 
     internal static void Build(ConfigFile config, ConfigSync configSync)
@@ -121,8 +121,18 @@ internal static class PluginConfig
 
         ToggleModShortcut = ConfigOptions.Config(Inputs.ToggleModShortcut);
         PrefabEditorShortcut = ConfigOptions.Config(Inputs.PrefabEditorShortcut);
-        MobHighlightShortcut = ConfigOptions.Config(Inputs.MobHighlightShortcut);
+        PingShortcut = ConfigOptions.Config(Inputs.PingShortcut);
+        MigrateRenamedShortcut(config);
         PrefabEditorShortcutEnabled = ConfigOptions.Config(Inputs.PrefabEditorShortcutEnabled);
+    }
+
+    // Keeps a player's custom key from the old "Mob Highlight Shortcut" entry and drops the old entry.
+    private static void MigrateRenamedShortcut(ConfigFile config)
+    {
+        ConfigEntry<KeyboardShortcut> legacy = config.Bind(Inputs.Group, Inputs.LegacyPingShortcutName, Inputs.PingShortcut.DefaultValue);
+        if (!legacy.Value.Equals(Inputs.PingShortcut.DefaultValue)) PingShortcut.Value = legacy.Value;
+        config.Remove(legacy.Definition);
+        config.Save();
     }
 
     internal static Color GetPrefabSectionColor(int colorId)

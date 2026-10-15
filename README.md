@@ -60,6 +60,7 @@ Decide which objects get a name and outline when pinged.
 
 - **Search and filter** every object and location in the game, including modded ones.
 - **Move** objects between colored sections, or add, rename and remove sections.
+- **Find an object's ID:** turn on **Debug Ping Names** (1 - General) and press **Z** on it; its IDs appear in the top-left corner.
 - **Auto Sort** rebuilds the default Valuables, Locations and Useful sections. **Undo** reverts changes, **Apply** saves them.
 
 > 🔒 On a server with PingMark, only admins can change collections, and the server checks every change. Collections are saved in `BepInEx/config/JoksterCube.PingMark.Collections.yml` and synced to all players.
@@ -182,7 +183,7 @@ Most players never need to change anything. These are the settings worth knowing
 
 | Setting | Default | Synced | What it does |
 | --- | --- | :---: | --- |
-| Mob Highlight Shortcut | Z | | Highlight or ping what you aim at. |
+| Ping Shortcut | Z | | Ping what you aim at, or highlight the creature you aim at. |
 | Toggle Mod Shortcut | Right Ctrl + P | | Turn PingMark on or off. |
 | Prefab Editor Shortcut | Right Ctrl + Right Shift + P | | Open the Prefab Collections menu. |
 | Enable Prefab Editor Shortcut | On | | Turn the menu shortcut on or off. |

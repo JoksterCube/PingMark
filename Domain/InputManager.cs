@@ -23,8 +23,8 @@ internal static class InputManager
             return;
         }
         bool togglePressed = ToggleModShortcut.Value.IsDown();
-        bool mobHighlightPressed = MobHighlightShortcut.Value.IsDown();
-        if (!togglePressed && !mobHighlightPressed) return;
+        bool pingPressed = PingShortcut.Value.IsDown();
+        if (!togglePressed && !pingPressed) return;
 
         if (togglePressed)
         {
@@ -32,7 +32,7 @@ internal static class InputManager
             return;
         }
 
-        if (!Enabled.IsOn() || !mobHighlightPressed) return;
+        if (!Enabled.IsOn() || !pingPressed) return;
 
         MobTargeting.TryHighlight();
     }
