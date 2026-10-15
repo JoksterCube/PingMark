@@ -20,6 +20,8 @@
     <FileAlignment>512</FileAlignment>
     <LangVersion>14.0</LangVersion>
     <Nullable>enable</Nullable>
+    <!-- Required with publicized game assemblies: makes Mono skip access checks for private game members at runtime. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
