@@ -9,7 +9,7 @@ internal static class Constants
     internal static class Plugin
     {
         internal const string ModName = "PingMark";
-        internal const string ModVersion = "1.1.23";
+        internal const string ModVersion = "1.1.24";
         // Bump ProtocolVersion only when RPCs or synced data formats change, and set
         // MinimumCompatibleVersion to the first release with that protocol. Other releases stay compatible.
         internal const int ProtocolVersion = 3;

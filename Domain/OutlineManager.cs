@@ -43,6 +43,7 @@ internal static class OutlineManager
     private static Shader? _shader;
     private static Material? _clearMaterial;
     private static Material? _maskMaterial;
+    private static Mesh? _fullScreenQuad;
     private static bool _shaderMissing;
 
     private sealed class RendererCache
@@ -105,6 +106,7 @@ internal static class OutlineManager
         _buffer = null;
         if (_clearMaterial) Object.Destroy(_clearMaterial);
         if (_maskMaterial) Object.Destroy(_maskMaterial);
+        if (_fullScreenQuad) Object.Destroy(_fullScreenQuad);
         foreach (Material material in OutlineMaterials.Values)
             if (material) Object.Destroy(material);
         OutlineMaterials.Clear();
@@ -158,6 +160,10 @@ internal static class OutlineManager
         Matrix4x4 projection = camera.projectionMatrix;
         Vector2 pixel = new(2f * OutlineWidth.Value / camera.pixelWidth, 2f * OutlineWidth.Value / camera.pixelHeight);
 
+        // The deferred renderer also uses this stencil bit, so clear it once for the whole screen first.
+        _buffer!.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+        _buffer.DrawMesh(_fullScreenQuad!, Matrix4x4.identity, _clearMaterial!);
+
         if (drawPings && Chat.instance)
         {
             foreach (KeyValuePair<Chat.WorldTextInstance, PingTarget> entry in PingTargets)
@@ -199,10 +205,13 @@ internal static class OutlineManager
     {
         if (Targets.Count == 0) return;
 
-        DrawOffsets(_clearMaterial!, view, projection, pixel);
+        // Mask the target, draw the offset copies only outside the mask, then unmask the same pixels so the
+        // next target starts clean: 10 draws per renderer instead of clearing the expanded area 8 more times.
         _buffer!.SetViewProjectionMatrices(view, projection);
         DrawTargets(_maskMaterial!);
         DrawOffsets(GetOutlineMaterial(color), view, projection, pixel);
+        _buffer.SetViewProjectionMatrices(view, projection);
+        DrawTargets(_clearMaterial!);
     }
 
     private static void Attach(Camera camera)
@@ -299,7 +308,7 @@ internal static class OutlineManager
 
     private static bool EnsureMaterials()
     {
-        if (_clearMaterial && _maskMaterial) return true;
+        if (_clearMaterial && _maskMaterial && _fullScreenQuad) return true;
         if (_shaderMissing) return false;
 
         // UI/Default ships with every Unity build and exposes stencil, color mask and ZTest overrides.
@@ -313,6 +322,13 @@ internal static class OutlineManager
 
         _clearMaterial = CreateMaterial(CompareFunction.Always, StencilOp.Zero, false, Color.clear);
         _maskMaterial = CreateMaterial(CompareFunction.Always, StencilOp.Replace, false, Color.clear);
+        _fullScreenQuad = new Mesh
+        {
+            name = "PingMark Stencil Clear",
+            hideFlags = HideFlags.HideAndDontSave,
+            vertices = [new(-1f, -1f, 0f), new(-1f, 1f, 0f), new(1f, 1f, 0f), new(1f, -1f, 0f)],
+            triangles = [0, 1, 2, 0, 2, 3]
+        };
         return true;
     }
 
@@ -321,7 +337,7 @@ internal static class OutlineManager
         color.a = 1f;
         Color32 key = color;
         if (!OutlineMaterials.TryGetValue(key, out Material material) || !material)
-            OutlineMaterials[key] = material = CreateMaterial(CompareFunction.NotEqual, StencilOp.Replace, true, color);
+            OutlineMaterials[key] = material = CreateMaterial(CompareFunction.NotEqual, StencilOp.Keep, true, color);
         return material;
     }
 
