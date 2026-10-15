@@ -573,7 +573,9 @@ internal static class PrefabCollectionEditor
             plugin.Config.SaveOnConfigSet = false;
             PrefabCollectionSectionConfig.Save(_sections);
             SaveHeaderColors();
-            if (Plugin.IsPrefabConfigSource) plugin.Config.Save();
+            // ServerSync keeps server-provided values out of the local file, so saving is safe for remote admins
+            // and persists the local-only Unassigned color.
+            plugin.Config.Save();
         }
         catch (Exception exception)
         {

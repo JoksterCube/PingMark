@@ -1,5 +1,6 @@
 | Version | Update Notes |
 |----------|---------------|
+| **1.0.11** | - Fixed the Unassigned section color not being saved for admins editing collections on a remote server. |
 | **1.0.10** | - Fixed an old version-mismatch message appearing on later, unrelated connection failures. |
 | **1.0.9** | - Removed an unused admin-sync request that every connection sent to the server. |
 | **1.0.8** | - Without a modded server, recipients now also apply their own Z Ping Broadcast Distance, so a sender cannot force unlimited range. |

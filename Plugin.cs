@@ -29,7 +29,6 @@ public class Plugin : BaseUnityPlugin
 
     internal static bool InitialConfigSyncDone => ConfigSync.InitialSyncDone;
     internal static bool CanEditPrefabCollections => ConfigSync.IsSourceOfTruth || ConfigSync.IsAdmin;
-    internal static bool IsPrefabConfigSource => ConfigSync.IsSourceOfTruth;
 
     private readonly string ConfigFileFullPath = Paths.ConfigPath + Path.DirectorySeparatorChar + ConfigFileName;
 
