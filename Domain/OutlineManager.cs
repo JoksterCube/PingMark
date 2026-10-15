@@ -13,6 +13,10 @@ internal static class OutlineManager
     private const CameraEvent RenderEvent = CameraEvent.AfterForwardAlpha;
     private const int StencilBit = 64;
     private const float Diagonal = 0.70710678f;
+    // Every renderer is drawn 17 times per submesh, so very large targets (whole locations) are capped.
+    private const int MaxRenderersPerTarget = 128;
+    private const float RendererRefreshInterval = 1f;
+    private const float HierarchyCheckInterval = 0.25f;
 
     private static readonly int ColorId = Shader.PropertyToID("_Color");
 
@@ -49,6 +53,7 @@ internal static class OutlineManager
         internal readonly List<Transform> Transforms = [];
         internal readonly List<int> ChildCounts = [];
         internal float NextRefresh;
+        internal float NextHierarchyCheck;
     }
 
     internal static void Initialize() => Camera.onPreRender += OnPreRender;
@@ -202,6 +207,7 @@ internal static class OutlineManager
         RendererCache cache = GetRendererCache(target);
         foreach (Renderer renderer in cache.Renderers)
         {
+            if (Targets.Count >= MaxRenderersPerTarget) break;
             if (!renderer)
             {
                 cache.NextRefresh = 0f;
@@ -222,14 +228,18 @@ internal static class OutlineManager
         if (!RendererCaches.TryGetValue(target, out RendererCache cache))
             RendererCaches[target] = cache = new RendererCache();
 
-        bool refresh = cache.Transforms.Count == 0 || Time.unscaledTime >= cache.NextRefresh;
-        if (!refresh)
+        float now = Time.unscaledTime;
+        bool refresh = cache.Transforms.Count == 0 || now >= cache.NextRefresh;
+        if (!refresh && now >= cache.NextHierarchyCheck)
+        {
+            cache.NextHierarchyCheck = now + HierarchyCheckInterval;
             for (int index = 0; index < cache.Transforms.Count; index++)
                 if (!cache.Transforms[index] || cache.Transforms[index].childCount != cache.ChildCounts[index])
                 {
                     refresh = true;
                     break;
                 }
+        }
         if (!refresh) return cache;
 
         cache.Renderers.Clear();
@@ -238,7 +248,8 @@ internal static class OutlineManager
         target.GetComponentsInChildren(true, cache.Renderers);
         target.GetComponentsInChildren(true, cache.Transforms);
         foreach (Transform transform in cache.Transforms) cache.ChildCounts.Add(transform.childCount);
-        cache.NextRefresh = Time.unscaledTime + 1f;
+        cache.NextRefresh = now + RendererRefreshInterval;
+        cache.NextHierarchyCheck = now + HierarchyCheckInterval;
         return cache;
     }
 
