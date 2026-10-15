@@ -19,6 +19,7 @@ internal static class PrefabCollectionStore
     private static FileSystemWatcher? _watcher;
     private static string _localValue = string.Empty;
     private static string? _serverValue;
+    private static DateTime _lastFileWrite;
 
     private static bool UsesServerValue => RpcHandlers.ServerHasMod && ZNet.instance && !ZNet.instance.IsServer();
 
@@ -103,6 +104,10 @@ internal static class PrefabCollectionStore
 
     private static void OnFileChanged(object sender, FileSystemEventArgs e)
     {
+        // The watcher raises several events per save (including our own); handle each actual write once.
+        DateTime lastWrite = GetLastWrite();
+        if (lastWrite == _lastFileWrite) return;
+        _lastFileWrite = lastWrite;
         string value = ReadFile();
         if (value == _localValue) return;
         _localValue = value;
@@ -127,12 +132,15 @@ internal static class PrefabCollectionStore
         try
         {
             File.WriteAllText(FilePath, value);
+            _lastFileWrite = GetLastWrite();
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             Plugin.ModLogger.LogError($"Unable to save {CollectionsFileName}: {exception.Message}");
         }
     }
+
+    private static DateTime GetLastWrite() => File.Exists(FilePath) ? File.GetLastWriteTimeUtc(FilePath) : default;
 
     // Collections used to live in the main .cfg as a single synced entry; move them to their own file once.
     private static void MigrateFromConfig(ConfigFile config)
