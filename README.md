@@ -60,7 +60,7 @@ Decide which objects get a name and outline when pinged.
 
 - **Search and filter** every object and location in the game, including modded ones.
 - **Move** objects between colored sections, or add, rename and remove sections.
-- **Find an object's ID:** turn on **Debug Ping Names** (1 - General) and press **Z** on it; its IDs appear in the top-left corner.
+- **Find an object's ID:** turn on **Debug Ping Names** (1 - General, shown with Advanced settings in Configuration Manager) and press **Z** on it; its IDs appear in the top-left corner.
 - **Auto Sort** rebuilds the default Valuables, Locations and Useful sections. **Undo** reverts changes, **Apply** saves them.
 
 > 🔒 On a server with PingMark, only admins can change collections, and the server checks every change. Collections are saved in `BepInEx/config/JoksterCube.PingMark.Collections.yml` and synced to all players.
