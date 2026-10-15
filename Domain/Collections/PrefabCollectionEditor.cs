@@ -4,13 +4,10 @@ using System.Diagnostics;
 using System.Linq;
 using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Common.Networking;
-using JoksterCube.PingMark.Domain.Collections;
-using JoksterCube.PingMark.Domain.Enums;
 using JoksterCube.PingMark.Domain.Models;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using static JoksterCube.PingMark.Domain.Collections.PrefabCollectionEditorUI;
+using static JoksterCube.PingMark.Domain.Collections.PrefabEditorStyles;
 using static JoksterCube.PingMark.Settings.PluginConfig;
 using SectionColorPalette = JoksterCube.PingMark.Settings.Constants.Groups.PrefabCollections;
 
@@ -22,59 +19,12 @@ internal static class PrefabCollectionEditor
     private static readonly List<Vector2> Scroll = [];
     private static readonly List<string[]> Visible = [];
     private static readonly List<float> ColumnWidths = [];
-    private static readonly (PrefabBrowserKind Kind, string Text, string Tooltip)[] FilterOptions =
-    [
-        (PrefabBrowserKind.Buildable, "Buildable", "Prefabs registered in player build tables"),
-        (PrefabBrowserKind.Craftable, "Craftable", "Items produced by recipes in ObjectDB"),
-        (PrefabBrowserKind.Pickable, "Pickable", "World pickups such as plants, ore piles and treasures"),
-        (PrefabBrowserKind.Location, "Locations", "Whole world location prefabs from ZoneSystem and Location components"),
-        (PrefabBrowserKind.Dungeon, "Dungeons", "Interior locations, true dungeon generators and assets used by loaded dungeon rooms"),
-        (PrefabBrowserKind.DroppedItem, "Dropped items", "ItemDrop prefabs, including materials and equipment"),
-        (PrefabBrowserKind.Prop, "Props", "World pieces, item stands, feast furniture and referenced feast visuals"),
-        (PrefabBrowserKind.Stack, "Stacks", "Non-supporting bulk material pieces with a single material resource cost"),
-        (PrefabBrowserKind.Vehicle, "Vehicles", "Ships, carts, sleds and siege vehicles"),
-        (PrefabBrowserKind.Turret, "Turrets", "Turret components, including player-built and enemy ballistae"),
-        (PrefabBrowserKind.Portal, "Portals", "TeleportWorld and Teleport components, including derived mod components"),
-        (PrefabBrowserKind.Creature, "Creatures", "Character prefabs, including mobs and players"),
-        (PrefabBrowserKind.AmbientCreature, "Ambient creatures", "RandomFlyingBird and Fish components, including derived mod components"),
-        (PrefabBrowserKind.Ragdoll, "Ragdolls", "Ragdoll and corpse prefabs"),
-        (PrefabBrowserKind.Spawner, "Spawners", "Creature and loot spawners, nests, hatching eggs and spawning abilities"),
-        (PrefabBrowserKind.TriggerPoint, "Trigger points", "Trigger spawners, trigger abilities and grappling points"),
-        (PrefabBrowserKind.Projectile, "Projectiles", "Projectile and area attack components"),
-        (PrefabBrowserKind.Particle, "Particles", "Standalone particle effects, not particles embedded in persistent objects"),
-        (PrefabBrowserKind.VisualFx, "Visual FX", "Effect references, standalone particles, camera shake, animated effects and temporary renderers"),
-        (PrefabBrowserKind.Audio, "Audio", "Sound and music prefabs"),
-        (PrefabBrowserKind.Destruction, "Destruction stages", "Prefabs referenced as damaged or destroyed replacements"),
-        (PrefabBrowserKind.Fracture, "Fractures", "Multi-part MineRock5 models and referenced fragment prefabs"),
-        (PrefabBrowserKind.Lod, "LOD models", "Prefabs with LODGroup, fade, light LOD or terrain LOD components"),
-        (PrefabBrowserKind.Planting, "Planting stages", "Player crops, saplings and planted stumps"),
-        (PrefabBrowserKind.Seed, "Seeds / planting inputs", "Items consumed by Plant pieces, regardless of their prefab names"),
-        (PrefabBrowserKind.TerrainTool, "Terrain tools", "Cultivating, digging, raising ground and roads"),
-        (PrefabBrowserKind.SystemController, "System controllers", "Runtime proxies, environment volumes, internal controllers and standalone outdoor generators"),
-        (PrefabBrowserKind.Development, "Disabled / development", "Outputs of disabled recipes and disabled build-table pieces"),
-        (PrefabBrowserKind.PlayerDeath, "Player death", "Player tombstones"),
-        (PrefabBrowserKind.BossTrigger, "Boss triggers", "Boss summoning bowls and ritual sockets, not standalone event zones"),
-        (PrefabBrowserKind.Cinematic, "Cinematics", "Cinematic actors and helpers"),
-        (PrefabBrowserKind.Vegetation, "Trees / vegetation", "Tree and plant components, growth references and natural non-rock registry entries"),
-        (PrefabBrowserKind.Geology, "Rocks / cliffs / ice", "MineRock components and otherwise unclassified mesh-collider nature prefabs"),
-        (PrefabBrowserKind.Mineable, "Resource deposits", "MineRock components and non-building destructibles that drop materials"),
-        (PrefabBrowserKind.Ruin, "Ruins / structural parts", "Non-player structural wear components and damaged world locations"),
-        (PrefabBrowserKind.Container, "Containers / treasure", "Container and loot-cache components and destroyed-loot containers"),
-        (PrefabBrowserKind.Useful, "Utility objects", "Traders, portals, navigation stones, altars, spawners, doors, crafting and processing stations, beds, fires and map tables"),
-        (PrefabBrowserKind.Resource, "Trees / resource sources", "Harvestable trees, logs, beehives, sap collectors and material ItemDrop prefabs"),
-        (PrefabBrowserKind.BuildingPiece, "Building pieces", "Piece or WearNTear models, including village roofs and walls; whole locations are separate"),
-        (PrefabBrowserKind.Tree, "Harvestable trees / logs", "TreeBase, TreeLog and tree-type destructibles, excluding decorative vegetation"),
-        (PrefabBrowserKind.Uncategorized, "Other / scenery", "Prefabs without a recognized category, including unknown modded names")
-    ];
     private static PrefabCollections? _collections;
     private static List<PrefabCollectionSection> _sections = [];
     private static IEnumerator<int>? _loading;
     private static string[]? _cachedNames;
     private static int _openedFrame;
     private static PrefabBrowserFilter _filter = new();
-    private static PrefabBrowserKind _hiddenKinds = PrefabBrowserKind.None;
-    private static PrefabBrowserKind _onlyKinds = PrefabBrowserKind.None;
-    private static Vector2 _filterScroll;
     private static string _original = string.Empty;
     private static string _initialStaged = string.Empty;
     private static string _staged = string.Empty;
@@ -90,14 +40,6 @@ internal static class PrefabCollectionEditor
     private static bool _showAutoSortPrompt;
     private static readonly Stack<(PrefabCollections Collections, List<PrefabCollectionSection> Sections)> SnapshotUndo = new();
     private static int _closedFrame = -1;
-    private static GUIStyle? _text;
-    private static GUIStyle? _title;
-    private static GUIStyle? _count;
-    private static GUIStyle? _row;
-    private static GUIStyle? _button;
-    private static GUIStyle? _searchStyle;
-    private static Sprite? _panel;
-    private static Sprite? _buttonSprite;
 
     internal static Behaviour? View { get; set; }
 
@@ -115,8 +57,7 @@ internal static class PrefabCollectionEditor
         _initialStaged = StagedConfig();
         _search = string.Empty;
         _status = _cachedNames == null ? "Loading prefabs..." : string.Empty;
-        _text = null;
-        _row = null;
+        PrefabEditorStyles.Reset();
         Selected.Clear();
         _openColorPicker = -1;
         _showClosePrompt = false;
@@ -205,7 +146,7 @@ internal static class PrefabCollectionEditor
             ColumnWidths[index] = DefaultColumnWidth;
             foreach (string name in Visible[index])
             {
-                if (_row != null)
+                if (RowStyle != null)
                     ColumnWidths[index] = Mathf.Max(ColumnWidths[index], RowWidth(name));
                 yield return names.Length;
             }
@@ -216,7 +157,11 @@ internal static class PrefabCollectionEditor
     internal static void Draw(Plugin plugin)
     {
         if (!IsOpen) return;
-        EnsureStyles();
+        if (PrefabEditorStyles.Ensure())
+        {
+            RowWidths.Clear();
+            UpdateColumnWidths();
+        }
         Matrix4x4 previousMatrix = GUI.matrix;
         Color previousColor = GUI.color;
         bool previousEnabled = GUI.enabled;
@@ -229,8 +174,8 @@ internal static class PrefabCollectionEditor
             (Screen.height - CanvasHeight * scale) / 2, 0), Quaternion.identity, new Vector3(scale, scale, 1));
         try
         {
-            DrawPanel(new Rect(0, 0, CanvasWidth, CanvasHeight), _panel);
-            Label(new Rect(24, 16, 800, 38), "PingMark | Prefab Collections", _title);
+            DrawPanel(new Rect(0, 0, CanvasWidth, CanvasHeight), PanelSprite);
+            Label(new Rect(24, 16, 800, 38), "PingMark | Prefab Collections", TitleStyle);
             GUI.enabled = previousEnabled && _loading == null && !_showClosePrompt && !_showAutoSortPrompt;
             if (Button(new Rect(852, 18, 136, 34), new GUIContent("Auto Sort",
                 "Replace all sections with auto-sorted Valuables, Locations and Useful sections. Confirmation required.")))
@@ -253,9 +198,9 @@ internal static class PrefabCollectionEditor
                 }
             }
             GUI.enabled = previousEnabled && _loading == null && !_showClosePrompt && !_showAutoSortPrompt;
-            Label(new Rect(24, 64, 100, 32), "Search", _text);
+            Label(new Rect(24, 64, 100, 32), "Search", TextStyle);
             GUI.SetNextControlName("PingMarkPrefabSearch");
-            string search = GUI.TextField(new Rect(134, 64, 800, 32), _search, _searchStyle);
+            string search = GUI.TextField(new Rect(134, 64, 800, 32), _search, SearchStyle);
             if (search != _search)
             {
                 _search = search;
@@ -267,7 +212,7 @@ internal static class PrefabCollectionEditor
                 foreach (string[] column in Visible)
                     foreach (string name in column) Selected.Add(name);
 
-            if (DrawFilters())
+            if (PrefabEditorFilters.Draw())
             {
                 Selected.Clear();
                 ResetScrollPositions();
@@ -283,12 +228,12 @@ internal static class PrefabCollectionEditor
                 DrawColumn(index, (index - 1) * SectionColumnStride, false);
             GUI.EndScrollView();
 
-            Label(new Rect(24, 618, 174, 32), $"Selected: {Selected.Count}", _text);
+            Label(new Rect(24, 618, 174, 32), $"Selected: {Selected.Count}", TextStyle);
             GUI.enabled = previousEnabled && _loading == null && Selected.Count > 0 && !_showClosePrompt && !_showAutoSortPrompt;
             if (Button(new Rect(210, 618, 198, 32), new GUIContent("Unselect all", "Clear selection without moving any prefabs")))
                 Selected.Clear();
             GUI.enabled = previousEnabled && !_showClosePrompt && !_showAutoSortPrompt;
-            Label(new Rect(24, 656, 1152, 26), _status.Length > 0 ? _status : GUI.tooltip, _text);
+            Label(new Rect(24, 656, 1152, 26), _status.Length > 0 ? _status : GUI.tooltip, TextStyle);
             GUI.enabled = previousEnabled && _loading == null && (_collections?.CanUndo == true || SnapshotUndo.Count > 0)
                 && !_showClosePrompt && !_showAutoSortPrompt;
             if (Button(new Rect(708, 690, 156, 34), new GUIContent("Undo", "Undo the last move, removal or auto sort")))
@@ -331,11 +276,11 @@ internal static class PrefabCollectionEditor
         Fill(new Rect(left, 108 + yOffset, 214, 498), new Color(0.04f, 0.055f, 0.05f, 0.92f));
         Fill(new Rect(left, 108 + yOffset, 214, 3), color);
         if (unassigned)
-            Label(new Rect(left + 8, 116 + yOffset, 162, 26), "Unassigned", _text);
+            Label(new Rect(left + 8, 116 + yOffset, 162, 26), "Unassigned", TextStyle);
         else
         {
             PrefabCollectionSection section = _sections[index - 1];
-            string name = GUI.TextField(new Rect(left + 8, 116 + yOffset, 132, 26), section.Name, _searchStyle);
+            string name = GUI.TextField(new Rect(left + 8, 116 + yOffset, 132, 26), section.Name, SearchStyle);
             if (name != section.Name)
             {
                 section.Name = name;
@@ -374,7 +319,7 @@ internal static class PrefabCollectionEditor
         }
         string[] names = Visible[index];
         Label(new Rect(left + (unassigned ? 8 : 32), 142 + yOffset, unassigned ? 198 : 174, 18),
-            $"{names.Length:N0} / {_collections.Count(index):N0} prefabs", _count);
+            $"{names.Length:N0} / {_collections.Count(index):N0} prefabs", CountStyle);
         Rect viewport = new(left + 4, 164 + yOffset, 206, 326);
         float contentWidth = ColumnWidths[index];
         Scroll[index] = GUI.BeginScrollView(viewport, Scroll[index], new Rect(0, 0, contentWidth, names.Length * PrefabRowHeight), false, false);
@@ -385,7 +330,7 @@ internal static class PrefabCollectionEditor
             string name = names[rowIndex];
             Rect rect = new(0, rowIndex * PrefabRowHeight, contentWidth, PrefabRowHeight);
             if (Selected.Contains(name)) Fill(rect, new Color(color.r, color.g, color.b, 0.28f));
-            if (GUI.Button(rect, new GUIContent(name, $"{name} | {_filter.Kind(name)}"), _row))
+            if (GUI.Button(rect, new GUIContent(name, $"{name} | {_filter.Kind(name)}"), RowStyle))
             {
                 if (!Selected.Add(name)) Selected.Remove(name);
             }
@@ -438,14 +383,14 @@ internal static class PrefabCollectionEditor
     {
         DrawModalBackdrop();
         Rect panel = new(300, 245, 600, 250);
-        DrawPanel(panel, _panel);
-        Label(new Rect(panel.x + 24, panel.y + 16, panel.width - 48, 34), "Replace all sections?", _title);
+        DrawPanel(panel, PanelSprite);
+        Label(new Rect(panel.x + 24, panel.y + 16, panel.width - 48, 34), "Replace all sections?", TitleStyle);
         Label(new Rect(panel.x + 24, panel.y + 60, panel.width - 48, 30),
-            "All sections will be replaced with Valuables, Locations and Useful.", _text);
+            "All sections will be replaced with Valuables, Locations and Useful.", TextStyle);
         Label(new Rect(panel.x + 24, panel.y + 94, panel.width - 48, 30),
-            "Custom names, colors and enabled states will be reset.", _text);
+            "Custom names, colors and enabled states will be reset.", TextStyle);
         Label(new Rect(panel.x + 24, panel.y + 128, panel.width - 48, 30),
-            "Unknown/excluded IDs return to Unassigned. Apply saves changes.", _text);
+            "Unknown/excluded IDs return to Unassigned. Apply saves changes.", TextStyle);
         GUI.enabled = previousEnabled && CanEdit && _loading == null && _collections != null;
         if (Button(new Rect(panel.x + 44, panel.y + 192, 244, 36), new GUIContent("Replace and Auto Sort")))
             AutoSort();
@@ -476,9 +421,9 @@ internal static class PrefabCollectionEditor
         Rect panel = new(370, 275, 460, 190);
         Fill(panel, PanelBackgroundColor);
         DrawBorder(panel, PanelBorderColor);
-        Label(new Rect(panel.x + 20, panel.y + 16, panel.width - 40, 34), "Apply pending changes?", _title);
+        Label(new Rect(panel.x + 20, panel.y + 16, panel.width - 40, 34), "Apply pending changes?", TitleStyle);
         Label(new Rect(panel.x + 20, panel.y + 58, panel.width - 40, 30),
-            "Your prefab collections or section colors have changed.", _text);
+            "Your prefab collections or section colors have changed.", TextStyle);
         GUI.enabled = previousEnabled && CanEdit && _loading == null && _collections != null;
         if (Button(new Rect(panel.x + 44, panel.y + 116, 170, 36), new GUIContent("Apply"))) Apply(plugin);
         GUI.enabled = previousEnabled;
@@ -640,14 +585,14 @@ internal static class PrefabCollectionEditor
         if (_collections == null) return;
         EnsureColumnState();
         for (int index = 0; index < _collections.CollectionCount; index++)
-            Visible[index] = _collections.Names(index, _search).Where(name => _filter.Includes(name, _hiddenKinds, _onlyKinds)).ToArray();
+            Visible[index] = _collections.Names(index, _search).Where(name => PrefabEditorFilters.Includes(_filter, name)).ToArray();
         if (contentChanged) _stagedDirty = true;
         if (updateWidths) UpdateColumnWidths();
     }
 
     private static void UpdateColumnWidths()
     {
-        if (_row == null) return;
+        if (RowStyle == null) return;
         for (int index = 0; index < _collections!.CollectionCount; index++)
         {
             float width = DefaultColumnWidth;
@@ -660,123 +605,8 @@ internal static class PrefabCollectionEditor
     private static float RowWidth(string name)
     {
         if (!RowWidths.TryGetValue(name, out float width))
-            RowWidths[name] = width = _row!.CalcSize(new GUIContent(name)).x + ColumnTextPadding;
+            RowWidths[name] = width = RowStyle!.CalcSize(new GUIContent(name)).x + ColumnTextPadding;
         return width;
-    }
-
-    private static void EnsureStyles()
-    {
-        if (_text != null) return;
-        TMP_Text? menuText = Menu.instance && Menu.instance.m_continueButton
-            ? Menu.instance.m_continueButton.GetComponentInChildren<TMP_Text>(true) : null;
-        Font? font = menuText && menuText!.font ? menuText.font.sourceFontFile : null;
-        _text = new GUIStyle(GUI.skin.label) { font = font ? font : GUI.skin.font, fontSize = 16, alignment = TextAnchor.MiddleLeft, wordWrap = false, clipping = TextClipping.Clip };
-        _text.normal.textColor = new Color(0.92f, 0.87f, 0.72f);
-        _title = new GUIStyle(_text) { fontSize = 22 };
-        _count = new GUIStyle(_text) { fontSize = 12 };
-        _count.normal.textColor = new Color(0.72f, 0.72f, 0.65f);
-        RowWidths.Clear();
-        _row = new GUIStyle(_text) { fontSize = 14, wordWrap = false, clipping = TextClipping.Clip, padding = new RectOffset(6, 6, 0, 0) };
-        _row.hover.textColor = Color.white;
-        _button = new GUIStyle(GUI.skin.button) { font = _text.font, fontSize = 14, wordWrap = false, clipping = TextClipping.Clip };
-        _button.normal.textColor = _text.normal.textColor;
-        _searchStyle = new GUIStyle(GUI.skin.textField) { font = _text.font, fontSize = 16, wordWrap = false, alignment = TextAnchor.MiddleLeft };
-        _panel = null;
-        _buttonSprite = Menu.instance && Menu.instance.m_continueButton && Menu.instance.m_continueButton.image
-            ? Menu.instance.m_continueButton.image.sprite : null;
-        if (_buttonSprite)
-            foreach (GUIStyleState state in (GUIStyleState[])[_button.normal, _button.hover, _button.active, _button.focused])
-                state.background = null;
-        if (InventoryGui.instance)
-            _panel = InventoryGui.instance.m_inventoryRoot.GetComponentsInChildren<Image>(true)
-                .Where(image => image.sprite && (image.name.IndexOf("background", StringComparison.OrdinalIgnoreCase) >= 0
-                    || image.name.IndexOf("bkg", StringComparison.OrdinalIgnoreCase) >= 0
-                    || image.sprite.name.IndexOf("wood", StringComparison.OrdinalIgnoreCase) >= 0))
-                .Select(image => image.sprite).FirstOrDefault();
-        UpdateColumnWidths();
-    }
-
-    private static bool Button(Rect rect, GUIContent content, bool selected = false)
-    {
-        if (_buttonSprite)
-        {
-            Color previous = GUI.color;
-            GUI.color = !GUI.enabled ? new Color(0.5f, 0.5f, 0.5f) : rect.Contains(Event.current.mousePosition)
-                ? new Color(1f, 0.9f, 0.7f) : Color.white;
-            DrawSprite(rect, _buttonSprite!);
-            GUI.color = previous;
-        }
-        if (selected) Fill(rect, new Color(0.7f, 0.55f, 0.18f, 0.4f));
-        int originalSize = _button!.fontSize;
-        try
-        {
-            FitFont(_button, content, rect);
-            return GUI.Button(rect, content, _button);
-        }
-        finally { _button.fontSize = originalSize; }
-    }
-
-    private static bool DrawFilters()
-    {
-        Fill(new Rect(24, 108, 252, 498), new Color(0.04f, 0.055f, 0.05f, 0.92f));
-        Label(new Rect(32, 116, 236, 26), "Filters", _text);
-        bool changed = false;
-        if (Button(new Rect(32, 150, 112, 28), new GUIContent("All", "Reset every category to Include")))
-        {
-            _hiddenKinds = PrefabBrowserKind.None;
-            _onlyKinds = PrefabBrowserKind.None;
-            changed = true;
-        }
-        if (Button(new Rect(152, 150, 116, 28), new GUIContent("None", "Set every category to Hide")))
-        {
-            _hiddenKinds = PrefabBrowserKind.All;
-            _onlyKinds = PrefabBrowserKind.None;
-            changed = true;
-        }
-        _filterScroll = GUI.BeginScrollView(new Rect(28, 190, 244, 408), _filterScroll,
-            new Rect(0, 0, 224, FilterOptions.Length * 54), false, false);
-        for (int index = 0; index < FilterOptions.Length; index++)
-        {
-            var option = FilterOptions[index];
-            float top = index * 54;
-            GUI.Label(new Rect(4, top, 216, 22), new GUIContent(option.Text, option.Tooltip), _row);
-            int currentMode = (_hiddenKinds & option.Kind) != 0 ? 1 : (_onlyKinds & option.Kind) != 0 ? 2 : 0;
-            for (int mode = 0; mode < 3; mode++)
-            {
-                string label = mode == 0 ? "Include" : mode == 1 ? "Hide" : "Only";
-                string tooltip = mode == 0 ? $"Do not restrict {option.Text}"
-                    : mode == 1 ? $"Exclude {option.Text}" : $"Show only {option.Text}; reset every other filter";
-                if (!Button(new Rect(4 + mode * 72, top + 24, 70, 24), new GUIContent(label, tooltip), currentMode == mode)
-                    || currentMode == mode && mode != 2) continue;
-                if (mode == 2)
-                {
-                    _hiddenKinds = PrefabBrowserKind.None;
-                    _onlyKinds = option.Kind;
-                }
-                else
-                {
-                    _hiddenKinds &= ~option.Kind;
-                    _onlyKinds &= ~option.Kind;
-                    if (mode == 1) _hiddenKinds |= option.Kind;
-                }
-                changed = true;
-            }
-        }
-        GUI.EndScrollView();
-        return changed;
-    }
-
-    private static void Label(Rect rect, string text, GUIStyle? style)
-    {
-        if (style == null) return;
-        int originalSize = style.fontSize;
-        try
-        {
-            GUIContent content = new(text);
-            FitFont(style, content, rect);
-            GUI.Label(rect, content, style);
-        }
-        finally { style.fontSize = originalSize; }
     }
 
 }
