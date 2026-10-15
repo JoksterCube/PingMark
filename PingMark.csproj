@@ -119,7 +119,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Common\KeyboardShortcutExtensions.cs" />
     <Compile Include="Common\PlayerExtensions.cs" />
     <Compile Include="Common\Toggle.cs" />
     <Compile Include="Common\ToggleExtensions.cs" />

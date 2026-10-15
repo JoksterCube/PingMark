@@ -15,17 +15,15 @@ internal static class InputManager
     {
         PrefabCollectionEditor.Update();
         bool allowed = !RpcHandlers.ShouldWaitForInitialConfigSync && !PrefabCollectionEditor.BlocksInput && CanTakeInput();
-        bool editorShortcutEnabled = PrefabEditorShortcutEnabled.IsOn();
-        bool editorPressed = PrefabEditorShortcut.Value.IsKeyDown();
-        bool editorHeld = PrefabEditorShortcut.Value.IsKeyHeld();
-        bool togglePressed = !editorHeld && ToggleModShortcut.Value.IsKeyDown();
         if (!allowed) return;
-        if (editorShortcutEnabled && editorPressed)
+        // KeyboardShortcut.IsDown matches modifiers exactly, so Ctrl+P does not fire inside Ctrl+Shift+P.
+        if (PrefabEditorShortcutEnabled.IsOn() && PrefabEditorShortcut.Value.IsDown())
         {
             PrefabCollectionEditor.Open();
             return;
         }
-        var mobHighlightPressed = MobHighlightShortcut.Value.IsKeyDown();
+        bool togglePressed = ToggleModShortcut.Value.IsDown();
+        bool mobHighlightPressed = MobHighlightShortcut.Value.IsDown();
         if (!togglePressed && !mobHighlightPressed) return;
 
         if (togglePressed)
