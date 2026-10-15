@@ -13,6 +13,7 @@ namespace JoksterCube.PingMark.Patches.GroundPing;
 [HarmonyPatch(typeof(Chat), nameof(Chat.AddInworldText))]
 internal static class GroundPingAddLabelPatch
 {
+    // Vanilla overwrites the `text` argument with "PING" for pings, so keep the original for the postfix.
     private static void Prefix(string text, out string __state) => __state = text;
 
     private static void Postfix(long senderID, Vector3 position, Talker.Type type, string __state, List<Chat.WorldTextInstance> ___m_worldTexts)
@@ -38,10 +39,13 @@ internal static class GroundPingAddLabelPatch
             OutlineManager.SetPingTarget(worldText, target ?? PingTargetResolver.FindTarget(position));
             if (!string.IsNullOrWhiteSpace(targetName)) text = targetName!;
         }
-        else
+        else if (type == Talker.Type.Ping)
         {
-            if (type == Talker.Type.Ping)
-                OutlineManager.SetPingTarget(worldText, PingTargetResolver.FindTarget(position));
+            PingTarget? localTarget = PingTargetResolver.FindTarget(position);
+            OutlineManager.SetPingTarget(worldText, localTarget);
+            // The sender's name is localized in the sender's language; prefer our own resolution of the same target.
+            if (!string.IsNullOrWhiteSpace(text) && localTarget is { Name.Length: > 0 } resolved)
+                text = resolved.Name;
         }
 
         if (type != Talker.Type.Ping || string.IsNullOrWhiteSpace(text)) return;
