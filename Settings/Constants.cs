@@ -9,7 +9,7 @@ internal static class Constants
     internal static class Plugin
     {
         internal const string ModName = "PingMark";
-        internal const string ModVersion = "1.0.7";
+        internal const string ModVersion = "1.0.8";
         internal const string Author = "JoksterCube";
         internal const string ModGUID = $"{Author}.{ModName}";
         internal const string Description = "Mark loot, creatures, and locations with named pings, colored outlines, and live distances. Share discoveries with your party.";
@@ -75,7 +75,7 @@ internal static class Constants
                 Group,
                 "Z Ping Broadcast Distance",
                 new ConfigDescription(
-                    "Maximum distance in meters from the sending player to PingMark recipients of Z location pings and character highlights. Map pings remain global. Set to 0 for unlimited. Without a modded server, the sender's setting is used.",
+                    "Maximum distance in meters from the sending player to PingMark recipients of Z location pings and character highlights. Map pings remain global. Set to 0 for unlimited. Without a modded server, the shorter of the sender's and the recipient's setting applies.",
                     new AcceptableValueRange<float>(0f, 10000f)),
                 200f,
                 true);

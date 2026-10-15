@@ -34,8 +34,10 @@ internal static class ZPingNetwork
         Player player = Player.m_localPlayer;
         if (!player || !Enabled.IsOn()) return false;
         if (sender == ZNet.GetUID()) return true;
-        if (RpcHandlers.ServerHasMod) range = ZPingBroadcastDistance.Value;
-        return IsInRange(origin, player.transform.position, range);
+        // The sender's range is untrusted: without a modded server both limits must pass.
+        Vector3 position = player.transform.position;
+        return IsInRange(origin, position, ZPingBroadcastDistance.Value)
+            && (RpcHandlers.ServerHasMod || IsInRange(origin, position, range));
     }
 
     internal static void SendLocation(Vector3 position, string targetName)

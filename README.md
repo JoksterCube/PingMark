@@ -101,7 +101,7 @@ Edit `BepInEx/config/JoksterCube.PingMark.cfg`. Defaults below apply to new entr
 | Lock Configuration | On | Server | Restrict synchronized configuration changes to server admins. |
 | Refresh Interval | 0.25 s | Server | Recalculate visible distances every 0.05-5 seconds. |
 | Ping Cooldown | 0 s | Server | Delay between Z pings and character highlights, 0-60 seconds; `0` disables the cooldown. |
-| Z Ping Broadcast Distance | 200 m | Server | Sender-to-recipient range for Z pings/highlights, 0-10,000 m; `0` means unlimited. Map pings stay global. |
+| Z Ping Broadcast Distance | 200 m | Server | Sender-to-recipient range for Z pings/highlights, 0-10,000 m; `0` means unlimited. Map pings stay global. Without a modded server, the shorter of the sender's and recipient's range applies. |
 | Send Z Pings To Unmodded Players | On | Server | Send ordinary fallback pings to players without PingMark, regardless of distance. |
 | Debug Ping Names | Off | Local | Show detected prefab, location, and other target names in a diagnostic message. |
 
@@ -200,5 +200,5 @@ Report bugs or suggest improvements on [GitHub](https://github.com/JoksterCube/P
 ---
 
 **Author:** JoksterCube<br>
-**Version:** 1.0.7<br>
+**Version:** 1.0.8<br>
 **License:** MIT
