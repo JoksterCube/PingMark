@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="environment.props" />
+  <!-- Optional, git-ignored machine-specific overrides (extra copy targets, custom game path). -->
+  <Import Project="environment.props.user" Condition="Exists('environment.props.user')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -10,7 +12,8 @@
     <RootNamespace>JoksterCube.PingMark</RootNamespace>
     <AssemblyName>PingMark</AssemblyName>
     <TargetFramework>net48</TargetFramework>
-    <EnableDefaultItems>false</EnableDefaultItems>
+    <EnableDefaultItems>true</EnableDefaultItems>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <RuntimeIdentifiers>win</RuntimeIdentifiers>
@@ -119,60 +122,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Common\PlayerMessages.cs" />
-    <Compile Include="Common\Toggle.cs" />
-    <Compile Include="Common\ToggleExtensions.cs" />
-    <Compile Include="Common\Networking\RegisterAndCheckVersion.cs" />
-    <Compile Include="Common\Networking\RemoveDisconnectedPeerFromVerified.cs" />
-    <Compile Include="Common\Networking\RpcHandlers.cs" />
-    <Compile Include="Common\Networking\ShowConnectionError.cs" />
-    <Compile Include="Common\Networking\ZRpcExtensions.cs" />
-    <Compile Include="Domain\MobHighlight.cs" />
-    <Compile Include="Domain\OutlineManager.cs" />
-    <Compile Include="Domain\Enums\PrefabBrowserKind.cs" />
-    <Compile Include="Domain\Enums\PingCategory.cs" />
-    <Compile Include="Domain\Models\PrefabCollectionSection.cs" />
-    <Compile Include="Domain\Models\SerializedSection.cs" />
-    <Compile Include="Domain\Models\SerializedSections.cs" />
-    <Compile Include="Domain\Models\PingTarget.cs" />
-    <Compile Include="Domain\Networking\ZPingNetwork.cs" />
-    <Compile Include="Domain\Networking\PingRateLimiter.cs" />
-    <Compile Include="Domain\SessionState.cs" />
-    <Compile Include="Patches\Session\SessionResetPatch.cs" />
-    <Compile Include="Domain\PingTargets\MobTargeting.cs" />
-    <Compile Include="Domain\PingTargets\PingTargetResolver.cs" />
-    <Compile Include="Domain\InputManager.cs" />
-    <Compile Include="Domain\Collections\PrefabAutoSort.cs" />
-    <Compile Include="Domain\Collections\PrefabBrowserFilter.cs" />
-    <Compile Include="Domain\Collections\PrefabCollectionEditor.cs" />
-    <Compile Include="Domain\Collections\PrefabCollectionEditorUI.cs" />
-    <Compile Include="Domain\Collections\PrefabCollectionEditorView.cs" />
-    <Compile Include="Domain\Collections\PrefabEditorFilters.cs" />
-    <Compile Include="Domain\Collections\PrefabEditorStyles.cs" />
-    <Compile Include="Domain\Collections\PrefabCollectionSectionConfig.cs" />
-    <Compile Include="Domain\Collections\PrefabCollectionStore.cs" />
-    <Compile Include="Domain\Collections\PrefabCollections.cs" />
-    <Compile Include="Domain\Collections\PrefabFeatureClassifier.cs" />
-    <Compile Include="Patches\PingLabels\PingMapLabelPatch.cs" />
-    <Compile Include="Domain\PingLabelFormatter.cs" />
-    <Compile Include="Patches\PingLabels\PingWorldTextLabelPatch.cs" />
-    <Compile Include="Patches\PingLabels\WorldTextsUpdatePatch.cs" />
-    <Compile Include="Patches\GroundPing\GroundPingAddLabelPatch.cs" />
-    <Compile Include="Domain\GroundPingLabelAnchors.cs" />
-    <Compile Include="Patches\Highlights\MobHighlightNamePatch.cs" />
-    <Compile Include="Patches\Highlights\MobHighlightVisibilityPatch.cs" />
-    <Compile Include="Patches\PrefabEditor\PrefabEditorActivePatch.cs" />
-    <Compile Include="Patches\PrefabEditor\PrefabEditorMenuInputPatch.cs" />
-    <Compile Include="Patches\PrefabEditor\PrefabEditorMouseCapturePatch.cs" />
-    <Compile Include="Patches\PrefabEditor\PrefabEditorVisiblePatch.cs" />
-    <Compile Include="Patches\ZPing\ZPingServerRoutingPatch.cs" />
-    <Compile Include="Patches\ZPing\ZPingVanillaFallbackPatch.cs" />
-    <Compile Include="Plugin.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Settings\ConfigInfo.cs" />
-    <Compile Include="Settings\ConfigOptions.cs" />
-    <Compile Include="Settings\Constants.cs" />
-    <Compile Include="Settings\PluginConfig.cs" />
+    <!-- Source-level validation harnesses; not part of the plugin. -->
+    <Compile Remove="Tests\**" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitignore" />

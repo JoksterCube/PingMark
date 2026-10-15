@@ -1,5 +1,6 @@
 | Version | Update Notes |
 |----------|---------------|
+| **1.1.16** | - Development: source files are picked up automatically by the project, machine-specific build paths moved to an optional git-ignored environment.props.user, and the 1.0.0 changelog entry now lists the features it shipped with. |
 | **1.1.15** | - The config file is reloaded once per change instead of on every file-system event. Removed an unused migration of player highlight settings from an unreleased build. Smaller code cleanups. |
 | **1.1.14** | - Code: patches and game members are referenced by name checked at compile time instead of strings and reflection, so game updates fail at build time rather than silently. Harmony patches are removed when the plugin unloads. |
 | **1.1.13** | - Highlights, pending pings, outlines, rate limits and validated players are now cleared together when you leave a world or server, instead of leaking into the next session. |
@@ -30,4 +31,4 @@
 | **1.0.3** | - Doubled screenshot preview dimensions for better readability: gameplay images are 440 px tall and the admin menu image is 1520 px wide. |
 | **1.0.2** | - Resized screenshot files for consistent Thunderstore display without relying on HTML sizing attributes. Preserved full-resolution originals. |
 | **1.0.1** | - Fixed oversized gameplay screenshots on Thunderstore by using proportional widths instead of height attributes. |
-| **1.0.0** | - Initial release with configurable distance labels for world pings and a toggle shortcut. |
+| **1.0.0** | - Initial release: named Z pings with target outlines, distance labels on world and map pings, temporary creature and player highlights with nameplates, server-side ping range, fallback pings for players without the mod, and the admin Prefab Collections menu with auto sort. |
