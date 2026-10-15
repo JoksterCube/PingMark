@@ -127,7 +127,6 @@
     <Compile Include="Common\Networking\RemoveDisconnectedPeerFromVerified.cs" />
     <Compile Include="Common\Networking\RpcHandlers.cs" />
     <Compile Include="Common\Networking\ShowConnectionError.cs" />
-    <Compile Include="Common\Networking\VerifyClient.cs" />
     <Compile Include="Common\Networking\ZRpcExtensions.cs" />
     <Compile Include="Domain\MobHighlight.cs" />
     <Compile Include="Domain\OutlineManager.cs" />

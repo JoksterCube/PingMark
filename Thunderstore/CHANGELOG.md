@@ -1,5 +1,6 @@
 | Version | Update Notes |
 |----------|---------------|
+| **1.0.9** | - Removed an unused admin-sync request that every connection sent to the server. |
 | **1.0.8** | - Without a modded server, recipients now also apply their own Z Ping Broadcast Distance, so a sender cannot force unlimited range. |
 | **1.0.7** | - Hardened server routing: malformed or oversized ping packets are dropped safely and each player is rate limited. Ping names are capped at 64 characters. Ping Cooldown now also applies to creature and player highlights. |
 | **1.0.6** | - Fixed creature nameplate labels reading their style from an expired world ping label. Labels now always use the minimap label style. |
