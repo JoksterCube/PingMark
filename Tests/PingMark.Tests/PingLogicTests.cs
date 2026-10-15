@@ -1,3 +1,4 @@
+using JoksterCube.PingMark.Domain;
 using JoksterCube.PingMark.Domain.Collections;
 using JoksterCube.PingMark.Domain.Enums;
 using JoksterCube.PingMark.Domain.Models;
@@ -82,4 +83,58 @@ public class PrefabAutoSortTests
     [Fact]
     public void Section_names_come_from_the_defaults() =>
         Assert.Equal(["Valuables", "Locations", "Useful"], PrefabAutoSort.SectionNames);
+}
+
+public class HighlightRegistryTests
+{
+    private static HighlightRegistry<int, string> Registry() => new();
+
+    [Fact]
+    public void Expired_highlights_are_dropped()
+    {
+        var registry = Registry();
+        registry.Add(sender: 1, id: 10, "Ann", isPlayer: false, expiration: 5f);
+        registry.Trim(now: 4f, limitPerSender: 1, mobsEnabled: true, playersEnabled: true);
+        Assert.True(registry.IsActive(10));
+        registry.Trim(now: 5f, limitPerSender: 1, mobsEnabled: true, playersEnabled: true);
+        Assert.False(registry.IsActive(10));
+    }
+
+    [Fact]
+    public void Each_sender_keeps_only_their_newest_highlights()
+    {
+        var registry = Registry();
+        registry.Add(1, 10, "Ann", false, 100f);
+        registry.Add(2, 20, "Bob", false, 100f);
+        registry.Add(1, 11, "Ann", false, 100f);
+        registry.Trim(0f, 1, true, true);
+
+        Assert.False(registry.IsActive(10));
+        Assert.True(registry.IsActive(11));
+        Assert.True(registry.IsActive(20));
+    }
+
+    [Fact]
+    public void The_newest_highlight_decides_the_pinger()
+    {
+        var registry = Registry();
+        registry.Add(1, 10, "Ann", false, 100f);
+        registry.Add(2, 10, "Bob", false, 100f);
+        registry.Trim(0f, 1, true, true);
+
+        Assert.True(registry.TryGetActive(10, out var entry));
+        Assert.Equal("Bob", entry.User);
+    }
+
+    [Fact]
+    public void Disabled_kinds_are_removed()
+    {
+        var registry = Registry();
+        registry.Add(1, 10, "Ann", isPlayer: true, 100f);
+        registry.Add(1, 11, "Ann", isPlayer: false, 100f);
+        registry.Trim(0f, 5, mobsEnabled: true, playersEnabled: false);
+
+        Assert.False(registry.IsActive(10));
+        Assert.True(registry.IsActive(11));
+    }
 }
