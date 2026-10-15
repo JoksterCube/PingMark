@@ -99,6 +99,8 @@ internal static class PrefabCollectionEditor
     private static Sprite? _panel;
     private static Sprite? _buttonSprite;
 
+    internal static Behaviour? View { get; set; }
+
     internal static bool IsOpen => _collections != null;
     internal static bool BlocksInput => IsOpen || _closedFrame == Time.frameCount;
     internal static bool CanEdit => !RpcHandlers.ShouldWaitForInitialConfigSync && PrefabCollectionStore.IsReady && Plugin.CanEditPrefabCollections;
@@ -126,6 +128,7 @@ internal static class PrefabCollectionEditor
         Refresh();
         _openedFrame = Time.frameCount;
         _loading = _cachedNames == null ? LoadCollections().GetEnumerator() : null;
+        if (View) View!.enabled = true;
         ReleaseMouse();
     }
 
@@ -147,6 +150,7 @@ internal static class PrefabCollectionEditor
         _showAutoSortPrompt = false;
         SnapshotUndo.Clear();
         _closedFrame = Time.frameCount;
+        if (View) View!.enabled = false;
     }
 
     internal static void Update()

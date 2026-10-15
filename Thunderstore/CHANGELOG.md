@@ -1,5 +1,6 @@
 | Version | Update Notes |
 |----------|---------------|
+| **1.1.6** | - The mod's menu drawing now runs only while the Prefab Collections menu is open, removing per-frame UI overhead during normal play. |
 | **1.1.5** | - Faster object ID lookups when pinging and when loading the Prefab Collections menu. |
 | **1.1.4** | - Prefab Collections menu: searching and filtering are faster because pending changes are serialized only when they change, and row widths are measured once. |
 | **1.1.3** | - Minimap ping labels are updated without per-frame reflection. |

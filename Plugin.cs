@@ -40,6 +40,7 @@ public class Plugin : BaseUnityPlugin
     {
         PluginConfig.Build(Config, ConfigSync);
         PrefabCollectionStore.Initialize(Config);
+        PrefabCollectionEditor.View = PrefabCollectionEditorView.Create(this);
 
         var assembly = Assembly.GetExecutingAssembly();
         _harmony.PatchAll(assembly);
@@ -62,8 +63,6 @@ public class Plugin : BaseUnityPlugin
         _configWatcher?.Dispose();
         Config.Save();
     }
-
-    private void OnGUI() => PrefabCollectionEditor.Draw(this);
 
     private void SetupWatcher()
     {

@@ -144,6 +144,7 @@
     <Compile Include="Domain\Collections\PrefabBrowserFilter.cs" />
     <Compile Include="Domain\Collections\PrefabCollectionEditor.cs" />
     <Compile Include="Domain\Collections\PrefabCollectionEditorUI.cs" />
+    <Compile Include="Domain\Collections\PrefabCollectionEditorView.cs" />
     <Compile Include="Domain\Collections\PrefabCollectionSectionConfig.cs" />
     <Compile Include="Domain\Collections\PrefabCollectionStore.cs" />
     <Compile Include="Domain\Collections\PrefabCollections.cs" />
