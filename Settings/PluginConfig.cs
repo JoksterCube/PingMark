@@ -94,6 +94,10 @@ internal static class PluginConfig
         PingAnythingColor = ConfigOptions.Config(Outlines.PingAnythingColor);
         HostileOutlineColor = ConfigOptions.Config(Outlines.HostileOutlineColor);
         AllyOutlineColor = ConfigOptions.Config(Outlines.AllyOutlineColor);
+        // Untouched configs from before 1.2.0 still hold the old green default, which is hard to tell
+        // apart from hostile red for colorblind players; move them to the new default.
+        if (AllyOutlineColor.Value == new Color(0.5f, 0.85f, 0.3f))
+            AllyOutlineColor.Value = Outlines.AllyOutlineColor.DefaultValue;
         PrefabSectionColors =
         [
             ConfigOptions.Config(PrefabCollections.Color1),

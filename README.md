@@ -36,7 +36,7 @@ See **how far away** every ping is, something vanilla Valheim never shows. Aim, 
 - **📏 Distance on every ping:** world and map pings show who pinged and how far away it is, updating as you move. Works on regular map pings too.
 - **Aim and ping:** mark what you are looking at with its name and an outline.
 - **Find the loot:** dropped weapons, armor and materials glow so they're easy to spot in the grass.
-- **Track creatures:** highlight a mob with a nameplate and distance that follow it, colored red (hostile) or green (friendly).
+- **Track creatures:** highlight a mob with a nameplate and distance that follow it, colored red (hostile) or blue (friendly).
 - **Mark teammates:** optionally highlight players instead of the spot they stood on (off by default).
 - **Your rules:** pick which objects count as **Valuables**, **Locations** or **Useful**, and customize colors, labels, shortcuts and range.
 
@@ -153,7 +153,7 @@ Most players never need to change anything. These are the settings worth knowing
 | Ping Drop Color | Purple | | Dropped items. |
 | Ping Gravestone/Player Color | Orange | | Gravestones and players. |
 | Ping Anything Color | White | | Other objects. |
-| Hostile / Ally Outline Color | Red / Green | | Highlighted creatures. |
+| Hostile / Ally Outline Color | Red / Blue | | Highlighted creatures. |
 
 #### 6 - Mob Highlight
 
@@ -198,5 +198,5 @@ Report bugs or suggest improvements on [GitHub](https://github.com/JoksterCube/P
 ---
 
 **Author:** JoksterCube<br>
-**Version:** 1.1.18<br>
+**Version:** 1.1.19<br>
 **License:** MIT

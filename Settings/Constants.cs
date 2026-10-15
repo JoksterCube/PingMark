@@ -9,7 +9,7 @@ internal static class Constants
     internal static class Plugin
     {
         internal const string ModName = "PingMark";
-        internal const string ModVersion = "1.1.18";
+        internal const string ModVersion = "1.1.19";
         // Bump ProtocolVersion only when RPCs or synced data formats change, and set
         // MinimumCompatibleVersion to the first release with that protocol. Other releases stay compatible.
         internal const int ProtocolVersion = 2;
@@ -202,8 +202,8 @@ internal static class Constants
             internal static readonly ConfigInfo<Color> AllyOutlineColor = new(
                 Group,
                 "Ally Outline Color",
-                "Outline color for highlighted ally and tamed mobs.",
-                new Color(0.5f, 0.85f, 0.3f),
+                "Outline color for highlighted ally and tamed mobs. Blue by default so it stays distinct from the hostile red for colorblind players.",
+                new Color(0.3f, 0.65f, 1f),
                 false);
         }
 
