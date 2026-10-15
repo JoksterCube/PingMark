@@ -1,5 +1,4 @@
 using System;
-using HarmonyLib;
 using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Domain.Networking;
 using JoksterCube.PingMark.Domain.Models;
@@ -11,8 +10,6 @@ namespace JoksterCube.PingMark.Domain.PingTargets;
 
 internal static class MobTargeting
 {
-    private static readonly Func<Character, bool> TakeInput =
-        AccessTools.MethodDelegate<Func<Character, bool>>(AccessTools.Method(typeof(Character), nameof(Character.TakeInput)));
     private static Vector3? _pendingGroundPing;
     private static string? _pendingGroundPingName;
     private static PingTarget? _pendingGroundPingTarget;
@@ -53,7 +50,7 @@ internal static class MobTargeting
         if (!Enabled.IsOn()) return;
 
         Player player = Player.m_localPlayer;
-        if (!player || !TakeInput(player) || !GameCamera.instance || ZRoutedRpc.instance == null) return;
+        if (!player || !player.TakeInput() || !GameCamera.instance || ZRoutedRpc.instance == null) return;
 
         float now = Time.realtimeSinceStartup;
         if (_lastPingTime.HasValue && now - _lastPingTime.Value < PingCooldown.Value) return;

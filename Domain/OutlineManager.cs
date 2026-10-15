@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using HarmonyLib;
 using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Domain.Models;
 using UnityEngine;
@@ -19,9 +18,6 @@ internal static class OutlineManager
     private const float HierarchyCheckInterval = 0.25f;
 
     private static readonly int ColorId = Shader.PropertyToID("_Color");
-
-    private static readonly AccessTools.FieldRef<EnemyHud, Dictionary<Character, EnemyHud.HudData>> HudsRef =
-        AccessTools.FieldRefAccess<EnemyHud, Dictionary<Character, EnemyHud.HudData>>("m_huds");
 
     private static readonly Vector2[] Directions =
     [
@@ -281,7 +277,7 @@ internal static class OutlineManager
     {
         bool ally = character.IsTamed();
         EnemyHud hud = EnemyHud.instance;
-        if (hud && HudsRef(hud).TryGetValue(character, out EnemyHud.HudData data))
+        if (hud && hud.m_huds.TryGetValue(character, out EnemyHud.HudData data))
             ally = ally || (data.m_healthFastFriendly && data.m_healthFastFriendly.gameObject.activeSelf);
         return ally ? AllyOutlineColor.Value : HostileOutlineColor.Value;
     }

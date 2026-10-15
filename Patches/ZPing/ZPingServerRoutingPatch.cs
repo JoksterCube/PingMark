@@ -9,7 +9,7 @@ using static JoksterCube.PingMark.Settings.PluginConfig;
 
 namespace JoksterCube.PingMark.Patches.ZPing;
 
-[HarmonyPatch(typeof(ZRoutedRpc), "RouteRPC")]
+[HarmonyPatch(typeof(ZRoutedRpc), nameof(ZRoutedRpc.RouteRPC))]
 internal static class ZPingServerRoutingPatch
 {
     // Generous for a location name; anything larger is dropped instead of being forwarded to every peer.

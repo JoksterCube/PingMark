@@ -8,7 +8,7 @@ namespace JoksterCube.PingMark.Common.Networking;
 [HarmonyPatch(typeof(ZNet), nameof(ZNet.OnNewConnection))]
 internal static class RegisterAndCheckVersion
 {
-    private static void Prefix(ZNetPeer peer, ref ZNet __instance)
+    private static void Prefix(ZNetPeer peer, ZNet __instance)
     {
         if (!__instance.IsServer())
             RpcHandlers.BeginServerVersionCheck();

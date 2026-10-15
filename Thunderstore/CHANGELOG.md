@@ -1,5 +1,6 @@
 | Version | Update Notes |
 |----------|---------------|
+| **1.1.14** | - Code: patches and game members are referenced by name checked at compile time instead of strings and reflection, so game updates fail at build time rather than silently. Harmony patches are removed when the plugin unloads. |
 | **1.1.13** | - Highlights, pending pings, outlines, rate limits and validated players are now cleared together when you leave a world or server, instead of leaking into the next session. |
 | **1.1.12** | - Code: clearer names and folders (label formatting and ground-ping anchors moved to Domain, highlight patches renamed). No behavior changes. |
 | **1.1.11** | - Code: split the Prefab Collections menu into separate editor, filter panel and style classes. No behavior changes. |

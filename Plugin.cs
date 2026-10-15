@@ -59,6 +59,7 @@ public class Plugin : BaseUnityPlugin
     {
         PrefabCollectionEditor.Close();
         OutlineManager.Dispose();
+        _harmony.UnpatchSelf();
         PrefabCollectionStore.Dispose();
         _configWatcher?.Dispose();
         Config.Save();

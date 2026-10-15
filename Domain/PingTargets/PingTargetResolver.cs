@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using HarmonyLib;
 using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Domain.Collections;
 using JoksterCube.PingMark.Domain.Enums;
@@ -15,10 +14,6 @@ internal static class PingTargetResolver
 {
     private static readonly Regex InstanceSuffix = new(@"\s+\(\d+\)$", RegexOptions.Compiled);
 
-    private static readonly Func<ZoneSystem, int, ZoneSystem.ZoneLocation?>? GetLocationByHash =
-        AccessTools.Method(typeof(ZoneSystem), nameof(ZoneSystem.GetLocation), [typeof(int)]) is { } method
-            ? AccessTools.MethodDelegate<Func<ZoneSystem, int, ZoneSystem.ZoneLocation?>>(method)
-            : null;
 
     internal static PingTarget? Resolve(Collider? collider, Vector3 position)
     {
@@ -165,12 +160,12 @@ internal static class PingTargetResolver
     private static bool TryGetLocationPrefabName(GameObject root, out string locationName)
     {
         locationName = string.Empty;
-        if (!root.TryGetComponent(out LocationProxy _) || !ZoneSystem.instance || GetLocationByHash == null) return false;
+        if (!root.TryGetComponent(out LocationProxy _) || !ZoneSystem.instance) return false;
 
         ZDO? zdo = root.GetComponent<ZNetView>()?.GetZDO();
         if (zdo == null) return false;
 
-        ZoneSystem.ZoneLocation? location = GetLocationByHash(ZoneSystem.instance, zdo.GetInt(ZDOVars.s_location));
+        ZoneSystem.ZoneLocation? location = ZoneSystem.instance.GetLocation(zdo.GetInt(ZDOVars.s_location));
         if (location == null) return false;
 
         locationName = Clean(location.m_prefabName ?? location.m_name);

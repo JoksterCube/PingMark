@@ -4,7 +4,7 @@ using JoksterCube.PingMark.Domain;
 
 namespace JoksterCube.PingMark.Patches.PrefabEditor;
 
-[HarmonyPatch(typeof(Menu), "Update")]
+[HarmonyPatch(typeof(Menu), nameof(Menu.Update))]
 internal static class PrefabEditorMenuInputPatch
 {
     private static bool Prefix() => !PrefabCollectionEditor.BlocksInput;

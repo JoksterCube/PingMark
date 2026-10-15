@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using HarmonyLib;
 using JoksterCube.PingMark.Domain.Enums;
 using JoksterCube.PingMark.Domain.PingTargets;
 using SoftReferenceableAssets;
@@ -375,7 +374,8 @@ internal sealed class PrefabFeatureClassifier(PrefabBrowserFilter filter)
 
     private IEnumerable<int> IndexLoadedRooms()
     {
-        if (!DungeonDB.instance || AccessTools.Field(typeof(DungeonDB), "m_rooms")?.GetValue(DungeonDB.instance) is not IEnumerable rooms) yield break;
+        if (!DungeonDB.instance || DungeonDB.instance.m_rooms is not { } rooms) yield break;
+        // RoomData fields are scanned by type so the index survives game updates that rename them.
         foreach (object roomData in rooms)
         {
             yield return _names.Count;
@@ -394,9 +394,7 @@ internal sealed class PrefabFeatureClassifier(PrefabBrowserFilter filter)
 
     private void IndexDungeonTheme(DungeonGenerator generator)
     {
-        if (generator.m_algorithm == DungeonGenerator.Algorithm.Dungeon
-            && AccessTools.Field(typeof(DungeonGenerator), "m_themes")?.GetValue(generator) is Room.Theme theme)
-            _dungeonThemes |= theme;
+        if (generator.m_algorithm == DungeonGenerator.Algorithm.Dungeon) _dungeonThemes |= generator.m_themes;
     }
 
     private void Reference(GameObject source, GameObject? target, PrefabBrowserKind kind, bool add = true)

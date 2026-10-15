@@ -5,7 +5,7 @@ namespace JoksterCube.PingMark.Common.Networking;
 [HarmonyPatch(typeof(ZNet), nameof(ZNet.Disconnect))]
 internal static class RemoveDisconnectedPeerFromVerified
 {
-    private static void Prefix(ZNetPeer peer, ref ZNet __instance)
+    private static void Prefix(ZNetPeer peer, ZNet __instance)
     {
         if (!__instance.IsServer())
         {
