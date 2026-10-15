@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using JoksterCube.PingMark.Domain.Collections;
 using UnityEngine;
 using static JoksterCube.PingMark.Settings.Constants.Plugin;
 
@@ -30,12 +31,14 @@ internal static class RpcHandlers
         _serverVersionReceived = false;
         _serverVersionCheckStartedAt = Time.realtimeSinceStartup;
         Plugin.ConnectionError = string.Empty;
+        PrefabCollectionStore.ResetServerValue();
     }
 
     internal static void ResetServerVersionCheck()
     {
         _waitingForServerVersion = false;
         _serverVersionReceived = false;
+        PrefabCollectionStore.ResetServerValue();
     }
 
     internal static void RPC_ServerSyncModTemplate_Version(ZRpc rpc, ZPackage pkg)
@@ -64,6 +67,7 @@ internal static class RpcHandlers
         {
             Plugin.ModLogger.LogInfo($"Adding peer ({rpc.GetPeerHostName()}) to validated list");
             ValidatedPeers.Add(rpc);
+            PrefabCollectionStore.SendTo(rpc);
         }
     }
 }

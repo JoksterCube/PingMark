@@ -61,7 +61,7 @@ The **Prefab Collections** menu lets you search and filter object IDs, move them
 
 **Auto Sort** rebuilds the collections as Valuables, Locations, and Useful, including eligible modded objects. It replaces custom sections after confirmation. Use **Undo** to restore changes, **Apply** to save, or **Cancel** to discard them.
 
-**When PingMark is installed on the server, only the host/server admins can open and configure this menu, even if Lock Configuration is off.** Applied collections are saved on the server and synchronized to clients. In single-player or on a server without PingMark, the menu edits your local configuration.
+**When PingMark is installed on the server, only the host/server admins can change collections, even if Lock Configuration is off. The server checks every change.** Applied collections are saved in the server's `BepInEx/config/JoksterCube.PingMark.Collections.yml` and synchronized to clients. Edits to that file are picked up and sent to clients automatically. In single-player or on a server without PingMark, the menu edits your local collections file.
 
 ---
 
@@ -71,7 +71,7 @@ Install with a Thunderstore-compatible mod manager, or manually:
 
 1. Install **BepInExPack Valheim**.
 2. Extract PingMark into your game's `BepInEx/plugins` folder.
-3. Launch the game to generate `BepInEx/config/JoksterCube.PingMark.cfg`.
+3. Launch the game to generate `BepInEx/config/JoksterCube.PingMark.cfg` and `BepInEx/config/JoksterCube.PingMark.Collections.yml`.
 
 Server installation is optional. Install it on the server to synchronize gameplay settings and centrally manage collections.
 
@@ -91,7 +91,7 @@ Server installation is optional. Install it on the server to synchronize gamepla
 
 Edit `BepInEx/config/JoksterCube.PingMark.cfg`. Defaults below apply to new entries; existing saved values are preserved.
 
-**Scope:** **Local** affects your client only. **Server** is synchronized when the server runs PingMark; otherwise your local value applies. **Lock Configuration** restricts synchronized changes to admins when on. The admin menu remains admin-only on a PingMark server regardless of that lock.
+**Scope:** **Local** affects your client only. **Server** is synchronized when the server runs PingMark; otherwise your local value applies. **Lock Configuration** restricts synchronized changes to admins when on. Prefab collections are stored separately and are admin-only on a PingMark server regardless of that lock.
 
 #### 1 - General
 
@@ -126,9 +126,10 @@ Edit `BepInEx/config/JoksterCube.PingMark.cfg`. Defaults below apply to new entr
 
 #### 4 - Ping Targets
 
+Collection definitions (names, object/location IDs, enabled states and palette color IDs) live in `JoksterCube.PingMark.Collections.yml`, not in the .cfg file. Older versions stored them as **Prefab Sections** in the .cfg; that value is moved to the new file automatically. Defaults: **Valuables**, **Locations** and **Useful**, all enabled.
+
 | Setting | Default | Scope | What It Does |
 | --- | --- | --- | --- |
-| Prefab Sections | Valuables, Locations, Useful; all enabled | Server | Collection definitions: names, object/location IDs, enabled states, and palette color IDs. Manage these in the admin menu. |
 | Enable Drops | On | Server | Name and outline dropped items. |
 | Enable Gravestones | On | Server | Name and outline gravestones. |
 | Enable Other Players | Off | Server | Highlight moving players instead of sending a ground ping. |
@@ -200,5 +201,5 @@ Report bugs or suggest improvements on [GitHub](https://github.com/JoksterCube/P
 ---
 
 **Author:** JoksterCube<br>
-**Version:** 1.0.14<br>
+**Version:** 1.1.0<br>
 **License:** MIT

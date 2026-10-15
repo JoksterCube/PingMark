@@ -39,6 +39,7 @@ public class Plugin : BaseUnityPlugin
     private void Awake()
     {
         PluginConfig.Build(Config, ConfigSync);
+        PrefabCollectionStore.Initialize(Config);
 
         var assembly = Assembly.GetExecutingAssembly();
         _harmony.PatchAll(assembly);
@@ -57,6 +58,7 @@ public class Plugin : BaseUnityPlugin
     {
         PrefabCollectionEditor.Close();
         OutlineManager.Dispose();
+        PrefabCollectionStore.Dispose();
         _configWatcher?.Dispose();
         Config.Save();
     }

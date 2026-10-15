@@ -9,7 +9,7 @@ internal static class Constants
     internal static class Plugin
     {
         internal const string ModName = "PingMark";
-        internal const string ModVersion = "1.0.14";
+        internal const string ModVersion = "1.1.0";
         internal const string Author = "JoksterCube";
         internal const string ModGUID = $"{Author}.{ModName}";
         internal const string Description = "Mark loot, creatures, and locations with named pings, colored outlines, and live distances. Share discoveries with your party.";
@@ -17,6 +17,7 @@ internal static class Constants
         internal const string Guid = "7b25968d-61be-412f-b20f-36c18da9de86";
 
         internal const string ConfigFileName = $"{ModGUID}.cfg";
+        internal const string CollectionsFileName = $"{ModGUID}.Collections.yml";
     }
 
     internal static class DebugMessages
@@ -350,6 +351,7 @@ internal static class Constants
         {
             internal const string Group = "4 - Ping Targets";
 
+            // No longer bound as a setting: the default collections, and the legacy .cfg key migrated to the collections file.
             internal static readonly ConfigInfo<string> PrefabSections = new(
                 Group,
                 "Prefab Sections",

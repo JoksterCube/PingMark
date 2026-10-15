@@ -146,6 +146,7 @@
     <Compile Include="Domain\Collections\PrefabCollectionEditor.cs" />
     <Compile Include="Domain\Collections\PrefabCollectionEditorUI.cs" />
     <Compile Include="Domain\Collections\PrefabCollectionSectionConfig.cs" />
+    <Compile Include="Domain\Collections\PrefabCollectionStore.cs" />
     <Compile Include="Domain\Collections\PrefabCollections.cs" />
     <Compile Include="Domain\Collections\PrefabFeatureClassifier.cs" />
     <Compile Include="Domain\ShortcutHold.cs" />

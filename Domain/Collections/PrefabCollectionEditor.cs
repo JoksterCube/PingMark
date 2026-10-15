@@ -99,7 +99,7 @@ internal static class PrefabCollectionEditor
 
     internal static bool IsOpen => _collections != null;
     internal static bool BlocksInput => IsOpen || _closedFrame == Time.frameCount;
-    internal static bool CanEdit => !RpcHandlers.ShouldWaitForInitialConfigSync && Plugin.CanEditPrefabCollections;
+    internal static bool CanEdit => !RpcHandlers.ShouldWaitForInitialConfigSync && PrefabCollectionStore.IsReady && Plugin.CanEditPrefabCollections;
 
     internal static void Open()
     {
@@ -589,7 +589,7 @@ internal static class PrefabCollectionEditor
         Close();
     }
 
-    private static string CurrentConfig() => PrefabSections.Value;
+    private static string CurrentConfig() => PrefabCollectionStore.Value;
 
     private static string StagedConfig()
     {

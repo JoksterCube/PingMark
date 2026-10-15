@@ -4,7 +4,6 @@ using System.Linq;
 using JoksterCube.PingMark.Domain.Models;
 using UnityEngine;
 using YamlDotNet.Serialization;
-using static JoksterCube.PingMark.Settings.PluginConfig;
 using static JoksterCube.PingMark.Settings.Constants.Groups.PrefabCollections;
 using TargetLists = JoksterCube.PingMark.Settings.Constants.Groups.PingTargets;
 
@@ -21,14 +20,14 @@ internal static class PrefabCollectionSectionConfig
     // in memory, so a typo in the file cannot wipe the configured collections.
     internal static List<PrefabCollectionSection> Load()
     {
-        string value = PrefabSections.Value;
+        string value = PrefabCollectionStore.Value;
         if (value == _cachedValue && _cachedSections.Count > 0) return _cachedSections;
         _cachedValue = value;
 
         List<PrefabCollectionSection>? sections = string.IsNullOrWhiteSpace(value) ? [] : Parse(value);
         if (sections == null)
         {
-            Plugin.ModLogger.LogError("Unable to read configured prefab sections; keeping the previous sections. Fix the config value to apply changes.");
+            Plugin.ModLogger.LogError("Unable to read configured prefab sections; keeping the previous sections. Fix the collections file to apply changes.");
             if (_cachedSections.Count == 0) _cachedSections = Parse(TargetLists.PrefabSections.DefaultValue) ?? [];
             return _cachedSections;
         }
@@ -76,9 +75,7 @@ internal static class PrefabCollectionSectionConfig
 
     internal static void Save(List<PrefabCollectionSection> sections)
     {
-        string value = Serialize(sections);
-        PrefabSections.Value = value;
-        _cachedValue = value;
-        _cachedSections = sections.Select(section => section.Copy()).ToList();
+        // Remote edits are applied once the server accepts and returns them, so the cache is not updated here.
+        PrefabCollectionStore.Submit(Serialize(sections));
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using HarmonyLib;
+using JoksterCube.PingMark.Domain.Collections;
 using static JoksterCube.PingMark.Settings.Constants.Plugin;
 
 namespace JoksterCube.PingMark.Common.Networking;
@@ -15,6 +16,7 @@ internal static class RegisterAndCheckVersion
         Plugin.ModLogger.LogDebug("Registering version RPC handler");
         peer.m_rpc.Register($"{ModName}_VersionCheck",
             new Action<ZRpc, ZPackage>(RpcHandlers.RPC_ServerSyncModTemplate_Version));
+        PrefabCollectionStore.RegisterRpcs(peer.m_rpc);
 
         Plugin.ModLogger.LogInfo("Invoking version check");
         ZPackage zpackage = new();

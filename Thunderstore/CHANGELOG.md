@@ -1,5 +1,6 @@
 | Version | Update Notes |
 |----------|---------------|
+| **1.1.0** | - Prefab collections moved from the .cfg into JoksterCube.PingMark.Collections.yml, and existing values are migrated automatically. On a PingMark server, collection changes are now checked by the server and accepted from admins only, even when Lock Configuration is off. Edits to the server's collections file are sent to clients live. |
 | **1.0.14** | - Removing a section in the Prefab Collections menu can now be undone, and Undo no longer discards a removal after an auto sort. |
 | **1.0.13** | - Fixed digits being removed from translated target names. Only raw prefab IDs are reformatted. |
 | **1.0.12** | - Ping target names from other players are now shown in your own game language when the target is loaded nearby. |

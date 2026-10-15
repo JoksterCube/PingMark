@@ -28,7 +28,6 @@ internal static class PluginConfig
     internal static ConfigEntry<float> CameraPingMaxDistance = null!;
     internal static ConfigEntry<float> MaxUnderwaterDepth = null!;
 
-    internal static ConfigEntry<string> PrefabSections = null!;
     internal static ConfigEntry<Toggle> DropsEnabled = null!;
     internal static ConfigEntry<Toggle> GravestonesEnabled = null!;
     internal static ConfigEntry<Toggle> PlayersEnabled = null!;
@@ -81,7 +80,6 @@ internal static class PluginConfig
         CameraPingMaxDistance = ConfigOptions.Config(CameraPing.MaxDistance);
         MaxUnderwaterDepth = ConfigOptions.Config(CameraPing.MaxUnderwaterDepth);
 
-        PrefabSections = ConfigOptions.Config(PingTargets.PrefabSections);
         DropsEnabled = ConfigOptions.Config(PingTargets.DropsEnabled);
         GravestonesEnabled = ConfigOptions.Config(PingTargets.GravestonesEnabled);
         PlayersEnabled = ConfigOptions.Config(PingTargets.PlayersEnabled);
