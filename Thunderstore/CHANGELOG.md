@@ -1,5 +1,6 @@
 | Version | Update Notes |
 |----------|---------------|
+| **1.1.5** | - Faster object ID lookups when pinging and when loading the Prefab Collections menu. |
 | **1.1.4** | - Prefab Collections menu: searching and filtering are faster because pending changes are serialized only when they change, and row widths are measured once. |
 | **1.1.3** | - Minimap ping labels are updated without per-frame reflection. |
 | **1.1.2** | - Shortcuts now match modifiers exactly (Ctrl+Z no longer triggers Z) and no longer allocate memory every frame. |

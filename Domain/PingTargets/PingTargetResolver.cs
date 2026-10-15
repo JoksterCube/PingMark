@@ -13,6 +13,8 @@ namespace JoksterCube.PingMark.Domain.PingTargets;
 
 internal static class PingTargetResolver
 {
+    private static readonly Regex InstanceSuffix = new(@"\s+\(\d+\)$", RegexOptions.Compiled);
+
     private static readonly Func<ZoneSystem, int, ZoneSystem.ZoneLocation?>? GetLocationByHash =
         AccessTools.Method(typeof(ZoneSystem), nameof(ZoneSystem.GetLocation), [typeof(int)]) is { } method
             ? AccessTools.MethodDelegate<Func<ZoneSystem, int, ZoneSystem.ZoneLocation?>>(method)
@@ -278,7 +280,7 @@ internal static class PingTargetResolver
         ZNetScene.instance && ZNetScene.instance.GetPrefab(GetObjectId(candidate));
 
     internal static string GetObjectId(GameObject candidate) =>
-        Regex.Replace(Clean(global::Utils.GetPrefabName(candidate)), @"\s+\(\d+\)$", string.Empty);
+        InstanceSuffix.Replace(Clean(global::Utils.GetPrefabName(candidate)), string.Empty);
 
     private static bool IsTerrain(Collider collider) =>
         collider.gameObject.layer == LayerMask.NameToLayer("terrain")
