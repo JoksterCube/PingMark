@@ -2,7 +2,7 @@
 
 ## Share discoveries and keep your party on target!
 
-Aim, press **Z**, and your friends see exactly what you found: a named marker, a colored outline and a live distance.
+See **how far away** every ping is, something vanilla Valheim never shows. Aim, press **Z**, and your friends see exactly what you found: a named marker, a colored outline and a live distance.
 
 ---
 
@@ -33,10 +33,10 @@ Aim, press **Z**, and your friends see exactly what you found: a named marker, a
 
 ### 🧭 Features
 
+- **📏 Distance on every ping:** world and map pings show who pinged and how far away it is, updating as you move. Works on regular map pings too.
 - **Aim and ping:** mark what you are looking at with its name and an outline.
-- **Live distances:** world and map pings show who pinged and how far away it is.
 - **Find the loot:** dropped weapons, armor and materials glow so they're easy to spot in the grass.
-- **Track creatures:** highlight a mob with a nameplate that follows it, colored red (hostile) or green (friendly).
+- **Track creatures:** highlight a mob with a nameplate and distance that follow it, colored red (hostile) or green (friendly).
 - **Mark teammates:** optionally highlight players instead of the spot they stood on (off by default).
 - **Your rules:** pick which objects count as **Valuables**, **Locations** or **Useful**, and customize colors, labels, shortcuts and range.
 
