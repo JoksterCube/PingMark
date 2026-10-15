@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using HarmonyLib;
 using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Domain;
-using JoksterCube.PingMark.Patches.GroundPing;
 using TMPro;
 using UnityEngine;
 using static JoksterCube.PingMark.Settings.PluginConfig;
@@ -51,7 +50,7 @@ internal static class WorldTextsUpdatePatch
         UpdateLabelStyles(___m_worldTexts);
 
         Player localPlayer = Player.m_localPlayer;
-        if (localPlayer) PingMarkLabels.Tick(dt, ___m_worldTexts, localPlayer);
+        if (localPlayer) PingLabelFormatter.Tick(dt, ___m_worldTexts, localPlayer);
     }
 
     private static void UpdateLabelStyles(List<Chat.WorldTextInstance> worldTexts)
@@ -59,10 +58,10 @@ internal static class WorldTextsUpdatePatch
         if (!_mapFont && Minimap.instance && Minimap.instance.m_pinNamePrefab is { } pinNamePrefab && pinNamePrefab)
         {
             TMP_Text template = pinNamePrefab.GetComponentInChildren<TMP_Text>(true);
-            PingMarkLabels.MapLabelTemplate = template;
+            PingLabelFormatter.MapLabelTemplate = template;
             _mapFont = template ? template.font : null;
         }
-        PingMarkLabels.MapFont = _mapFont;
+        PingLabelFormatter.MapFont = _mapFont;
 
         foreach (Chat.WorldTextInstance worldText in worldTexts)
         {

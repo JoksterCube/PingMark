@@ -119,7 +119,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Common\PlayerExtensions.cs" />
+    <Compile Include="Common\PlayerMessages.cs" />
     <Compile Include="Common\Toggle.cs" />
     <Compile Include="Common\ToggleExtensions.cs" />
     <Compile Include="Common\Networking\RegisterAndCheckVersion.cs" />
@@ -151,13 +151,13 @@
     <Compile Include="Domain\Collections\PrefabCollections.cs" />
     <Compile Include="Domain\Collections\PrefabFeatureClassifier.cs" />
     <Compile Include="Patches\PingLabels\PingMapLabelPatch.cs" />
-    <Compile Include="Patches\PingLabels\PingMarkLabels.cs" />
+    <Compile Include="Domain\PingLabelFormatter.cs" />
     <Compile Include="Patches\PingLabels\PingWorldTextLabelPatch.cs" />
     <Compile Include="Patches\PingLabels\WorldTextsUpdatePatch.cs" />
     <Compile Include="Patches\GroundPing\GroundPingAddLabelPatch.cs" />
-    <Compile Include="Patches\GroundPing\GroundPingLabelAnchors.cs" />
-    <Compile Include="Patches\MobHighlight\MobHighlightNamePatch.cs" />
-    <Compile Include="Patches\MobHighlight\MobHighlightVisibilityPatch.cs" />
+    <Compile Include="Domain\GroundPingLabelAnchors.cs" />
+    <Compile Include="Patches\Highlights\MobHighlightNamePatch.cs" />
+    <Compile Include="Patches\Highlights\MobHighlightVisibilityPatch.cs" />
     <Compile Include="Patches\PrefabEditor\PrefabEditorActivePatch.cs" />
     <Compile Include="Patches\PrefabEditor\PrefabEditorMenuInputPatch.cs" />
     <Compile Include="Patches\PrefabEditor\PrefabEditorMouseCapturePatch.cs" />

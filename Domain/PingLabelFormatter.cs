@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Domain;
-using MobHighlightService = JoksterCube.PingMark.Domain.MobHighlight;
 using TMPro;
 using UnityEngine;
 using static JoksterCube.PingMark.Settings.PluginConfig;
 
-namespace JoksterCube.PingMark.Patches.PingLabels;
+namespace JoksterCube.PingMark.Domain;
 
-internal static class PingMarkLabels
+internal static class PingLabelFormatter
 {
     private static readonly Dictionary<Chat.WorldTextInstance, string> Cache = [];
     private static float _timer;
@@ -74,7 +73,7 @@ internal static class PingMarkLabels
     {
         if (ShowPingerName.IsOn())
         {
-            string name = MobHighlightService.GetPingerName(character);
+            string name = MobHighlight.GetPingerName(character);
             return ShowDistance.IsOn() ? name + "\n" + distance : name;
         }
         return ShowDistance.IsOn() ? distance : string.Empty;

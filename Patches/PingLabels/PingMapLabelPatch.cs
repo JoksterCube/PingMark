@@ -24,7 +24,7 @@ internal static class PingMapLabelPatch
             if (worldText.m_type != Talker.Type.Ping) continue;
 
             Minimap.PinData pingPin = ___m_pingPins[i];
-            string label = PingMarkLabels.Get(worldText, localPlayer);
+            string label = PingLabelFormatter.Get(worldText, localPlayer);
             pingPin.m_name = label;
 
             if (pingPin.m_NamePinData != null && pingPin.m_NamePinData.PinNameText)

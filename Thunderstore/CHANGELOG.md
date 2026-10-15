@@ -1,5 +1,6 @@
 | Version | Update Notes |
 |----------|---------------|
+| **1.1.12** | - Code: clearer names and folders (label formatting and ground-ping anchors moved to Domain, highlight patches renamed). No behavior changes. |
 | **1.1.11** | - Code: split the Prefab Collections menu into separate editor, filter panel and style classes. No behavior changes. |
 | **1.1.10** | - Simplified creature nameplate label handling. Fixed alert markers being shifted up twice when a highlight label is recreated. |
 | **1.1.9** | - Development: validation check sources are now version controlled under Tests/Validation. No gameplay changes. |

@@ -30,7 +30,7 @@ public class Plugin : BaseUnityPlugin
     internal static bool InitialConfigSyncDone => ConfigSync.InitialSyncDone;
     internal static bool CanEditPrefabCollections => ConfigSync.IsSourceOfTruth || ConfigSync.IsAdmin;
 
-    private readonly string ConfigFileFullPath = Paths.ConfigPath + Path.DirectorySeparatorChar + ConfigFileName;
+    private readonly string _configFileFullPath = Path.Combine(Paths.ConfigPath, ConfigFileName);
 
     private FileSystemWatcher? _configWatcher;
 
@@ -78,7 +78,7 @@ public class Plugin : BaseUnityPlugin
 
     private void ReadConfigValues(object sender, FileSystemEventArgs e)
     {
-        if (!File.Exists(ConfigFileFullPath)) return;
+        if (!File.Exists(_configFileFullPath)) return;
         try
         {
             ModLogger.LogDebug(DebugMessages.ReadConfigCalled);

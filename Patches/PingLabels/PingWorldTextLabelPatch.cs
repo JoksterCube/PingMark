@@ -16,7 +16,7 @@ internal static class PingWorldTextLabelPatch
         Player localPlayer = Player.m_localPlayer;
         if (!localPlayer) return;
 
-        PingMarkLabels.Invalidate(worldText);
-        worldText.m_textMeshField.text = PingMarkLabels.Get(worldText, localPlayer);
+        PingLabelFormatter.Invalidate(worldText);
+        worldText.m_textMeshField.text = PingLabelFormatter.Get(worldText, localPlayer);
     }
 }

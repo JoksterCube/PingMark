@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 using HarmonyLib;
 using JoksterCube.PingMark.Common;
-using JoksterCube.PingMark.Patches.PingLabels;
-using MobHighlightService = JoksterCube.PingMark.Domain.MobHighlight;
+using JoksterCube.PingMark.Domain;
 using TMPro;
 using UnityEngine;
 using static JoksterCube.PingMark.Settings.PluginConfig;
 
-namespace JoksterCube.PingMark.Patches.MobHighlight;
+namespace JoksterCube.PingMark.Patches.Highlights;
 
 [HarmonyPatch(typeof(EnemyHud), nameof(EnemyHud.LateUpdate))]
 internal static class MobHighlightNamePatch
@@ -41,7 +40,7 @@ internal static class MobHighlightNamePatch
     private static void Prefix(Dictionary<Character, EnemyHud.HudData> ___m_huds)
     {
         foreach (KeyValuePair<Character, EnemyHud.HudData> entry in ___m_huds)
-            if (MobHighlightService.IsMarked(entry.Key)) entry.Value.m_hoverTimer = 0f;
+            if (MobHighlight.IsMarked(entry.Key)) entry.Value.m_hoverTimer = 0f;
     }
 
     private static void Postfix(Dictionary<Character, EnemyHud.HudData> ___m_huds)
@@ -59,7 +58,7 @@ internal static class MobHighlightNamePatch
             TMP_Text name = entry.Value.m_name;
             if (!name) continue;
 
-            if (!MobHighlightService.IsMarked(entry.Key))
+            if (!MobHighlight.IsMarked(entry.Key))
             {
                 if (Nameplates.TryGetValue(name, out Nameplate restored))
                 {
@@ -86,20 +85,20 @@ internal static class MobHighlightNamePatch
 
     private static void UpdateNameplate(Character character, EnemyHud.HudData hud, TMP_Text name, Nameplate nameplate, Player localPlayer)
     {
-        nameplate.Distance ??= PingMarkLabels.FormatDistance(character.transform.position, localPlayer);
+        nameplate.Distance ??= PingLabelFormatter.FormatDistance(character.transform.position, localPlayer);
         if (name.text != nameplate.OriginalName) name.text = nameplate.OriginalName;
 
-        if (PingMarkLabels.MapFont && !nameplate.Label) CreateLabel(hud, name, nameplate);
+        if (PingLabelFormatter.MapFont && !nameplate.Label) CreateLabel(hud, name, nameplate);
         TMP_Text? label = nameplate.Label;
         if (!label) return;
 
         ZDOID id = character.GetZDOID();
-        long order = MobHighlightService.GetPingerOrder(character);
+        long order = MobHighlight.GetPingerOrder(character);
         var key = (id, order, nameplate.Distance, ShowPingerName.IsOn(), ShowDistance.IsOn());
         if (!nameplate.TextKey.Equals(key))
         {
             nameplate.TextKey = key;
-            nameplate.Text = PingMarkLabels.GetCharacterLabel(character, nameplate.Distance);
+            nameplate.Text = PingLabelFormatter.GetCharacterLabel(character, nameplate.Distance);
         }
         if (label!.text != nameplate.Text) label.text = nameplate.Text;
         bool visible = nameplate.Text.Length > 0;
@@ -147,14 +146,14 @@ internal static class MobHighlightNamePatch
 
     private static void UpdateLabelStyle(TMP_Text name, TMP_Text label, Nameplate nameplate)
     {
-        TMP_Text source = PingMarkLabels.StyleSource(name);
-        var style = (PingMarkLabels.MapFont, source.fontSize, source.enableAutoSizing,
+        TMP_Text source = PingLabelFormatter.StyleSource(name);
+        var style = (PingLabelFormatter.MapFont, source.fontSize, source.enableAutoSizing,
             source.fontSizeMin, source.fontSizeMax, source.fontStyle, source.lineSpacing,
             source.characterSpacing, source.wordSpacing, source.paragraphSpacing, name.rectTransform.rect.width);
         if (nameplate.Style.Equals(style)) return;
         nameplate.Style = style;
 
-        label.font = PingMarkLabels.MapFont;
+        label.font = PingLabelFormatter.MapFont;
         label.fontSize = source.fontSize;
         label.enableAutoSizing = source.enableAutoSizing;
         label.fontSizeMin = source.fontSizeMin;

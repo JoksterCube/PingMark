@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace JoksterCube.PingMark.Patches.GroundPing;
+namespace JoksterCube.PingMark.Domain;
 
 internal static class GroundPingLabelAnchors
 {

@@ -15,7 +15,7 @@ internal static class RegisterAndCheckVersion
 
         Plugin.ModLogger.LogDebug("Registering version RPC handler");
         peer.m_rpc.Register($"{ModName}_VersionCheck",
-            new Action<ZRpc, ZPackage>(RpcHandlers.RPC_ServerSyncModTemplate_Version));
+            new Action<ZRpc, ZPackage>(RpcHandlers.RPC_VersionCheck));
         PrefabCollectionStore.RegisterRpcs(peer.m_rpc);
 
         Plugin.ModLogger.LogInfo("Invoking version check");

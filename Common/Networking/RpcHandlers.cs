@@ -41,7 +41,7 @@ internal static class RpcHandlers
         PrefabCollectionStore.ResetServerValue();
     }
 
-    internal static void RPC_ServerSyncModTemplate_Version(ZRpc rpc, ZPackage pkg)
+    internal static void RPC_VersionCheck(ZRpc rpc, ZPackage pkg)
     {
         string version = pkg.ReadString();
         var instance = ZNet.instance;

@@ -4,7 +4,6 @@ using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Domain;
 using JoksterCube.PingMark.Domain.PingTargets;
 using JoksterCube.PingMark.Domain.Models;
-using JoksterCube.PingMark.Patches.PingLabels;
 using UnityEngine;
 using static JoksterCube.PingMark.Settings.PluginConfig;
 
@@ -50,9 +49,9 @@ internal static class GroundPingAddLabelPatch
 
         if (type != Talker.Type.Ping || string.IsNullOrWhiteSpace(text)) return;
         worldText.m_text = text;
-        PingMarkLabels.Invalidate(worldText);
+        PingLabelFormatter.Invalidate(worldText);
         Player localPlayer = Player.m_localPlayer;
         if (localPlayer && worldText.m_textMeshField)
-            worldText.m_textMeshField.text = PingMarkLabels.Get(worldText, localPlayer);
+            worldText.m_textMeshField.text = PingLabelFormatter.Get(worldText, localPlayer);
     }
 }

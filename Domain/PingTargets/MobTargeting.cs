@@ -103,7 +103,7 @@ internal static class MobTargeting
             if (DebugPrefabId.IsOn() && Player.m_localPlayer)
             {
                 string debugNames = PingTargetResolver.GetDebugNames(targetHit.Value);
-                if (!string.IsNullOrWhiteSpace(debugNames)) PlayerExtensions.FormatedTopLeftMessage("{0}", debugNames);
+                if (!string.IsNullOrWhiteSpace(debugNames)) PlayerMessages.TopLeft(debugNames);
             }
 
             target = PingTargetResolver.Resolve(targetHit.Value.collider, position);
