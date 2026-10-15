@@ -11,7 +11,7 @@ namespace JoksterCube.PingMark.Domain;
 
 internal static class InputManager
 {
-    internal static void Update(Plugin plugin)
+    internal static void Update()
     {
         PrefabCollectionEditor.Update();
         bool allowed = !RpcHandlers.ShouldWaitForInitialConfigSync && !PrefabCollectionEditor.BlocksInput && CanTakeInput();
@@ -29,8 +29,6 @@ internal static class InputManager
         if (togglePressed)
         {
             Enabled.Value = Enabled.Value.Not();
-
-            plugin.Config.Save();
             return;
         }
 

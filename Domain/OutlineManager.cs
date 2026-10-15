@@ -292,7 +292,7 @@ internal static class OutlineManager
         if (!_shader)
         {
             _shaderMissing = true;
-            Debug.LogWarning("[PingMark] UI/Default shader not found, outlines are disabled.");
+            Plugin.ModLogger.LogWarning("UI/Default shader not found, outlines are disabled.");
             return false;
         }
 

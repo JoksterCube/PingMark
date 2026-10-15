@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using BepInEx.Configuration;
 using ServerSync;
 
@@ -36,18 +35,4 @@ internal static class ConfigOptions
 
     internal static ConfigEntry<T> Config<T>(ConfigInfo<T> configInfo) =>
         Config(configInfo.Group, configInfo.Name, configInfo.DefaultValue, configInfo.Description, configInfo.Synchronized);
-
-    internal static ConfigEntry<T> Config<T>(ConfigInfo<T> configInfo, string legacyGroup)
-    {
-        ConfigFile config = _configFile ?? throw new InvalidOperationException("ConfigOptions is not initialized.");
-        ConfigEntry<T> legacyEntry = config.Bind(legacyGroup, configInfo.Name, configInfo.DefaultValue, configInfo.Description);
-        T legacyValue = legacyEntry.Value;
-        config.Remove(legacyEntry.Definition);
-
-        ConfigEntry<T> configEntry = Config(configInfo);
-        if (!EqualityComparer<T>.Default.Equals(legacyValue, configInfo.DefaultValue))
-            configEntry.Value = legacyValue;
-
-        return configEntry;
-    }
 }

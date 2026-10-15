@@ -9,8 +9,11 @@ namespace JoksterCube.PingMark.Domain.Collections;
 
 internal static class PrefabAutoSort
 {
-    internal static readonly string[] SectionNames = ["Valuables", "Locations", "Useful"];
-    private static readonly int[] SectionColorIds = [5, 9, 8];
+    // Auto sort rebuilds the default sections, so names and colors come from the default collections.
+    private static readonly SerializedSections DefaultSections = new DeserializerBuilder().Build()
+        .Deserialize<SerializedSections>(TargetLists.PrefabSections.DefaultValue);
+    internal static readonly string[] SectionNames = DefaultSections.Sections.Select(section => section.Name).ToArray();
+    private static readonly int[] SectionColorIds = DefaultSections.Sections.Select(section => section.ColorId).ToArray();
     private static readonly string[] AdditionalUsefulPrefabNames =
     [
         "RuneStone_Memorial1", "Vegvisir_DNBoss", "offferaltar_memorialsite",
@@ -25,7 +28,7 @@ internal static class PrefabAutoSort
             Name = name,
             ColorId = SectionColorIds[index]
         }).ToList();
-        List<string>[] sorted = [[], [], []];
+        List<string>[] sorted = SectionNames.Select(_ => new List<string>()).ToArray();
         foreach (string name in names.Distinct(System.StringComparer.OrdinalIgnoreCase))
         {
             int category = Category(name, filter.Kind(name));
@@ -71,8 +74,7 @@ internal static class PrefabAutoSort
 
     private static Dictionary<string, int> BuildDefaults()
     {
-        SerializedSections defaults = new DeserializerBuilder().Build()
-            .Deserialize<SerializedSections>(TargetLists.PrefabSections.DefaultValue);
+        SerializedSections defaults = DefaultSections;
         Dictionary<string, int> categories = new(System.StringComparer.OrdinalIgnoreCase);
         for (int index = 0; index < defaults.Sections.Count; index++)
             foreach (string name in defaults.Sections[index].Prefabs.Split(','))

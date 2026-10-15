@@ -33,6 +33,7 @@ public class Plugin : BaseUnityPlugin
     private readonly string _configFileFullPath = Path.Combine(Paths.ConfigPath, ConfigFileName);
 
     private FileSystemWatcher? _configWatcher;
+    private DateTime _lastConfigWrite;
 
     private readonly Harmony _harmony = new(ModGUID);
 
@@ -52,7 +53,7 @@ public class Plugin : BaseUnityPlugin
     {
         ZPingNetwork.Update();
         MobHighlight.Update();
-        InputManager.Update(this);
+        InputManager.Update();
     }
 
     private void OnDestroy()
@@ -71,7 +72,6 @@ public class Plugin : BaseUnityPlugin
         watcher.Changed += ReadConfigValues;
         watcher.Created += ReadConfigValues;
         watcher.Renamed += ReadConfigValues;
-        watcher.IncludeSubdirectories = true;
         watcher.SynchronizingObject = ThreadingHelper.SynchronizingObject;
         _configWatcher = watcher;
         watcher.EnableRaisingEvents = true;
@@ -80,6 +80,10 @@ public class Plugin : BaseUnityPlugin
     private void ReadConfigValues(object sender, FileSystemEventArgs e)
     {
         if (!File.Exists(_configFileFullPath)) return;
+        // The watcher usually raises several events per save; reload once per actual write.
+        DateTime lastWrite = File.GetLastWriteTimeUtc(_configFileFullPath);
+        if (lastWrite == _lastConfigWrite) return;
+        _lastConfigWrite = lastWrite;
         try
         {
             ModLogger.LogDebug(DebugMessages.ReadConfigCalled);

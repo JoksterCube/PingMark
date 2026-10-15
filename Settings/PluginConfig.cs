@@ -83,8 +83,8 @@ internal static class PluginConfig
         DropsEnabled = ConfigOptions.Config(PingTargets.DropsEnabled);
         GravestonesEnabled = ConfigOptions.Config(PingTargets.GravestonesEnabled);
         PlayersEnabled = ConfigOptions.Config(PingTargets.PlayersEnabled);
-        PlayerHighlightDuration = ConfigOptions.Config(PlayerHighlight.Duration, PingTargets.Group);
-        HideOwnPlayerOutline = ConfigOptions.Config(PlayerHighlight.HideOwnOutline, PingTargets.Group);
+        PlayerHighlightDuration = ConfigOptions.Config(PlayerHighlight.Duration);
+        HideOwnPlayerOutline = ConfigOptions.Config(PlayerHighlight.HideOwnOutline);
         OthersEnabled = ConfigOptions.Config(PingTargets.OthersEnabled);
 
         PingOutlineEnabled = ConfigOptions.Config(Outlines.PingOutlineEnabled);
