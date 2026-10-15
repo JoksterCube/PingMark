@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Reflection;
 using HarmonyLib;
 using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Domain;
@@ -11,8 +10,6 @@ namespace JoksterCube.PingMark.Patches.PingLabels;
 [HarmonyPatch(typeof(Minimap), nameof(Minimap.UpdatePingPins))]
 internal static class PingMapLabelPatch
 {
-    private static readonly FieldInfo PinNameField = AccessTools.Field(typeof(Minimap.PinData), "m_name");
-
     private static void Postfix(List<Minimap.PinData> ___m_pingPins, List<Chat.WorldTextInstance> ___m_tempShouts)
     {
         if (!Enabled.IsOn()) return;
@@ -28,7 +25,7 @@ internal static class PingMapLabelPatch
 
             Minimap.PinData pingPin = ___m_pingPins[i];
             string label = PingMarkLabels.Get(worldText, localPlayer);
-            PinNameField.SetValue(pingPin, label);
+            pingPin.m_name = label;
 
             if (pingPin.m_NamePinData != null && pingPin.m_NamePinData.PinNameText)
                 pingPin.m_NamePinData.PinNameText.text = label;

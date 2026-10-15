@@ -1,5 +1,6 @@
 | Version | Update Notes |
 |----------|---------------|
+| **1.1.3** | - Minimap ping labels are updated without per-frame reflection. |
 | **1.1.2** | - Shortcuts now match modifiers exactly (Ctrl+Z no longer triggers Z) and no longer allocate memory every frame. |
 | **1.1.1** | - Improved outline performance: very large targets are capped at 128 renderers and object hierarchies are checked for changes 4 times per second instead of every frame. |
 | **1.1.0** | - Prefab collections moved from the .cfg into JoksterCube.PingMark.Collections.yml, and existing values are migrated automatically. On a PingMark server, collection changes are now checked by the server and accepted from admins only, even when Lock Configuration is off. Edits to the server's collections file are sent to clients live. |
