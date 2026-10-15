@@ -24,10 +24,11 @@ internal static class PrefabCollectionSectionConfig
         if (value == _cachedValue && _cachedSections.Count > 0) return _cachedSections;
         _cachedValue = value;
 
-        List<PrefabCollectionSection>? sections = string.IsNullOrWhiteSpace(value) ? [] : Parse(value);
+        string? error = null;
+        List<PrefabCollectionSection>? sections = string.IsNullOrWhiteSpace(value) ? [] : Parse(value, out error);
         if (sections == null)
         {
-            Plugin.ModLogger.LogError("Unable to read configured prefab sections; keeping the previous sections. Fix the collections file to apply changes.");
+            Plugin.ModLogger.LogError($"Unable to read configured prefab sections ({error}); keeping the previous sections. Fix the collections file to apply changes.");
             if (_cachedSections.Count == 0) _cachedSections = Parse(TargetLists.PrefabSections.DefaultValue) ?? [];
             return _cachedSections;
         }
@@ -36,15 +37,19 @@ internal static class PrefabCollectionSectionConfig
         return _cachedSections;
     }
 
-    private static List<PrefabCollectionSection>? Parse(string value)
+    internal static List<PrefabCollectionSection>? Parse(string value) => Parse(value, out _);
+
+    // Returns null for unreadable YAML; the caller decides how to report the error.
+    internal static List<PrefabCollectionSection>? Parse(string value, out string? error)
     {
+        error = null;
         try
         {
             return CreateSections(Deserializer.Deserialize<SerializedSections>(value));
         }
         catch (Exception exception)
         {
-            Plugin.ModLogger.LogDebug($"Prefab sections parse error: {exception.Message}");
+            error = exception.Message;
             return null;
         }
     }

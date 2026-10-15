@@ -11,9 +11,10 @@ internal static class PingRateLimiter
 
     private static readonly Dictionary<long, (float Tokens, float Time)> Buckets = [];
 
-    internal static bool TryConsume(long senderId)
+    internal static bool TryConsume(long senderId) => TryConsume(senderId, Time.realtimeSinceStartup);
+
+    internal static bool TryConsume(long senderId, float now)
     {
-        float now = Time.realtimeSinceStartup;
         (float tokens, float time) = Buckets.TryGetValue(senderId, out var state) ? state : (Capacity, now);
         tokens = Mathf.Min(Capacity, tokens + (now - time) * RefillPerSecond);
         bool allowed = tokens >= 1f;
