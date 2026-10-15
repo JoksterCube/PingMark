@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JoksterCube.PingMark.Domain.Models;
@@ -16,40 +17,37 @@ internal static class PrefabCollectionSectionConfig
     private static string _cachedValue = string.Empty;
     private static List<PrefabCollectionSection> _cachedSections = [];
 
+    // Never writes the config: an unreadable value keeps the last good sections (or the defaults)
+    // in memory, so a typo in the file cannot wipe the configured collections.
     internal static List<PrefabCollectionSection> Load()
     {
         string value = PrefabSections.Value;
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            value = TargetLists.PrefabSections.DefaultValue;
-            PrefabSections.Value = value;
-        }
         if (value == _cachedValue && _cachedSections.Count > 0) return _cachedSections;
+        _cachedValue = value;
 
-        SerializedSections? serialized = null;
+        List<PrefabCollectionSection>? sections = string.IsNullOrWhiteSpace(value) ? [] : Parse(value);
+        if (sections == null)
+        {
+            Plugin.ModLogger.LogError("Unable to read configured prefab sections; keeping the previous sections. Fix the config value to apply changes.");
+            if (_cachedSections.Count == 0) _cachedSections = Parse(TargetLists.PrefabSections.DefaultValue) ?? [];
+            return _cachedSections;
+        }
+
+        _cachedSections = sections.Count > 0 ? sections : Parse(TargetLists.PrefabSections.DefaultValue) ?? [];
+        return _cachedSections;
+    }
+
+    private static List<PrefabCollectionSection>? Parse(string value)
+    {
         try
         {
-            if (!string.IsNullOrWhiteSpace(value)) serialized = Deserializer.Deserialize<SerializedSections>(value);
+            return CreateSections(Deserializer.Deserialize<SerializedSections>(value));
         }
-        catch
+        catch (Exception exception)
         {
-            Plugin.ModLogger.LogError("Unable to read configured prefab sections; restoring the configured section layout.");
-            value = TargetLists.PrefabSections.DefaultValue;
-            PrefabSections.Value = value;
-            serialized = Deserializer.Deserialize<SerializedSections>(value);
+            Plugin.ModLogger.LogDebug($"Prefab sections parse error: {exception.Message}");
+            return null;
         }
-
-        _cachedSections = CreateSections(serialized);
-
-        if (_cachedSections.Count == 0)
-        {
-            value = TargetLists.PrefabSections.DefaultValue;
-            PrefabSections.Value = value;
-            serialized = Deserializer.Deserialize<SerializedSections>(value);
-            _cachedSections = CreateSections(serialized);
-        }
-        _cachedValue = value;
-        return _cachedSections;
     }
 
     private static List<PrefabCollectionSection> CreateSections(SerializedSections? serialized) => serialized?.Sections?

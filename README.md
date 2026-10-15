@@ -200,5 +200,5 @@ Report bugs or suggest improvements on [GitHub](https://github.com/JoksterCube/P
 ---
 
 **Author:** JoksterCube<br>
-**Version:** 1.0.4<br>
+**Version:** 1.0.5<br>
 **License:** MIT

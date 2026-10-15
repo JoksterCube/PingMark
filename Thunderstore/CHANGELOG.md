@@ -1,5 +1,6 @@
 | Version | Update Notes |
 |----------|---------------|
+| **1.0.5** | - Fixed an invalid Prefab Sections config value overwriting all collections with defaults. The last valid sections are kept and the config is no longer rewritten while reading. |
 | **1.0.4** | - Added runestone, Greydwarf nest, and treasure screenshots to the README. Updated the admin menu screenshot with a higher-quality source image. |
 | **1.0.3** | - Doubled screenshot preview dimensions for better readability: gameplay images are 440 px tall and the admin menu image is 1520 px wide. |
 | **1.0.2** | - Resized screenshot files for consistent Thunderstore display without relying on HTML sizing attributes. Preserved full-resolution originals. |
