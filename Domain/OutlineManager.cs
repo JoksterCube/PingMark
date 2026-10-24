@@ -37,6 +37,9 @@ internal static class OutlineManager
     private static readonly Dictionary<Chat.WorldTextInstance, PingTarget> PingTargets = [];
     private static readonly List<Chat.WorldTextInstance> ExpiredPings = [];
     private static readonly HashSet<Chat.WorldTextInstance> ExistingPings = [];
+    // Outlines without a ping label (Perception), each kept until its own expiry time.
+    private static readonly Dictionary<GameObject, (Color Color, float Until)> TimedOutlines = [];
+    private static readonly List<GameObject> ExpiredTimedOutlines = [];
 
     private static CommandBuffer? _buffer;
     private static Camera? _camera;
@@ -61,6 +64,16 @@ internal static class OutlineManager
     {
         if (target.HasValue) PingTargets[ping] = target.Value;
         else PingTargets.Remove(ping);
+    }
+
+    internal static void AddTimedOutline(GameObject target, Color color, float until) => TimedOutlines[target] = (color, until);
+
+    private static void RemoveExpiredTimedOutlines(float now)
+    {
+        foreach (KeyValuePair<GameObject, (Color Color, float Until)> entry in TimedOutlines)
+            if (!entry.Key || entry.Value.Until <= now) ExpiredTimedOutlines.Add(entry.Key!);
+        foreach (GameObject target in ExpiredTimedOutlines) TimedOutlines.Remove(target);
+        ExpiredTimedOutlines.Clear();
     }
 
     internal static bool TryGetPingColor(Chat.WorldTextInstance ping, out Color color)
@@ -94,6 +107,7 @@ internal static class OutlineManager
     internal static void ClearSession()
     {
         PingTargets.Clear();
+        TimedOutlines.Clear();
         RendererCaches.Clear();
         ActiveOutlineTargets.Clear();
     }
@@ -111,6 +125,7 @@ internal static class OutlineManager
             if (material) Object.Destroy(material);
         OutlineMaterials.Clear();
         PingTargets.Clear();
+        TimedOutlines.Clear();
         ExpiredPings.Clear();
         ExistingPings.Clear();
         RendererCaches.Clear();
@@ -150,7 +165,9 @@ internal static class OutlineManager
         if ((MobOutlineEnabled.IsOn() || (PlayersEnabled.IsOn() && PingOutlineEnabled.IsOn())) && ZNetScene.instance)
             MobHighlight.GetMarkedIds(MarkedIds);
         bool drawPings = PingOutlineEnabled.IsOn() && PingTargets.Count > 0;
-        if ((MarkedIds.Count == 0 && !drawPings) || !EnsureMaterials())
+        RemoveExpiredTimedOutlines(Time.time);
+        bool drawTimed = TimedOutlines.Count > 0;
+        if ((MarkedIds.Count == 0 && !drawPings && !drawTimed) || !EnsureMaterials())
         {
             RendererCaches.Clear();
             return;
@@ -176,6 +193,9 @@ internal static class OutlineManager
                 DrawCollectedOutline(entry.Value.Color, view, projection, pixel);
             }
         }
+
+        foreach (KeyValuePair<GameObject, (Color Color, float Until)> entry in TimedOutlines)
+            DrawOutline(entry.Key, entry.Value.Color, view, projection, pixel);
 
         foreach (ZDOID id in MarkedIds)
         {

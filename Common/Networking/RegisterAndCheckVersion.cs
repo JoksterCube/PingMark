@@ -20,8 +20,8 @@ internal static class RegisterAndCheckVersion
 
         Plugin.ModLogger.LogInfo("Invoking version check");
         ZPackage zpackage = new();
+        // Only the version: 1.2.0 read a missing protocol number as an old protocol, so it rejects newer clients too.
         zpackage.Write(ModVersion);
-        zpackage.Write(ProtocolVersion);
         peer.m_rpc.Invoke($"{ModName}_VersionCheck", zpackage);
     }
 }

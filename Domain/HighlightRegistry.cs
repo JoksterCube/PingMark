@@ -6,12 +6,14 @@ namespace JoksterCube.PingMark.Domain;
 // (per-sender limit, expiry, newest highlight wins) can be unit tested.
 internal sealed class HighlightRegistry<TKey, TUser> where TKey : notnull
 {
-    internal readonly struct Entry(float expiration, long order, TUser user, bool isPlayer)
+    internal readonly struct Entry(float expiration, long order, TUser user, bool isPlayer, bool unlimited)
     {
         internal float Expiration { get; } = expiration;
         internal long Order { get; } = order;
         internal TUser User { get; } = user;
         internal bool IsPlayer { get; } = isPlayer;
+        // Marked by a Perception scan: never counted against or removed by the per-sender limit.
+        internal bool Unlimited { get; } = unlimited;
     }
 
     private readonly Dictionary<long, Dictionary<TKey, Entry>> _bySender = [];
@@ -22,11 +24,11 @@ internal sealed class HighlightRegistry<TKey, TUser> where TKey : notnull
 
     internal int ActiveCount => _active.Count;
 
-    internal void Add(long sender, TKey id, TUser user, bool isPlayer, float expiration)
+    internal void Add(long sender, TKey id, TUser user, bool isPlayer, float expiration, bool unlimited = false)
     {
         if (!_bySender.TryGetValue(sender, out var highlights))
             _bySender[sender] = highlights = [];
-        highlights[id] = new Entry(expiration, ++_nextOrder, user, isPlayer);
+        highlights[id] = new Entry(expiration, ++_nextOrder, user, isPlayer, unlimited);
     }
 
     internal void Remove(TKey id)
@@ -51,7 +53,7 @@ internal sealed class HighlightRegistry<TKey, TUser> where TKey : notnull
         ids.AddRange(_active.Keys);
     }
 
-    // Drops expired or disabled highlights, keeps at most `limitPerSender` newest per sender and rebuilds
+    // Drops expired or disabled highlights, keeps at most `limitPerSender` newest limited ones per sender and rebuilds
     // the active set, where the newest highlight of an object decides who is shown as the pinger.
     internal void Trim(float now, int limitPerSender, bool mobsEnabled, bool playersEnabled)
     {
@@ -65,7 +67,10 @@ internal sealed class HighlightRegistry<TKey, TUser> where TKey : notnull
             foreach (TKey id in _expired) highlights.Remove(id);
             _expired.Clear();
 
-            while (highlights.Count > limitPerSender) highlights.Remove(Oldest(highlights));
+            int limited = 0;
+            foreach (var entry in highlights)
+                if (!entry.Value.Unlimited) limited++;
+            for (; limited > limitPerSender; limited--) highlights.Remove(OldestLimited(highlights));
 
             foreach (var entry in highlights)
                 if (!_active.TryGetValue(entry.Key, out var active) || entry.Value.Order > active.Order)
@@ -76,13 +81,13 @@ internal sealed class HighlightRegistry<TKey, TUser> where TKey : notnull
         _emptySenders.Clear();
     }
 
-    private static TKey Oldest(Dictionary<TKey, Entry> highlights)
+    private static TKey OldestLimited(Dictionary<TKey, Entry> highlights)
     {
         TKey oldest = default!;
         long oldestOrder = long.MaxValue;
         foreach (var entry in highlights)
         {
-            if (entry.Value.Order >= oldestOrder) continue;
+            if (entry.Value.Unlimited || entry.Value.Order >= oldestOrder) continue;
             oldest = entry.Key;
             oldestOrder = entry.Value.Order;
         }

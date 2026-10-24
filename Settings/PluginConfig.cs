@@ -54,6 +54,13 @@ internal static class PluginConfig
     internal static ConfigEntry<KeyboardShortcut> PrefabEditorShortcut = null!;
     internal static ConfigEntry<KeyboardShortcut> PingShortcut = null!;
     internal static ConfigEntry<Toggle> PrefabEditorShortcutEnabled = null!;
+    internal static ConfigEntry<KeyboardShortcut> PerceptionShortcut = null!;
+
+    internal static ConfigEntry<Toggle> PerceptionEnabled = null!;
+    internal static ConfigEntry<float> PerceptionRange = null!;
+    internal static ConfigEntry<int> PerceptionMaxTargets = null!;
+    internal static ConfigEntry<float> PerceptionFatigueDuration = null!;
+    internal static ConfigEntry<Toggle> PerceptionCreaturesEnabled = null!;
 
     internal static void Build(ConfigFile config, ConfigSync configSync)
     {
@@ -93,10 +100,7 @@ internal static class PluginConfig
         PingAnythingColor = ConfigOptions.Config(Outlines.PingAnythingColor);
         HostileOutlineColor = ConfigOptions.Config(Outlines.HostileOutlineColor);
         AllyOutlineColor = ConfigOptions.Config(Outlines.AllyOutlineColor);
-        // Untouched configs from before 1.2.0 still hold the old green default, which is hard to tell
-        // apart from hostile red for colorblind players; move them to the new default.
-        if (AllyOutlineColor.Value == new Color(0.5f, 0.85f, 0.3f))
-            AllyOutlineColor.Value = Outlines.AllyOutlineColor.DefaultValue;
+        MigrateAllyOutlineColor();
         PrefabSectionColors =
         [
             ConfigOptions.Config(PrefabCollections.Color1),
@@ -123,8 +127,28 @@ internal static class PluginConfig
         PrefabEditorShortcut = ConfigOptions.Config(Inputs.PrefabEditorShortcut);
         PingShortcut = ConfigOptions.Config(Inputs.PingShortcut);
         MigrateRenamedShortcut(config);
+        PerceptionShortcut = ConfigOptions.Config(Inputs.PerceptionShortcut);
         PrefabEditorShortcutEnabled = ConfigOptions.Config(Inputs.PrefabEditorShortcutEnabled);
+
+        PerceptionEnabled = ConfigOptions.Config(Perception.Enabled);
+        PerceptionRange = ConfigOptions.Config(Perception.Range);
+        PerceptionMaxTargets = ConfigOptions.Config(Perception.MaxTargets);
+        PerceptionFatigueDuration = ConfigOptions.Config(Perception.FatigueDuration);
+        PerceptionCreaturesEnabled = ConfigOptions.Config(Perception.CreaturesEnabled);
     }
+
+    // Untouched configs still hold an earlier default (pale green before 1.2.0, blue in 1.2.0); move them to
+    // the health bar green. A color the player picked is kept.
+    private static void MigrateAllyOutlineColor()
+    {
+        // The config file stores 8-bit hex, so compare at that precision.
+        Color32 value = AllyOutlineColor.Value;
+        if (SameColor(value, new Color(0.5f, 0.85f, 0.3f)) || SameColor(value, new Color(0.3f, 0.65f, 1f)))
+            AllyOutlineColor.Value = Outlines.AllyOutlineColor.DefaultValue;
+    }
+
+    private static bool SameColor(Color32 left, Color32 right) =>
+        left.r == right.r && left.g == right.g && left.b == right.b && left.a == right.a;
 
     // Keeps a player's custom key from the old "Mob Highlight Shortcut" entry and drops the old entry.
     private static void MigrateRenamedShortcut(ConfigFile config)

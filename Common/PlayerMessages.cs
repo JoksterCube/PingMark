@@ -8,4 +8,9 @@ internal static class PlayerMessages
     {
         if (Player.m_localPlayer) Player.m_localPlayer.Message(MessageType.TopLeft, message);
     }
+
+    internal static void Center(string message)
+    {
+        if (Player.m_localPlayer) Player.m_localPlayer.Message(MessageType.Center, message);
+    }
 }

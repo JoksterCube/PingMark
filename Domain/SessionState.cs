@@ -10,12 +10,13 @@ internal static class SessionState
 {
     internal static void Clear()
     {
-        PrefabCollectionEditor.Close();
+        PrefabCollectionEditor.ClearSession();
         RpcHandlers.ClearSession();
         PingRateLimiter.Clear();
         ZPingNetwork.ClearSession();
         MobHighlight.Clear();
         MobTargeting.Clear();
+        Perception.Clear();
         OutlineManager.ClearSession();
         GroundPingLabelAnchors.Anchors.Clear();
         PingLabelFormatter.Clear();

@@ -22,6 +22,11 @@ internal static class InputManager
             PrefabCollectionEditor.Open();
             return;
         }
+        if (PerceptionShortcut.Value.IsDown())
+        {
+            Perception.TryActivate();
+            return;
+        }
         bool togglePressed = ToggleModShortcut.Value.IsDown();
         bool pingPressed = PingShortcut.Value.IsDown();
         if (!togglePressed && !pingPressed) return;

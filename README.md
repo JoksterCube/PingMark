@@ -2,7 +2,7 @@
 
 ## Share discoveries and keep your party on target!
 
-See **how far away** every ping is, something vanilla Valheim never shows. Aim, press **Z**, and your friends see exactly what you found: a named marker, a colored outline and a live distance.
+See **how far away** every ping is, something vanilla Valheim never shows. Aim, press **Z**, and your friends see exactly what you found: a named marker, a colored outline and a live distance. Press **Left Shift + Z** to sense loot hidden in the dark around you.
 
 ---
 
@@ -36,7 +36,9 @@ See **how far away** every ping is, something vanilla Valheim never shows. Aim, 
 - **📏 Distance on every ping:** world and map pings show who pinged and how far away it is, updating as you move. Works on regular map pings too.
 - **Aim and ping:** mark what you are looking at with its name and an outline.
 - **Find the loot:** dropped weapons, armor and materials glow so they're easy to spot in the grass.
-- **Track creatures:** highlight a mob with a nameplate and distance that follow it, colored red (hostile) or blue (friendly).
+- **Track creatures:** highlight a mob with a nameplate and distance that follow it, colored red (hostile) or green (friendly).
+- **🔮 Perception:** press **Left Shift + Z** to briefly outline listed objects and dropped items around you, handy for coins and gems in dark dungeons. Nearby PingMark players see the outlines too, and Perception Fatigue limits how often you can use it.
+- **Sense creatures:** with **Perceive Creatures** on, Perception also highlights every hostile and friendly creature around you, beyond the usual highlight limit (off by default).
 - **Mark teammates:** optionally highlight players instead of the spot they stood on (off by default).
 - **Your rules:** pick which objects count as **Valuables**, **Locations** or **Useful**, and customize colors, labels, shortcuts and range.
 
@@ -47,6 +49,7 @@ See **how far away** every ping is, something vanilla Valheim never shows. Aim, 
 | Shortcut | Action |
 | --- | --- |
 | **Z** | Highlight the creature you aim at, or ping the spot/object. |
+| **Left Shift + Z** | Perception: outline listed objects and drops near you, plus creatures with Perceive Creatures on (nearby PingMark players see them too). |
 | **Right Ctrl + P** | Turn PingMark on or off. |
 | **Right Ctrl + Right Shift + P** | Open the Prefab Collections menu (admins only on servers). |
 
@@ -61,7 +64,7 @@ Decide which objects get a name and outline when pinged.
 - **Search and filter** every object and location in the game, including modded ones.
 - **Move** objects between colored sections, or add, rename and remove sections.
 - **Find an object's ID:** turn on **Debug Ping Names** (1 - General, shown with Advanced settings in Configuration Manager) and press **Z** on it; its IDs appear in the top-left corner.
-- **Auto Sort** rebuilds the default Valuables, Locations and Useful sections. **Undo** reverts changes, **Apply** saves them.
+- **Auto Sort** rebuilds the default Valuables, Locations and Useful sections. **Undo** reverts changes, **Apply** saves them. **Copy YAML** copies every section, including unapplied changes; **Import YAML** replaces all sections from the clipboard. A section's **Import** button replaces just that section from a copied CSV list or YAML section. **Export Report** writes every prefab's detected kinds and auto sort result to `BepInEx/config/JoksterCube.PingMark.AutoSortReport.csv`, useful for checking modded prefabs.
 
 > 🔒 On a server with PingMark, only admins can change collections, and the server checks every change. Collections are saved in `BepInEx/config/JoksterCube.PingMark.Collections.yml` and synced to all players.
 
@@ -84,7 +87,7 @@ Installing on the server is **optional**. It syncs settings, filters ping range 
 - ✅ Works in single-player and on servers **without** PingMark.
 - ✅ Players **without** the mod can join. They see ordinary pings (no names, outlines or highlights).
 - 📏 Z pings reach players within **200 m of you** by default. Map pings stay global.
-- ⚠️ On a PingMark server, modded players need a **compatible version**. Updates only require everyone to update when the network format changes (noted in the changelog).
+- ⚠️ On a PingMark server, every player with PingMark needs the **same version** as the server. Players without the mod can still join.
 
 ---
 
@@ -156,7 +159,7 @@ Most players never need to change anything. These are the settings worth knowing
 | Ping Drop Color | Purple | | Dropped items. |
 | Ping Gravestone/Player Color | Orange | | Gravestones and players. |
 | Ping Anything Color | White | | Other objects. |
-| Hostile / Ally Outline Color | Red / Blue | | Highlighted creatures. |
+| Hostile / Ally Outline Color | Red / Green | | Highlighted creatures. |
 
 #### 6 - Mob Highlight
 
@@ -188,7 +191,18 @@ Most players never need to change anything. These are the settings worth knowing
 | Ping Shortcut | Z | | Ping what you aim at, or highlight the creature you aim at. |
 | Toggle Mod Shortcut | Right Ctrl + P | | Turn PingMark on or off. |
 | Prefab Editor Shortcut | Right Ctrl + Right Shift + P | | Open the Prefab Collections menu. |
+| Perception Shortcut | Left Shift + Z | | Outline listed objects and drops near you. |
 | Enable Prefab Editor Shortcut ⚙️ | On | | Turn the menu shortcut on or off. |
+
+#### 10 - Perception
+
+| Setting | Default | Synced | What it does |
+| --- | --- | :---: | --- |
+| Enable Perception | On | ✔ | Allow the Perception Shortcut. |
+| Perception Range | 5 m | ✔ | How far around you Perception looks. |
+| Perception Max Outlines | 64 | ✔ | Most objects outlined per use, nearest first. |
+| Perception Fatigue Duration | 15 s | ✔ | Cooldown after using Perception, shown as a status effect. `0` = none. |
+| Perceive Creatures | Off | ✔ | Perception also highlights every hostile and allied creature in range, ignoring Max Highlighted Mobs. |
 
 </details>
 
@@ -201,5 +215,5 @@ Report bugs or suggest improvements on [GitHub](https://github.com/JoksterCube/P
 ---
 
 **Author:** JoksterCube<br>
-**Version:** 1.2.0<br>
+**Version:** 1.3.0<br>
 **License:** MIT

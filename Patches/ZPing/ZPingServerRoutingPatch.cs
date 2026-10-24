@@ -16,6 +16,8 @@ internal static class ZPingServerRoutingPatch
 
     // Generous for a location name; anything larger is dropped instead of being forwarded to every peer.
     private const int MaxPackageSize = 1024;
+    // A perception scan lists up to 200 object and 200 creature IDs of 12 bytes each, plus the sender's name.
+    private const int MaxPerceptionPackageSize = 8192;
 
     private static bool Prefix(ZRoutedRpc.RoutedRPCData rpcData)
     {
@@ -43,9 +45,11 @@ internal static class ZPingServerRoutingPatch
         }
         else if (rpcData.m_methodHash != ZPingNetwork.LocationRpc.GetStableHashCode()
             && rpcData.m_methodHash != ZPingNetwork.MobRpc.GetStableHashCode()
-            && rpcData.m_methodHash != ZPingNetwork.PlayerRpc.GetStableHashCode()) return true;
+            && rpcData.m_methodHash != ZPingNetwork.PlayerRpc.GetStableHashCode()
+            && rpcData.m_methodHash != ZPingNetwork.PerceptionRpc.GetStableHashCode()) return true;
 
-        if (rpcData.m_parameters.Size() > MaxPackageSize || !PingRateLimiter.TryConsume(rpcData.m_senderPeerID)) return false;
+        int maxSize = rpcData.m_methodHash == ZPingNetwork.PerceptionRpc.GetStableHashCode() ? MaxPerceptionPackageSize : MaxPackageSize;
+        if (rpcData.m_parameters.Size() > maxSize || !PingRateLimiter.TryConsume(rpcData.m_senderPeerID)) return false;
 
         Vector3 origin;
         try

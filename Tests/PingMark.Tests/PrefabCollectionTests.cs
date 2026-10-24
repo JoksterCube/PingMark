@@ -47,6 +47,19 @@ public class PrefabCollectionsTests
     }
 
     [Fact]
+    public void Replacing_a_section_moves_listed_names_in_and_returns_the_rest()
+    {
+        PrefabCollections collections = Create();
+        collections.Move(["d"], 1);
+        collections.Replace(1, "C, d, modded_prefab");
+
+        Assert.Equal(["a"], collections.Names(0, ""));
+        Assert.Equal(["c", "d", "modded_prefab"], collections.Names(1, ""));
+        Assert.Equal(["b"], collections.Names(2, ""));
+        Assert.False(collections.CanUndo);
+    }
+
+    [Fact]
     public void Clone_is_independent_and_keeps_undo_history()
     {
         PrefabCollections original = Create();

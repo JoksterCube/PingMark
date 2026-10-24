@@ -84,14 +84,15 @@ internal static class MobHighlight
         return Registry.TryGetActive(character.GetZDOID(), out var highlight) ? highlight.Order : 0;
     }
 
-    internal static void Highlight(long sender, ZDOID id, UserInfo user, bool isPlayer = false)
+    // Unlimited highlights (Perception creature scans) do not count toward Max Highlighted Mobs.
+    internal static void Highlight(long sender, ZDOID id, UserInfo user, bool isPlayer = false, bool unlimited = false)
     {
         if (!Enabled.IsOn() || !(isPlayer ? PlayersEnabled.IsOn() : MobHighlightEnabled.IsOn())
             || id.IsNone() || !Player.m_localPlayer) return;
 
         Update();
         float duration = isPlayer ? PlayerHighlightDuration.Value : MobHighlightDuration.Value;
-        Registry.Add(sender, id, user, isPlayer, Time.unscaledTime + duration);
+        Registry.Add(sender, id, user, isPlayer, Time.unscaledTime + duration, unlimited);
         Trim();
     }
 

@@ -1,3 +1,4 @@
+using System.Linq;
 using JoksterCube.PingMark.Domain;
 using JoksterCube.PingMark.Domain.Collections;
 using JoksterCube.PingMark.Domain.Enums;
@@ -65,6 +66,54 @@ public class PingRateLimiterTests
 
 public class PrefabAutoSortTests
 {
+    // Kinds as a vanilla scan reports them, run through the same entry point as the editor's Auto Sort button.
+    [Fact]
+    public void Auto_sort_places_reported_vanilla_and_modded_prefabs()
+    {
+        var kinds = new (string Name, PrefabBrowserKind Kind)[]
+        {
+            ("Crow", PrefabBrowserKind.AmbientCreature | PrefabBrowserKind.Lod | PrefabBrowserKind.Resource),
+            ("bow_projectile_fire", PrefabBrowserKind.Spawner | PrefabBrowserKind.Projectile | PrefabBrowserKind.Useful),
+            ("Fire", PrefabBrowserKind.Spawner | PrefabBrowserKind.Lod | PrefabBrowserKind.Useful),
+            ("Troll_Summoned", PrefabBrowserKind.Creature | PrefabBrowserKind.Spawner | PrefabBrowserKind.Useful),
+            ("DevHouse1", PrefabBrowserKind.Location),
+            ("Hugintest", PrefabBrowserKind.Location),
+            ("InteriorEnvironmentZoneForce", PrefabBrowserKind.Location),
+            ("DG_Cave", PrefabBrowserKind.Dungeon),
+            ("Bush01", PrefabBrowserKind.Lod | PrefabBrowserKind.Vegetation | PrefabBrowserKind.Resource),
+            ("MineRock_Stone", PrefabBrowserKind.Geology | PrefabBrowserKind.Mineable | PrefabBrowserKind.CommonDropsOnly),
+            ("MineRock_Tin", PrefabBrowserKind.Geology | PrefabBrowserKind.Mineable),
+            ("Crypt2", PrefabBrowserKind.Location | PrefabBrowserKind.Dungeon),
+            ("Greydwarf_camp1", PrefabBrowserKind.Location),
+            ("Bonemass", PrefabBrowserKind.Creature | PrefabBrowserKind.Location),
+            ("incinerator", PrefabBrowserKind.Buildable | PrefabBrowserKind.Container | PrefabBrowserKind.Useful),
+            ("Beehive", PrefabBrowserKind.Projectile | PrefabBrowserKind.Ruin | PrefabBrowserKind.BuildingPiece),
+            ("forestcrypt_new_BurialChamber02", PrefabBrowserKind.DungeonRoom | PrefabBrowserKind.Dungeon | PrefabBrowserKind.Useful),
+            ("ModdedLootChest", PrefabBrowserKind.Container),
+            ("ModdedStoneRock", PrefabBrowserKind.Geology | PrefabBrowserKind.Mineable | PrefabBrowserKind.CommonDropsOnly),
+            ("ModdedVillage", PrefabBrowserKind.Location),
+        };
+        PrefabBrowserFilter filter = new();
+        foreach (var (name, kind) in kinds) filter.Register(name, kind);
+
+        var sections = PrefabAutoSort.CreateSections(kinds.Select(entry => entry.Name), filter);
+        string? SectionOf(string name) => sections.FirstOrDefault(section => section.Contains(name))?.Name;
+
+        Assert.Equal("Valuables", SectionOf("Crow"));
+        Assert.Equal("Valuables", SectionOf("MineRock_Tin"));
+        Assert.Equal("Valuables", SectionOf("Beehive"));
+        Assert.Equal("Valuables", SectionOf("ModdedLootChest"));
+        Assert.Equal("Locations", SectionOf("Crypt2"));
+        Assert.Equal("Locations", SectionOf("Greydwarf_camp1"));
+        Assert.Equal("Locations", SectionOf("ModdedVillage"));
+        Assert.Equal("Useful", SectionOf("Bonemass"));
+        Assert.Equal("Useful", SectionOf("incinerator"));
+        foreach (string unassigned in new[] { "bow_projectile_fire", "Fire", "Troll_Summoned", "DevHouse1", "Hugintest",
+                     "InteriorEnvironmentZoneForce", "DG_Cave", "Bush01", "MineRock_Stone", "forestcrypt_new_BurialChamber02",
+                     "ModdedStoneRock" })
+            Assert.Null(SectionOf(unassigned));
+    }
+
     [Theory]
     [InlineData((ulong)(PrefabBrowserKind.DroppedItem | PrefabBrowserKind.Resource), -1)]
     [InlineData((ulong)(PrefabBrowserKind.Location), 1)]
@@ -72,13 +121,70 @@ public class PrefabAutoSortTests
     [InlineData((ulong)(PrefabBrowserKind.Container), 0)]
     [InlineData((ulong)(PrefabBrowserKind.Creature), -1)]
     [InlineData((ulong)(PrefabBrowserKind.None), -1)]
+    [InlineData((ulong)(PrefabBrowserKind.Geology | PrefabBrowserKind.Mineable), 0)]
+    [InlineData((ulong)(PrefabBrowserKind.Buildable | PrefabBrowserKind.Container), 0)]
+    [InlineData((ulong)(PrefabBrowserKind.Buildable | PrefabBrowserKind.BuildingPiece), -1)]
+    [InlineData((ulong)(PrefabBrowserKind.Pickable | PrefabBrowserKind.Planting), -1)]
+    [InlineData((ulong)(PrefabBrowserKind.Tree | PrefabBrowserKind.Resource), -1)]
+    [InlineData((ulong)(PrefabBrowserKind.Spawner | PrefabBrowserKind.Container), 2)]
+    [InlineData((ulong)(PrefabBrowserKind.BossTrigger), 2)]
+    [InlineData((ulong)(PrefabBrowserKind.Creature | PrefabBrowserKind.BossTrigger), -1)]
+    [InlineData((ulong)(PrefabBrowserKind.Ruin), 1)]
+    [InlineData((ulong)(PrefabBrowserKind.Dungeon | PrefabBrowserKind.Prop), -1)]
+    [InlineData((ulong)(PrefabBrowserKind.Dungeon | PrefabBrowserKind.Container), 0)]
+    [InlineData((ulong)(PrefabBrowserKind.DungeonRoom | PrefabBrowserKind.Dungeon | PrefabBrowserKind.Useful), -1)]
+    [InlineData((ulong)(PrefabBrowserKind.Creature | PrefabBrowserKind.Spawner), -1)]
+    [InlineData((ulong)(PrefabBrowserKind.Location | PrefabBrowserKind.Creature), 1)]
+    // Cases from a vanilla auto sort report: fire projectiles, birds, ore and runestone "locations", campfires.
+    [InlineData((ulong)(PrefabBrowserKind.Spawner | PrefabBrowserKind.Projectile | PrefabBrowserKind.Useful), -1)]
+    [InlineData((ulong)(PrefabBrowserKind.Projectile | PrefabBrowserKind.Useful), 2)]
+    [InlineData((ulong)(PrefabBrowserKind.AmbientCreature | PrefabBrowserKind.Resource), 0)]
+    [InlineData((ulong)(PrefabBrowserKind.Location | PrefabBrowserKind.Geology | PrefabBrowserKind.Mineable), 0)]
+    [InlineData((ulong)(PrefabBrowserKind.Location | PrefabBrowserKind.Useful), 2)]
+    [InlineData((ulong)(PrefabBrowserKind.Location | PrefabBrowserKind.Dungeon | PrefabBrowserKind.Useful), 1)]
+    [InlineData((ulong)(PrefabBrowserKind.Buildable | PrefabBrowserKind.Spawner | PrefabBrowserKind.Projectile
+        | PrefabBrowserKind.Useful | PrefabBrowserKind.BuildingPiece), 2)]
+    [InlineData((ulong)(PrefabBrowserKind.Spawner | PrefabBrowserKind.Projectile | PrefabBrowserKind.Useful
+        | PrefabBrowserKind.Resource), 2)]
     // The enum is internal, so theory data passes its raw value.
     public void Categorizes_by_kind(ulong kind, int expected) =>
         Assert.Equal(expected, PrefabAutoSort.Category("SomeUnknownModdedPrefab", (PrefabBrowserKind)kind));
 
     [Fact]
-    public void Known_default_names_keep_their_section() =>
+    public void Known_default_names_keep_their_section()
+    {
         Assert.Equal(2, PrefabAutoSort.Category("portal_wood", PrefabBrowserKind.None));
+        Assert.Equal(0, PrefabAutoSort.Category("MineRock_Tin", PrefabBrowserKind.Geology | PrefabBrowserKind.Mineable));
+    }
+
+    [Fact]
+    public void Heuristic_category_ignores_the_curated_defaults()
+    {
+        Assert.Equal(2, PrefabAutoSort.DefaultCategory("portal_wood"));
+        Assert.Equal(-1, PrefabAutoSort.HeuristicCategory("portal_wood", PrefabBrowserKind.None));
+        Assert.Equal(2, PrefabAutoSort.HeuristicCategory("portal_wood", PrefabBrowserKind.Portal));
+    }
+
+    [Fact]
+    public void Common_material_drops_are_not_valuables_even_when_curated()
+    {
+        const PrefabBrowserKind stoneRock = PrefabBrowserKind.Geology | PrefabBrowserKind.Mineable | PrefabBrowserKind.CommonDropsOnly;
+        Assert.Equal(-1, PrefabAutoSort.Category("MineRock_Stone", stoneRock));
+        Assert.Equal(-1, PrefabAutoSort.Category("SomeModdedStoneRock", stoneRock));
+        Assert.Equal(0, PrefabAutoSort.Category("MineRock_Tin", PrefabBrowserKind.Geology | PrefabBrowserKind.Mineable));
+        Assert.Equal(0, PrefabAutoSort.Category("SomeModdedCrate",
+            PrefabBrowserKind.Container | PrefabBrowserKind.CommonDropsOnly));
+        // Pickables outrank everything else, including common drops and the curated list.
+        Assert.Equal(0, PrefabAutoSort.Category("BlueberryBush", PrefabBrowserKind.Pickable | PrefabBrowserKind.CommonDropsOnly));
+        Assert.Equal(0, PrefabAutoSort.Category("portal_wood", PrefabBrowserKind.Pickable));
+        Assert.Equal(0, PrefabAutoSort.Category("ModdedPickableShrine", PrefabBrowserKind.Pickable | PrefabBrowserKind.Useful
+            | PrefabBrowserKind.Location));
+        Assert.Equal(-1, PrefabAutoSort.Category("SaplingCarrot", PrefabBrowserKind.Pickable | PrefabBrowserKind.Planting));
+    }
+
+    [Fact]
+    public void Environment_helpers_registered_as_locations_stay_unassigned() =>
+        Assert.Equal(-1, PrefabAutoSort.Category("InteriorEnvironmentZoneForce", PrefabBrowserKind.Location));
 
     [Fact]
     public void Section_names_come_from_the_defaults() =>
@@ -136,5 +242,20 @@ public class HighlightRegistryTests
 
         Assert.False(registry.IsActive(10));
         Assert.True(registry.IsActive(11));
+    }
+    [Fact]
+    public void Unlimited_highlights_bypass_the_sender_limit()
+    {
+        var registry = Registry();
+        registry.Add(1, 10, "Ann", false, 100f, unlimited: true);
+        registry.Add(1, 11, "Ann", false, 100f, unlimited: true);
+        registry.Add(1, 12, "Ann", false, 100f);
+        registry.Add(1, 13, "Ann", false, 100f);
+        registry.Trim(0f, 1, true, true);
+
+        Assert.True(registry.IsActive(10));
+        Assert.True(registry.IsActive(11));
+        Assert.False(registry.IsActive(12));
+        Assert.True(registry.IsActive(13));
     }
 }

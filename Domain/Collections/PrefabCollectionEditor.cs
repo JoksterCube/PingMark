@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using BepInEx;
 using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Common.Networking;
+using JoksterCube.PingMark.Domain.Enums;
 using JoksterCube.PingMark.Domain.Models;
 using UnityEngine;
 using static JoksterCube.PingMark.Domain.Collections.PrefabCollectionEditorUI;
@@ -15,6 +18,7 @@ namespace JoksterCube.PingMark.Domain.Collections;
 
 internal static class PrefabCollectionEditor
 {
+    private const string ReportFileName = "JoksterCube.PingMark.AutoSortReport.csv";
     private static readonly HashSet<string> Selected = new(StringComparer.OrdinalIgnoreCase);
     private static readonly List<Vector2> Scroll = [];
     private static readonly List<string[]> Visible = [];
@@ -71,6 +75,14 @@ internal static class PrefabCollectionEditor
         _loading = _cachedNames == null ? LoadCollections().GetEnumerator() : null;
         if (View) View!.enabled = true;
         ReleaseMouse();
+    }
+
+    // The prefab index also scans loaded dungeon rooms and scene pickables, so it belongs to one world session.
+    internal static void ClearSession()
+    {
+        Close();
+        _cachedNames = null;
+        RowWidths.Clear();
     }
 
     internal static void ReleaseMouse()
@@ -248,6 +260,19 @@ internal static class PrefabCollectionEditor
                 Selected.Clear();
                 Refresh();
             }
+            GUI.enabled = previousEnabled && _loading == null && !_showClosePrompt && !_showAutoSortPrompt;
+            if (Button(new Rect(24, 690, 200, 34), new GUIContent("Copy YAML",
+                "Copy every section, including unapplied changes, in the collections file format")))
+            {
+                GUIUtility.systemCopyBuffer = Staged;
+                _status = $"Copied {_sections.Count} sections as YAML.";
+            }
+            if (Button(new Rect(236, 690, 200, 34), new GUIContent("Import YAML",
+                "Replace all sections with collections YAML from the clipboard. Undo reverts it.")))
+                ImportAll();
+            if (Button(new Rect(448, 690, 248, 34), new GUIContent("Export Report",
+                $"Write every prefab's detected kinds and auto sort result to BepInEx/config/{ReportFileName}")))
+                ExportReport();
             GUI.enabled = previousEnabled && !_showClosePrompt && !_showAutoSortPrompt;
             if (Button(new Rect(876, 690, 144, 34), new GUIContent("Cancel"))) Close();
             GUI.enabled = previousEnabled && CanEdit && _loading == null && _collections != null && HasPendingChanges()
@@ -347,11 +372,17 @@ internal static class PrefabCollectionEditor
             names = Visible[index];
         }
         GUI.enabled = previousEnabled;
-        if (Button(new Rect(left + 8, 534 + yOffset, 198, 28),
+        if (Button(new Rect(left + 8, 534 + yOffset, unassigned ? 198 : 97, 28),
                 new GUIContent("Copy CSV", $"Copy {sectionName} prefabs matching the current search and filters")))
         {
             GUIUtility.systemCopyBuffer = string.Join(", ", names);
             _status = $"Copied {names.Length:N0} {sectionName} prefabs.";
+        }
+        if (!unassigned && Button(new Rect(left + 109, 534 + yOffset, 97, 28), new GUIContent("Import",
+                $"Replace {sectionName} prefabs with a CSV list or one section of YAML from the clipboard. Undo reverts it.")))
+        {
+            ImportSection(index);
+            return;
         }
         if (Button(new Rect(left + 8, 570 + yOffset, 198, 28),
                 new GUIContent("Select all", $"Select all {sectionName} prefabs matching the current search and filters")))
@@ -377,6 +408,117 @@ internal static class PrefabCollectionEditor
         Refresh();
         int sorted = names.Length - _collections.Count(0);
         _status = $"Auto sorted {sorted:N0} prefabs into {PrefabAutoSort.SectionNames.Length} replacement sections. Unknown/excluded IDs are Unassigned. Apply to save.";
+    }
+
+    // One row per prefab: what the scan detected, what the auto sort rules alone decide (all a modded prefab
+    // gets), the curated default and the current section. Used to tune the rules against real mod setups.
+    private static void ExportReport()
+    {
+        if (_collections == null || _loading != null) return;
+        List<string> lines = ["Prefab,Kinds,Rules,Default,AutoSort,Current"];
+        for (int index = 0; index < _collections.CollectionCount; index++)
+        {
+            string current = index == 0 ? "Unassigned" : _sections[index - 1].Name;
+            foreach (string name in _collections.Names(index, string.Empty))
+            {
+                PrefabBrowserKind kind = _filter.Kind(name);
+                lines.Add(string.Join(",", Csv(name), Csv(kind == PrefabBrowserKind.None ? "-" : kind.ToString().Replace(", ", "|")),
+                    PrefabAutoSort.SectionName(PrefabAutoSort.HeuristicCategory(name, kind)),
+                    PrefabAutoSort.SectionName(PrefabAutoSort.DefaultCategory(name)),
+                    PrefabAutoSort.SectionName(PrefabAutoSort.Category(name, kind)), Csv(current)));
+            }
+        }
+        string path = Path.Combine(Paths.ConfigPath, ReportFileName);
+        try
+        {
+            File.WriteAllLines(path, lines);
+            _status = $"Wrote {lines.Count - 1:N0} prefabs to BepInEx/config/{ReportFileName}.";
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            _status = $"Unable to write the report: {exception.Message}";
+        }
+    }
+
+    private static string Csv(string value) =>
+        value.IndexOfAny([',', '"', '\n']) < 0 ? value : $"\"{value.Replace("\"", "\"\"")}\"";
+
+    private static void ImportAll()
+    {
+        if (_collections == null || _loading != null) return;
+        string text = GUIUtility.systemCopyBuffer ?? string.Empty;
+        List<PrefabCollectionSection>? sections = ParseYaml(text, out string? error);
+        if (sections == null || sections.Count == 0)
+        {
+            _status = error != null ? $"Clipboard is not collections YAML: {error}" : "Clipboard has no sections to import.";
+            return;
+        }
+        string[] names = Enumerable.Range(0, _collections.CollectionCount)
+            .SelectMany(index => _collections.Names(index, string.Empty)).ToArray();
+        SnapshotUndo.Push((_collections, _sections));
+        _sections = sections;
+        _collections = new PrefabCollections(names, sections);
+        Selected.Clear();
+        _openColorPicker = -1;
+        ResetColumnState();
+        ResetScrollPositions();
+        Refresh();
+        _status = $"Imported {sections.Count} sections. Apply to save.";
+    }
+
+    // Accepts a CSV list (as Copy CSV produces), a whole collections YAML or a single "- Name: ..." section.
+    // From YAML with several sections, the one named like the target section is used.
+    private static void ImportSection(int index)
+    {
+        if (_collections == null || _loading != null) return;
+        PrefabCollectionSection target = _sections[index - 1];
+        string text = (GUIUtility.systemCopyBuffer ?? string.Empty).Trim();
+        if (text.Length == 0)
+        {
+            _status = "Clipboard is empty.";
+            return;
+        }
+
+        string prefabs = text;
+        if (text.IndexOf(':') >= 0)
+        {
+            List<PrefabCollectionSection>? sections = ParseYaml(text, out string? error);
+            if (sections == null || sections.Count == 0)
+            {
+                _status = error != null ? $"Clipboard is not collections YAML: {error}" : "Clipboard has no sections to import.";
+                return;
+            }
+            PrefabCollectionSection? source = sections.Count == 1 ? sections[0]
+                : sections.FirstOrDefault(section => string.Equals(section.Name.Trim(), target.Name.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (source == null)
+            {
+                _status = $"Clipboard YAML has {sections.Count} sections and none is named {target.Name}.";
+                return;
+            }
+            prefabs = source.Prefabs;
+        }
+
+        SnapshotUndo.Push((_collections.Clone(), _sections.Select(section => section.Copy()).ToList()));
+        _collections.Replace(index, prefabs);
+        Selected.Clear();
+        _openColorPicker = -1;
+        Refresh();
+        _status = $"Imported {_collections.Count(index):N0} prefabs into {target.Name}. Apply to save.";
+    }
+
+    private static List<PrefabCollectionSection>? ParseYaml(string text, out string? error)
+    {
+        List<PrefabCollectionSection>? sections = PrefabCollectionSectionConfig.Parse(text, out error);
+        if (sections is { Count: > 0 }) return sections;
+        // A section copied on its own lacks the "Sections:" header.
+        List<PrefabCollectionSection>? wrapped = PrefabCollectionSectionConfig.Parse($"Sections:\n{text}", out string? wrappedError);
+        if (wrapped is { Count: > 0 })
+        {
+            error = null;
+            return wrapped;
+        }
+        error ??= wrappedError;
+        return sections;
     }
 
     private static void DrawAutoSortPrompt(bool previousEnabled)
