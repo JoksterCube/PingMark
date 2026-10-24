@@ -2,13 +2,13 @@
 
 ## Share discoveries and keep your party on target!
 
-Spot useful loot, point out creatures, and see how far you have to travel. With **PingMark**, named pings, colored outlines, and live distances make it easier to explore and coordinate with friends.
+See **how far away** every ping is, something vanilla Valheim never shows. Aim, press **Z**, and your friends see exactly what you found: a named marker, a colored outline and a live distance. Press **Left Shift + Z** to sense loot hidden in the dark around you.
 
 ---
 
 ### 📸 Screenshots
 
-**See what matters at a glance.** Live distances, item names, and moving creature highlights keep your party's discoveries easy to find.
+**See what matters at a glance.** Live distances, item names and creature highlights.
 
 <p align="center">
 	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Distance.jpg" alt="World ping with a live distance label" width="248">
@@ -23,7 +23,7 @@ Spot useful loot, point out creatures, and see how far you have to travel. With 
 	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Treasure.jpg" alt="Treasure chest and hostile skeleton highlighted with distinct colors" width="497">
 </p>
 
-**Choose what your party can mark.** The admin menu organizes objects and locations into searchable, color-coded collections.
+**Choose what your party can mark.** Objects and locations are sorted into searchable, color-coded collections.
 
 <p align="center">
 	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Menu.jpg" alt="Prefab Collections admin menu" width="1520">
@@ -33,163 +33,178 @@ Spot useful loot, point out creatures, and see how far you have to travel. With 
 
 ### 🧭 Features
 
-- **Distance at a glance:** world and map ping labels show who pinged and your distance to the marker. World markers stay in place instead of floating upward.
-- **Aim and ping:** press **Z** to mark what you are looking at, with a target name and outline for enabled objects.
-- **Find the loot:** highlight dropped weapons, armor, and materials so your friends can spot them in the grass.
-- **Keep creatures in sight:** temporarily highlight wildlife, enemies, and tamed animals with a moving nameplate, distance, and friendly or hostile outline.
-- **Mark teammates:** optionally highlight moving players instead of their last position. Player pinging is off by default.
-- **Choose what matters:** organize object and location IDs into colored collections, starting with **Valuables**, **Locations**, and **Useful**.
-- **Play your way:** customize labels, colors, outlines, shortcuts, and ping range. Works in single-player and on servers without PingMark.
+- **📏 Distance on every ping:** world and map pings show who pinged and how far away it is, updating as you move. Works on regular map pings too.
+- **Aim and ping:** mark what you are looking at with its name and an outline.
+- **Find the loot:** dropped weapons, armor and materials glow so they're easy to spot in the grass.
+- **Track creatures:** highlight a mob with a nameplate and distance that follow it, colored red (hostile) or green (friendly).
+- **🔮 Perception:** press **Left Shift + Z** to briefly outline listed objects and dropped items around you, handy for coins and gems in dark dungeons. Nearby PingMark players see the outlines too, and Perception Fatigue limits how often you can use it.
+- **Sense creatures:** with **Perceive Creatures** on, Perception also highlights every hostile and friendly creature around you, beyond the usual highlight limit (off by default).
+- **Mark teammates:** optionally highlight players instead of the spot they stood on (off by default).
+- **Your rules:** pick which objects count as **Valuables**, **Locations** or **Useful**, and customize colors, labels, shortcuts and range.
 
 ---
 
 ### 🎮 Controls
 
-| Default Shortcut | Action |
+| Shortcut | Action |
 | --- | --- |
-| **Z** | Highlight the aimed creature or enabled player; otherwise ping the aimed location/object. |
-| **Right Ctrl + P** | Toggle PingMark on or off. |
-| **Right Ctrl + Right Shift + P** | Open the Prefab Collections admin menu. |
+| **Z** | Highlight the creature you aim at, or ping the spot/object. |
+| **Left Shift + Z** | Perception: outline listed objects and drops near you, plus creatures with Perceive Creatures on (nearby PingMark players see them too). |
+| **Right Ctrl + P** | Turn PingMark on or off. |
+| **Right Ctrl + Right Shift + P** | Open the Prefab Collections menu (admins only on servers). |
 
-All shortcuts can be changed under **9 - Inputs**.
+Shortcuts can be changed in the config under **9 - Inputs**.
 
 ---
 
-### 🛠️ Admin Menu
+### 🛠️ Prefab Collections Menu
 
-The **Prefab Collections** menu lets you search and filter object IDs, move them between collections, and add, rename, enable, or remove sections. Each section uses a configurable palette color. **Copy CSV** exports the visible IDs.
+Decide which objects get a name and outline when pinged.
 
-**Auto Sort** rebuilds the collections as Valuables, Locations, and Useful, including eligible modded objects. It replaces custom sections after confirmation. Use **Undo** to restore changes, **Apply** to save, or **Cancel** to discard them.
+- **Search and filter** every object and location in the game, including modded ones.
+- **Move** objects between colored sections, or add, rename and remove sections.
+- **Find an object's ID:** turn on **Debug Ping Names** (1 - General, shown with Advanced settings in Configuration Manager) and press **Z** on it; its IDs appear in the top-left corner.
+- **Auto Sort** rebuilds the default Valuables, Locations and Useful sections. **Undo** reverts changes, **Apply** saves them. **Copy YAML** copies every section, including unapplied changes; **Import YAML** replaces all sections from the clipboard. A section's **Import** button replaces just that section from a copied CSV list or YAML section. **Export Report** writes every prefab's detected kinds and auto sort result to `BepInEx/config/JoksterCube.PingMark.AutoSortReport.csv`, useful for checking modded prefabs.
 
-**When PingMark is installed on the server, only the host/server admins can open and configure this menu, even if Lock Configuration is off.** Applied collections are saved on the server and synchronized to clients. In single-player or on a server without PingMark, the menu edits your local configuration.
+> 🔒 On a server with PingMark, only admins can change collections, and the server checks every change. Collections are saved in `BepInEx/config/JoksterCube.PingMark.Collections.yml` and synced to all players.
 
 ---
 
 ## ⚙️ Installation
 
-Install with a Thunderstore-compatible mod manager, or manually:
+Install with a mod manager (r2modman, Thunderstore App), or manually:
 
 1. Install **BepInExPack Valheim**.
-2. Extract PingMark into your game's `BepInEx/plugins` folder.
-3. Launch the game to generate `BepInEx/config/JoksterCube.PingMark.cfg`.
+2. Extract PingMark into `BepInEx/plugins`.
+3. Launch the game. Settings are in `BepInEx/config/JoksterCube.PingMark.cfg`.
 
-Server installation is optional. Install it on the server to synchronize gameplay settings and centrally manage collections.
+Installing on the server is **optional**. It syncs settings, filters ping range on the server and protects the collections.
 
 ---
 
 ### 🧩 Compatibility
 
-- Players with PingMark share named Z pings and moving highlights, even on a server without the mod.
-- By default, Z pings reach PingMark players within **200 m of the sender**, not the target. Set the broadcast distance to `0` for unlimited range. Normal map pings remain global.
-- Players without PingMark can still join. By default, they receive ordinary location pings at any distance, not outlines or moving highlights. Disable **Send Z Pings To Unmodded Players** to stop these fallback pings.
-- On a PingMark server, modded clients must use the **same version as the server**. This also applies when a modded player hosts the game.
-- Each sender can highlight **one creature or player at a time** by default. A new highlight replaces that sender's oldest one, not another player's marks.
+- ✅ Works in single-player and on servers **without** PingMark.
+- ✅ Players **without** the mod can join. They see ordinary pings (no names, outlines or highlights).
+- 📏 Z pings reach players within **200 m of you** by default. Map pings stay global.
+- ⚠️ On a PingMark server, every player with PingMark needs the **same version** as the server. Players without the mod can still join.
 
 ---
 
 ### 🔧 Configuration
 
-Edit `BepInEx/config/JoksterCube.PingMark.cfg`. Defaults below apply to new entries; existing saved values are preserved.
+Most players never need to change anything. These are the settings worth knowing about. **Synced** settings come from the server when it runs PingMark.
 
-**Scope:** **Local** affects your client only. **Server** is synchronized when the server runs PingMark; otherwise your local value applies. **Lock Configuration** restricts synchronized changes to admins when on. The admin menu remains admin-only on a PingMark server regardless of that lock.
+| Setting | Default | Synced | What it does |
+| --- | --- | :---: | --- |
+| Z Ping Broadcast Distance | 200 m | ✔ | How far your Z pings reach. `0` = unlimited. |
+| Send Z Pings To Unmodded Players | On | ✔ | Players without the mod still get an ordinary ping. |
+| Ping Cooldown | 0 s | ✔ | Minimum time between Z pings. |
+| Enable Other Players | Off | ✔ | Let Z highlight players. |
+| Show Pinger Name / Show Distance | On | | What ping labels display. |
+| Outline Width | 2 px | | `0` hides all outlines. |
+| Lock Configuration | On | ✔ | Only admins can change synced settings. |
+
+> 💡 Some settings are hidden as **Advanced** in [Configuration Manager](https://thunderstore.io/c/valheim/p/Azumatt/Official_BepInEx_ConfigurationManager/). Turn on *Advanced settings* there to see them. They are marked with ⚙️ in the full reference below.
+
+<details>
+<summary><b>Full settings reference</b></summary>
 
 #### 1 - General
 
-| Setting | Default | Scope | What It Does |
-| --- | --- | --- | --- |
-| Enabled | On | Local | Enable all PingMark features. |
-| Lock Configuration | On | Server | Restrict synchronized configuration changes to server admins. |
-| Refresh Interval | 0.25 s | Server | Recalculate visible distances every 0.05-5 seconds. |
-| Ping Cooldown | 0 s | Server | Delay between Z location pings, 0-60 seconds; `0` disables the cooldown. |
-| Z Ping Broadcast Distance | 200 m | Server | Sender-to-recipient range for Z pings/highlights, 0-10,000 m; `0` means unlimited. Map pings stay global. |
-| Send Z Pings To Unmodded Players | On | Server | Send ordinary fallback pings to players without PingMark, regardless of distance. |
-| Debug Ping Names | Off | Local | Show detected prefab, location, and other target names in a diagnostic message. |
+| Setting | Default | Synced | What it does |
+| --- | --- | :---: | --- |
+| Enabled | On | | Turn all PingMark features on or off. |
+| Lock Configuration | On | ✔ | Only admins can change synced settings. |
+| Refresh Interval ⚙️ | 0.25 s | ✔ | How often distances update (0.05–5 s). |
+| Ping Cooldown | 0 s | ✔ | Minimum time between Z pings and highlights (0–60 s). |
+| Z Ping Broadcast Distance | 200 m | ✔ | Sender-to-recipient range (0–10,000 m, `0` = unlimited). Without a modded server, the shorter of both players' ranges applies. |
+| Send Z Pings To Unmodded Players | On | ✔ | Send ordinary pings to players without PingMark, at any distance. |
+| Debug Ping Names ⚙️ | Off | | Show the detected object/location IDs when pinging. Useful for editing collections. |
 
 #### 2 - Ping Label
 
-| Setting | Default | Scope | What It Does |
-| --- | --- | --- | --- |
-| Show Pinger Name | On | Local | Show who sent the ping or character highlight. |
-| Show Distance | On | Local | Show your distance to pings and highlighted characters. |
-| Empty Label Text | PING | Local | Fallback text when all label details are hidden. |
-| Use Kilometers | On | Local | Display distances of at least 1,000 m in kilometers with two decimals. |
-| Show Target Name | On | Local | Show the pinged object/location name, independently of the sender's preference. |
-| Ping Color | White | Local | World ping label color when not matched to the outline. |
-| Match Ping Text To Outline | Off | Local | Use the target's outline color for the ping label. |
+| Setting | Default | Synced | What it does |
+| --- | --- | :---: | --- |
+| Show Pinger Name | On | | Show who pinged. |
+| Show Distance | On | | Show your distance to pings and highlights. |
+| Show Target Name | On | | Show the pinged object's name. |
+| Use Kilometers | On | | Show 1,000 m and above as km. |
+| Empty Label Text ⚙️ | PING | | Text shown when everything above is hidden. |
+| Ping Color | White | | Label color. |
+| Match Ping Text To Outline | Off | | Use the outline color for the label instead. |
 
 #### 3 - Camera Ping
 
-| Setting | Default | Scope | What It Does |
-| --- | --- | --- | --- |
-| Max Distance | 500 m | Local | Maximum aiming range, 10-2,000 m; also used when nothing is hit. |
-| Max Underwater Depth | 10 m | Local | Allowed target depth below water, 0-100 m; deeper targets ping the surface instead. |
+| Setting | Default | Synced | What it does |
+| --- | --- | :---: | --- |
+| Max Distance | 500 m | | How far you can aim (10–2,000 m). |
+| Max Underwater Depth ⚙️ | 10 m | | Deeper targets ping the water surface instead (0–100 m). |
 
 #### 4 - Ping Targets
 
-| Setting | Default | Scope | What It Does |
-| --- | --- | --- | --- |
-| Prefab Sections | Valuables, Locations, Useful; all enabled | Server | Collection definitions: names, object/location IDs, enabled states, and palette color IDs. Manage these in the admin menu. |
-| Enable Drops | On | Server | Name and outline dropped items. |
-| Enable Gravestones | On | Server | Name and outline gravestones. |
-| Enable Other Players | Off | Server | Highlight moving players instead of sending a ground ping. |
-| Enable All Other | Off | Server | Name and outline models not covered by the configured collections or dedicated targets. |
+| Setting | Default | Synced | What it does |
+| --- | --- | :---: | --- |
+| Enable Drops | On | ✔ | Name and outline dropped items. |
+| Enable Gravestones | On | ✔ | Name and outline gravestones. |
+| Enable Other Players | Off | ✔ | Highlight players instead of pinging their position. |
+| Enable All Other | Off | ✔ | Name and outline anything not in a collection. |
 
 #### 5 - Outlines
 
-| Setting | Default | Scope | What It Does |
-| --- | --- | --- | --- |
-| Enable Ping Outline | On | Local | Outline pinged objects and enabled players. |
-| Outline Width | 2 px | Local | Shared outline width, 0-10 pixels; `0` hides outlines. Visible through obstacles. |
-| Ping Drop Color | Purple; RGB 0.7, 0.5, 1 | Local | Dropped-item outline color. |
-| Ping Gravestone/Player Color | Orange; RGB 1, 0.5, 0.15 | Local | Gravestone and player outline color. |
-| Ping Anything Color | White | Local | Outline color for other models. |
-| Hostile Outline Color | Red; RGB 0.9, 0.18, 0.12 | Local | Hostile creature outline color. |
-| Ally Outline Color | Green; RGB 0.5, 0.85, 0.3 | Local | Friendly and tamed creature outline color. |
+| Setting | Default | Synced | What it does |
+| --- | --- | :---: | --- |
+| Enable Ping Outline | On | | Outline pinged objects and players. |
+| Outline Width | 2 px | | 0–10 px, visible through walls. `0` hides outlines. |
+| Ping Drop Color | Purple | | Dropped items. |
+| Ping Gravestone/Player Color | Orange | | Gravestones and players. |
+| Ping Anything Color | White | | Other objects. |
+| Hostile / Ally Outline Color | Red / Green | | Highlighted creatures. |
 
 #### 6 - Mob Highlight
 
-| Setting | Default | Scope | What It Does |
-| --- | --- | --- | --- |
-| Enable Mob Highlight | On | Server | Allow temporary creature highlights and visible nameplates. |
-| Enable Mob Outline | On | Local | Outline highlighted creatures. |
-| Mob Highlight Duration | 10 s | Server | Creature highlight lifetime, 1-120 seconds. |
-| Max Highlighted Mobs | 1 | Server | Shared creature/player highlight limit per sender, 1-20; replaces that sender's oldest mark. |
+| Setting | Default | Synced | What it does |
+| --- | --- | :---: | --- |
+| Enable Mob Highlight | On | ✔ | Allow creature highlights. |
+| Enable Mob Outline | On | | Outline highlighted creatures. |
+| Mob Highlight Duration | 10 s | ✔ | How long a highlight lasts (1–120 s). |
+| Max Highlighted Mobs | 1 | ✔ | Highlights per player at once (1–20). A new one replaces your oldest. |
 
 #### 7 - Prefab Collections
 
-Palette RGB values use a 0-1 scale; default colors are fully opaque. A section's color ID selects one of these local colors. Initially, Valuables uses **5**, Locations **9**, and Useful **8**.
-
-| Setting | Default | Scope | What It Does |
-| --- | --- | --- | --- |
-| Color 1 | Gray; RGB 0.8, 0.8, 0.8 | Local | Collection palette slot 1. |
-| Color 2 | White; RGB 1, 1, 1 | Local | Collection palette slot 2. |
-| Color 3 | Red; RGB 0.95, 0.25, 0.2 | Local | Collection palette slot 3. |
-| Color 4 | Orange; RGB 1, 0.5, 0.15 | Local | Collection palette slot 4. |
-| Color 5 | Gold; RGB 1, 0.82, 0.3 | Local | Collection palette slot 5. |
-| Color 6 | Lime; RGB 0.65, 0.85, 0.25 | Local | Collection palette slot 6. |
-| Color 7 | Green; RGB 0.25, 0.75, 0.35 | Local | Collection palette slot 7. |
-| Color 8 | Teal; RGB 0.25, 0.8, 0.7 | Local | Collection palette slot 8. |
-| Color 9 | Cyan; RGB 0.25, 0.75, 1 | Local | Collection palette slot 9. |
-| Color 10 | Blue; RGB 0.35, 0.45, 1 | Local | Collection palette slot 10. |
-| Color 11 | Violet; RGB 0.7, 0.45, 0.9 | Local | Collection palette slot 11. |
-| Color 12 | Pink; RGB 1, 0.45, 0.7 | Local | Collection palette slot 12. |
-| Unassigned Section Color ID | 1 | Local | Palette slot used by the menu's Unassigned section, 1-12. |
+| Setting | Default | Synced | What it does |
+| --- | --- | :---: | --- |
+| Color 1 – Color 12 ⚙️ | Gray, White, Red, Orange, Gold, Lime, Green, Teal, Cyan, Blue, Violet, Pink | | Palette that collection sections pick from. |
+| Unassigned Section Color ID ⚙️ | 1 | | Palette slot for the menu's Unassigned column. |
 
 #### 8 - Player Highlight
 
-| Setting | Default | Scope | What It Does |
-| --- | --- | --- | --- |
-| Player Highlight Duration | 5 s | Server | Player highlight lifetime, 1-120 seconds; requires Enable Other Players. |
-| Hide Own Player Outline | On | Server | Hide the outline on your own character when another player marks you; other recipients still see it. |
+| Setting | Default | Synced | What it does |
+| --- | --- | :---: | --- |
+| Player Highlight Duration | 5 s | ✔ | How long a player highlight lasts (1–120 s). |
+| Hide Own Player Outline | On | ✔ | Don't outline yourself when someone marks you. |
 
 #### 9 - Inputs
 
-| Setting | Default | Scope | What It Does |
-| --- | --- | --- | --- |
-| Toggle Mod Shortcut | Right Ctrl + P | Local | Toggle all mod features. |
-| Prefab Editor Shortcut | Right Ctrl + Right Shift + P | Local | Open the Prefab Collections admin menu when permitted. |
-| Mob Highlight Shortcut | Z | Local | Aim to highlight a character or ping a location/object. |
-| Enable Prefab Editor Shortcut | On | Local | Enable the admin-menu keyboard shortcut. |
+| Setting | Default | Synced | What it does |
+| --- | --- | :---: | --- |
+| Ping Shortcut | Z | | Ping what you aim at, or highlight the creature you aim at. |
+| Toggle Mod Shortcut | Right Ctrl + P | | Turn PingMark on or off. |
+| Prefab Editor Shortcut | Right Ctrl + Right Shift + P | | Open the Prefab Collections menu. |
+| Perception Shortcut | Left Shift + Z | | Outline listed objects and drops near you. |
+| Enable Prefab Editor Shortcut ⚙️ | On | | Turn the menu shortcut on or off. |
+
+#### 10 - Perception
+
+| Setting | Default | Synced | What it does |
+| --- | --- | :---: | --- |
+| Enable Perception | On | ✔ | Allow the Perception Shortcut. |
+| Perception Range | 5 m | ✔ | How far around you Perception looks. |
+| Perception Max Outlines | 64 | ✔ | Most objects outlined per use, nearest first. |
+| Perception Fatigue Duration | 15 s | ✔ | Cooldown after using Perception, shown as a status effect. `0` = none. |
+| Perceive Creatures | Off | ✔ | Perception also highlights every hostile and allied creature in range, ignoring Max Highlighted Mobs. |
+
+</details>
 
 ---
 
@@ -200,5 +215,5 @@ Report bugs or suggest improvements on [GitHub](https://github.com/JoksterCube/P
 ---
 
 **Author:** JoksterCube<br>
-**Version:** 1.0.4<br>
+**Version:** 1.3.0<br>
 **License:** MIT

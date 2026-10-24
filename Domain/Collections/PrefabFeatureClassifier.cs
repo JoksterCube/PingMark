@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using HarmonyLib;
 using JoksterCube.PingMark.Domain.Enums;
 using JoksterCube.PingMark.Domain.PingTargets;
 using SoftReferenceableAssets;
@@ -14,8 +13,10 @@ namespace JoksterCube.PingMark.Domain.Collections;
 internal sealed class PrefabFeatureClassifier(PrefabBrowserFilter filter)
 {
     private static readonly Dictionary<Type, FieldInfo[]> Fields = [];
-    private static readonly HashSet<string> EnvironmentalResourceExclusions = new(StringComparer.OrdinalIgnoreCase)
-        { "Stone", "Grausten", "Ice" };
+    // Everyday materials found everywhere (Grausten in the Ashlands, Ice in the Deep North): dropping them does
+    // not make an object worth pinging.
+    private static readonly HashSet<string> CommonMaterials = new(StringComparer.OrdinalIgnoreCase)
+        { "Wood", "Stone", "Grausten", "Ice" };
     private readonly List<GameObject> _prefabs = [];
     private readonly HashSet<GameObject> _known = [];
     private readonly Dictionary<string, GameObject> _byName = new(StringComparer.OrdinalIgnoreCase);
@@ -190,6 +191,7 @@ internal sealed class PrefabFeatureClassifier(PrefabBrowserFilter filter)
             || Has<CinderSpawner>() || Has<WispSpawner>() || Has<SoftReferencePrefabSpawner>() || Has<EggGrow>() || Has<SpawnAbility>())
             kind |= PrefabBrowserKind.Spawner;
         if (Has<TriggerSpawner>() || Has<GrapplingPoint>() || Has<TriggerSpawnAbility>()) kind |= PrefabBrowserKind.TriggerPoint;
+        if (prefab.GetComponent<Room>()) kind |= PrefabBrowserKind.DungeonRoom;
         if (location) kind |= PrefabBrowserKind.Location;
         if (location && location!.m_hasInterior || generator && generator!.m_algorithm == DungeonGenerator.Algorithm.Dungeon)
             kind |= PrefabBrowserKind.Dungeon;
@@ -227,6 +229,7 @@ internal sealed class PrefabFeatureClassifier(PrefabBrowserFilter filter)
         if (piece && !buildable && !planting && !terrain && (kind & propExclusions) == 0) kind |= PrefabBrowserKind.Prop;
         if (destructible && resourceDrops)
             kind |= PrefabBrowserKind.Resource;
+        if (DropsOnlyCommonMaterials(components, destructible)) kind |= PrefabBrowserKind.CommonDropsOnly;
         if (piece && piece!.m_category == Piece.PieceCategory.Misc && piece.m_comfort == 0
             && piece.m_resources is { Length: 1 } && piece.m_resources[0] is { } resource && resource.m_amount > 1
             && resource.m_resItem && IsMaterial(resource.m_resItem.gameObject)
@@ -375,7 +378,8 @@ internal sealed class PrefabFeatureClassifier(PrefabBrowserFilter filter)
 
     private IEnumerable<int> IndexLoadedRooms()
     {
-        if (!DungeonDB.instance || AccessTools.Field(typeof(DungeonDB), "m_rooms")?.GetValue(DungeonDB.instance) is not IEnumerable rooms) yield break;
+        if (!DungeonDB.instance || DungeonDB.instance.m_rooms is not { } rooms) yield break;
+        // RoomData fields are scanned by type so the index survives game updates that rename them.
         foreach (object roomData in rooms)
         {
             yield return _names.Count;
@@ -394,9 +398,7 @@ internal sealed class PrefabFeatureClassifier(PrefabBrowserFilter filter)
 
     private void IndexDungeonTheme(DungeonGenerator generator)
     {
-        if (generator.m_algorithm == DungeonGenerator.Algorithm.Dungeon
-            && AccessTools.Field(typeof(DungeonGenerator), "m_themes")?.GetValue(generator) is Room.Theme theme)
-            _dungeonThemes |= theme;
+        if (generator.m_algorithm == DungeonGenerator.Algorithm.Dungeon) _dungeonThemes |= generator.m_themes;
     }
 
     private void Reference(GameObject source, GameObject? target, PrefabBrowserKind kind, bool add = true)
@@ -505,6 +507,36 @@ internal sealed class PrefabFeatureClassifier(PrefabBrowserFilter filter)
         if (!string.IsNullOrWhiteSpace(name)) _resourceInputs.Add(name);
     }
 
+    // True when the prefab drops something and every possible drop is a common material, counting what it drops
+    // when destroyed or mined and what its destroyed replacement (a rock's "_frac" pieces) drops.
+    private bool DropsOnlyCommonMaterials(Component[] components, Destructible? destructible)
+    {
+        List<GameObject> drops = [];
+        CollectDrops(components, drops);
+        if (destructible && destructible!.m_spawnWhenDestroyed)
+        {
+            Component[] replacement = Components(destructible.m_spawnWhenDestroyed);
+            CollectDrops(replacement, drops);
+            drops.AddRange(replacement.OfType<ItemDrop>().Select(item => item.gameObject));
+            drops.AddRange(replacement.OfType<Pickable>().Where(pickable => pickable.m_itemPrefab).Select(pickable => pickable.m_itemPrefab));
+        }
+        return drops.Count > 0 && drops.All(item => CommonMaterials.Contains(global::Utils.GetPrefabName(item)));
+    }
+
+    private static void CollectDrops(Component[] components, List<GameObject> drops)
+    {
+        foreach (DropOnDestroyed drop in components.OfType<DropOnDestroyed>()) AddDrops(drop.m_dropWhenDestroyed, drops);
+        foreach (MineRock mineRock in components.OfType<MineRock>()) AddDrops(mineRock.m_dropItems, drops);
+        foreach (MineRock5 mineRock in components.OfType<MineRock5>()) AddDrops(mineRock.m_dropItems, drops);
+    }
+
+    private static void AddDrops(DropTable? table, List<GameObject> drops)
+    {
+        if (table?.m_drops == null) return;
+        foreach (DropTable.DropData drop in table.m_drops)
+            if (drop.m_item) drops.Add(drop.m_item);
+    }
+
     private bool HasResourceDrops(DropTable? table) => table?.m_drops != null
         && table.m_drops.Any(drop => drop is { } && IsResourceInput(drop.m_item));
 
@@ -522,7 +554,7 @@ internal sealed class PrefabFeatureClassifier(PrefabBrowserFilter filter)
     {
         if (!item) return false;
         string name = global::Utils.GetPrefabName(item!);
-        return !EnvironmentalResourceExclusions.Contains(name)
+        return !CommonMaterials.Contains(name)
             && (_resourceInputs.Contains(name) || IsMaterial(item!));
     }
 

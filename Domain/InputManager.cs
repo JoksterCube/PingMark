@@ -11,32 +11,33 @@ namespace JoksterCube.PingMark.Domain;
 
 internal static class InputManager
 {
-    internal static void Update(Plugin plugin)
+    internal static void Update()
     {
         PrefabCollectionEditor.Update();
         bool allowed = !RpcHandlers.ShouldWaitForInitialConfigSync && !PrefabCollectionEditor.BlocksInput && CanTakeInput();
-        bool editorShortcutEnabled = PrefabEditorShortcutEnabled.IsOn();
-        bool editorPressed = PrefabEditorShortcut.Value.IsKeyDown();
-        bool editorHeld = PrefabEditorShortcut.Value.IsKeyHeld();
-        bool togglePressed = !editorHeld && ToggleModShortcut.Value.IsKeyDown();
         if (!allowed) return;
-        if (editorShortcutEnabled && editorPressed)
+        // KeyboardShortcut.IsDown matches modifiers exactly, so Ctrl+P does not fire inside Ctrl+Shift+P.
+        if (PrefabEditorShortcutEnabled.IsOn() && PrefabEditorShortcut.Value.IsDown())
         {
             PrefabCollectionEditor.Open();
             return;
         }
-        var mobHighlightPressed = MobHighlightShortcut.Value.IsKeyDown();
-        if (!togglePressed && !mobHighlightPressed) return;
+        if (PerceptionShortcut.Value.IsDown())
+        {
+            Perception.TryActivate();
+            return;
+        }
+        bool togglePressed = ToggleModShortcut.Value.IsDown();
+        bool pingPressed = PingShortcut.Value.IsDown();
+        if (!togglePressed && !pingPressed) return;
 
         if (togglePressed)
         {
             Enabled.Value = Enabled.Value.Not();
-
-            plugin.Config.Save();
             return;
         }
 
-        if (!Enabled.IsOn() || !mobHighlightPressed) return;
+        if (!Enabled.IsOn() || !pingPressed) return;
 
         MobTargeting.TryHighlight();
     }

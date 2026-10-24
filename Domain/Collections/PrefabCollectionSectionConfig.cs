@@ -1,9 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JoksterCube.PingMark.Domain.Models;
 using UnityEngine;
 using YamlDotNet.Serialization;
-using static JoksterCube.PingMark.Settings.PluginConfig;
 using static JoksterCube.PingMark.Settings.Constants.Groups.PrefabCollections;
 using TargetLists = JoksterCube.PingMark.Settings.Constants.Groups.PingTargets;
 
@@ -16,40 +16,42 @@ internal static class PrefabCollectionSectionConfig
     private static string _cachedValue = string.Empty;
     private static List<PrefabCollectionSection> _cachedSections = [];
 
+    // Never writes the config: an unreadable value keeps the last good sections (or the defaults)
+    // in memory, so a typo in the file cannot wipe the configured collections.
     internal static List<PrefabCollectionSection> Load()
     {
-        string value = PrefabSections.Value;
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            value = TargetLists.PrefabSections.DefaultValue;
-            PrefabSections.Value = value;
-        }
+        string value = PrefabCollectionStore.Value;
         if (value == _cachedValue && _cachedSections.Count > 0) return _cachedSections;
+        _cachedValue = value;
 
-        SerializedSections? serialized = null;
+        string? error = null;
+        List<PrefabCollectionSection>? sections = string.IsNullOrWhiteSpace(value) ? [] : Parse(value, out error);
+        if (sections == null)
+        {
+            Plugin.ModLogger.LogError($"Unable to read configured prefab sections ({error}); keeping the previous sections. Fix the collections file to apply changes.");
+            if (_cachedSections.Count == 0) _cachedSections = Parse(TargetLists.PrefabSections.DefaultValue) ?? [];
+            return _cachedSections;
+        }
+
+        _cachedSections = sections.Count > 0 ? sections : Parse(TargetLists.PrefabSections.DefaultValue) ?? [];
+        return _cachedSections;
+    }
+
+    internal static List<PrefabCollectionSection>? Parse(string value) => Parse(value, out _);
+
+    // Returns null for unreadable YAML; the caller decides how to report the error.
+    internal static List<PrefabCollectionSection>? Parse(string value, out string? error)
+    {
+        error = null;
         try
         {
-            if (!string.IsNullOrWhiteSpace(value)) serialized = Deserializer.Deserialize<SerializedSections>(value);
+            return CreateSections(Deserializer.Deserialize<SerializedSections>(value));
         }
-        catch
+        catch (Exception exception)
         {
-            Plugin.ModLogger.LogError("Unable to read configured prefab sections; restoring the configured section layout.");
-            value = TargetLists.PrefabSections.DefaultValue;
-            PrefabSections.Value = value;
-            serialized = Deserializer.Deserialize<SerializedSections>(value);
+            error = exception.Message;
+            return null;
         }
-
-        _cachedSections = CreateSections(serialized);
-
-        if (_cachedSections.Count == 0)
-        {
-            value = TargetLists.PrefabSections.DefaultValue;
-            PrefabSections.Value = value;
-            serialized = Deserializer.Deserialize<SerializedSections>(value);
-            _cachedSections = CreateSections(serialized);
-        }
-        _cachedValue = value;
-        return _cachedSections;
     }
 
     private static List<PrefabCollectionSection> CreateSections(SerializedSections? serialized) => serialized?.Sections?
@@ -78,9 +80,7 @@ internal static class PrefabCollectionSectionConfig
 
     internal static void Save(List<PrefabCollectionSection> sections)
     {
-        string value = Serialize(sections);
-        PrefabSections.Value = value;
-        _cachedValue = value;
-        _cachedSections = sections.Select(section => section.Copy()).ToList();
+        // Remote edits are applied once the server accepts and returns them, so the cache is not updated here.
+        PrefabCollectionStore.Submit(Serialize(sections));
     }
 }

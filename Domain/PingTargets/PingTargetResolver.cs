@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using HarmonyLib;
 using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Domain.Collections;
 using JoksterCube.PingMark.Domain.Enums;
@@ -13,10 +12,8 @@ namespace JoksterCube.PingMark.Domain.PingTargets;
 
 internal static class PingTargetResolver
 {
-    private static readonly Func<ZoneSystem, int, ZoneSystem.ZoneLocation?>? GetLocationByHash =
-        AccessTools.Method(typeof(ZoneSystem), nameof(ZoneSystem.GetLocation), [typeof(int)]) is { } method
-            ? AccessTools.MethodDelegate<Func<ZoneSystem, int, ZoneSystem.ZoneLocation?>>(method)
-            : null;
+    private static readonly Regex InstanceSuffix = new(@"\s+\(\d+\)$", RegexOptions.Compiled);
+
 
     internal static PingTarget? Resolve(Collider? collider, Vector3 position)
     {
@@ -43,14 +40,22 @@ internal static class PingTargetResolver
                 : null;
         }
 
+        // Walls and floors of generated rooms are not objects, so they never match a section by their group name
+        // (older defaults list "Floor", "Walls", ...). Outdoors they still fall back to the location's name.
+        // Geometry of a fixed (non-generated) interior resolves to its location and is skipped the same way.
         bool isLocation = TryGetLocationPrefabName(root, out string locationId);
-        string prefabName = isLocation ? locationId : GetObjectId(root);
-        PrefabCollectionSection? section = FindSection(prefabName);
-        if (section != null)
+        if (!IsRoomGeometry(root) && !(isLocation && Character.InInterior(position)))
         {
-            string displayName = TryGetLocationDisplayName(root, out string locationDisplayName)
-                ? locationDisplayName : GetObjectName(collider);
-            return new PingTarget(PingCategory.PrefabSection, displayName, root, section.Color);
+            string prefabName = isLocation ? locationId : GetObjectId(root);
+            PrefabCollectionSection? section = FindSection(prefabName);
+            if (section != null)
+            {
+                string displayName = TryGetLocationDisplayName(root, out string locationDisplayName)
+                    ? locationDisplayName : GetObjectName(collider);
+                // A hit on a location's own geometry (a troll cave wall, a ruin) names the location like an area
+                // ping instead of outlining an arbitrary part of the whole site.
+                return new PingTarget(PingCategory.PrefabSection, displayName, isLocation ? null : root, section.Color);
+            }
         }
 
         PingTarget? locationTarget = ResolveLocation(position);
@@ -59,6 +64,24 @@ internal static class PingTargetResolver
         if (OthersEnabled.IsOn())
             return new PingTarget(PingCategory.Other, GetObjectName(collider), root);
 
+        return null;
+    }
+
+    // The networked object the hit belongs to, so other players can resolve exactly the same object.
+    internal static ZDOID GetNetworkId(Collider collider)
+    {
+        GameObject root = GetPrefabRoot(collider);
+        return root.TryGetComponent(out ZNetView view) && view.GetZDO() is { } zdo ? zdo.m_uid : ZDOID.None;
+    }
+
+    // Resolves a target from its network ID; null when the object is not loaded here.
+    internal static PingTarget? ResolveInstance(ZDOID id, Vector3 position)
+    {
+        if (id.IsNone() || !ZNetScene.instance) return null;
+        GameObject instance = ZNetScene.instance.FindInstance(id);
+        if (!instance) return null;
+        foreach (Collider collider in instance.GetComponentsInChildren<Collider>(true))
+            if (IsPingCollider(collider) && GetPrefabRoot(collider) == instance) return Resolve(collider, position);
         return null;
     }
 
@@ -71,7 +94,7 @@ internal static class PingTargetResolver
         {
             if (!IsPingCollider(collider)) continue;
             if (IsTerrain(collider)) continue;
-            float distance = (collider.ClosestPoint(position) - position).sqrMagnitude;
+            float distance = (ClosestPoint(collider, position) - position).sqrMagnitude;
             if (distance > nearestDistance) continue;
             PingTarget? target = Resolve(collider, position);
             if (!target.HasValue) continue;
@@ -83,8 +106,16 @@ internal static class PingTargetResolver
         return nearest ?? ResolveLocation(position);
     }
 
+    // Physics.ClosestPoint only supports primitives and convex meshes; rocks and cliffs use concave mesh colliders.
+    private static Vector3 ClosestPoint(Collider collider, Vector3 position) =>
+        collider is MeshCollider { convex: false } ? collider.bounds.ClosestPoint(position) : collider.ClosestPoint(position);
+
     private static PingTarget? ResolveLocation(Vector3 position)
     {
+        // Teleport interiors (crypts, caves, Dvergr and Deep North dungeons) are one location throughout,
+        // so naming every spot inside after it would make the whole dungeon pingable.
+        if (Character.InInterior(position)) return null;
+
         Location? location = Location.GetLocation(position);
         if (!location) return null;
 
@@ -104,10 +135,13 @@ internal static class PingTargetResolver
         return new PingTarget(PingCategory.PrefabSection, displayName, null, section.Color);
     }
 
+    // Matches the editor, where a prefab listed in several sections belongs to the last one; when that
+    // section is disabled the prefab is not pinged as a section member at all.
     private static PrefabCollectionSection? FindSection(string prefabId)
     {
-        foreach (PrefabCollectionSection section in PrefabCollectionSectionConfig.Load())
-            if (section.Enabled && section.Contains(prefabId)) return section;
+        List<PrefabCollectionSection> sections = PrefabCollectionSectionConfig.Load();
+        for (int index = sections.Count - 1; index >= 0; index--)
+            if (sections[index].Contains(prefabId)) return sections[index].Enabled ? sections[index] : null;
         return null;
     }
 
@@ -163,12 +197,12 @@ internal static class PingTargetResolver
     private static bool TryGetLocationPrefabName(GameObject root, out string locationName)
     {
         locationName = string.Empty;
-        if (!root.TryGetComponent(out LocationProxy _) || !ZoneSystem.instance || GetLocationByHash == null) return false;
+        if (!root.TryGetComponent(out LocationProxy _) || !ZoneSystem.instance) return false;
 
         ZDO? zdo = root.GetComponent<ZNetView>()?.GetZDO();
         if (zdo == null) return false;
 
-        ZoneSystem.ZoneLocation? location = GetLocationByHash(ZoneSystem.instance, zdo.GetInt(ZDOVars.s_location));
+        ZoneSystem.ZoneLocation? location = ZoneSystem.instance.GetLocation(zdo.GetInt(ZDOVars.s_location));
         if (location == null) return false;
 
         locationName = Clean(location.m_prefabName ?? location.m_name);
@@ -249,7 +283,8 @@ internal static class PingTargetResolver
         GetColliderOwner(collider).GetComponentInParent<TombStone>();
 
     internal static bool IsPingCollider(Collider collider) => !collider.isTrigger
-        || collider.GetComponentInParent<Pickable>() || collider.GetComponentInParent<PickableItem>();
+        || collider.GetComponentInParent<Pickable>() || collider.GetComponentInParent<PickableItem>()
+        || collider.GetComponentInParent<RandomFlyingBird>();
 
     private static GameObject GetColliderOwner(Collider collider)
     {
@@ -261,24 +296,41 @@ internal static class PingTargetResolver
     {
         GameObject owner = GetColliderOwner(collider);
         GameObject? roomObject = null;
+        // A name match alone is weak evidence: MineRock_Tin's model part "Rock_4 (1)" shares its name with the
+        // standalone Rock_4 prefab. Remember it, but let a networked/interactive ancestor claim the hit first.
+        GameObject? namedPrefab = null;
         for (Transform current = owner.transform; current; current = current.parent)
         {
             GameObject candidate = current.gameObject;
-            if (candidate.GetComponent<Room>()) return roomObject ?? owner;
-            if (candidate.GetComponent<ZNetView>() || candidate.GetComponent<Hoverable>() != null
-                || candidate.GetComponent<Destructible>() || candidate.GetComponent<Piece>()
-                || candidate.GetComponent<Plant>() || IsRegisteredPrefab(candidate))
-                return candidate;
+            if (candidate.GetComponent<Room>()) return namedPrefab ?? roomObject ?? owner;
+            // Location proxies are networked too, but their non-networked props are still meant to resolve by name.
+            if (candidate.GetComponent<ZNetView>())
+                return namedPrefab && candidate.GetComponent<LocationProxy>() ? namedPrefab! : candidate;
+            if (IsObject(candidate)) return candidate;
+            if (namedPrefab == null && IsRegisteredPrefab(candidate)) namedPrefab = candidate;
             if (roomObject == null && current != owner.transform) roomObject = candidate;
         }
+        if (namedPrefab) return namedPrefab!;
         return owner.transform.root ? owner.transform.root.gameObject : owner;
     }
+
+    // GetPrefabRoot falls back to a room child such as "floor" when the hit belongs to no object at all. Rooms
+    // build interiors and also outdoor camps (Fuling villages, the Ashlands fortress).
+    private static bool IsRoomGeometry(GameObject root) => root.GetComponentInParent<Room>()
+        && !root.GetComponent<ZNetView>() && !IsObject(root) && !IsRegisteredPrefab(root);
+
+    // Interfaces rather than concrete types, so modded objects (custom destructibles, interactables, hover
+    // targets) count as objects even when they do not derive from the vanilla classes.
+    private static bool IsObject(GameObject candidate) =>
+        candidate.GetComponent<Hoverable>() != null || candidate.GetComponent<Interactable>() != null
+        || candidate.GetComponent<IDestructible>() != null || candidate.GetComponent<Piece>()
+        || candidate.GetComponent<Plant>();
 
     private static bool IsRegisteredPrefab(GameObject candidate) =>
         ZNetScene.instance && ZNetScene.instance.GetPrefab(GetObjectId(candidate));
 
     internal static string GetObjectId(GameObject candidate) =>
-        Regex.Replace(Clean(global::Utils.GetPrefabName(candidate)), @"\s+\(\d+\)$", string.Empty);
+        InstanceSuffix.Replace(Clean(global::Utils.GetPrefabName(candidate)), string.Empty);
 
     private static bool IsTerrain(Collider collider) =>
         collider.gameObject.layer == LayerMask.NameToLayer("terrain")

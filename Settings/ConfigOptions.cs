@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using BepInEx.Configuration;
 using ServerSync;
 
@@ -9,6 +10,8 @@ internal static class ConfigOptions
 {
     private static ConfigFile? _configFile;
     private static ConfigSync? _configSync;
+    // Configuration Manager lists higher Order first, so each group counts down in binding order.
+    private static readonly Dictionary<string, int> NextOrder = [];
 
     internal static void Initialize(ConfigFile config, ConfigSync configSync)
     {
@@ -16,14 +19,17 @@ internal static class ConfigOptions
         _configSync = configSync;
     }
 
-    internal static ConfigEntry<T> Config<T>(string group, string name, T value, ConfigDescription description, bool synchronizedSetting = true)
+    internal static ConfigEntry<T> Config<T>(string group, string name, T value, ConfigDescription description, bool synchronizedSetting = true, bool advanced = false)
     {
+        int order = NextOrder.TryGetValue(group, out int next) ? next : 1000;
+        NextOrder[group] = order - 1;
+        ConfigurationManagerAttributes attributes = new() { Order = order, IsAdvanced = advanced ? true : null };
         ConfigDescription extendedDescription = new(
             description.Description + (synchronizedSetting
                 ? " [Synced with Server]"
                 : " [Not Synced with Server]"),
             description.AcceptableValues,
-            description.Tags);
+            (description.Tags ?? []).Append(attributes).ToArray());
 
         ConfigEntry<T> configEntry = (_configFile ?? throw new InvalidOperationException("ConfigOptions is not initialized.")).Bind(group, name, value, extendedDescription);
         SyncedConfigEntry<T> syncedConfigEntry = (_configSync ?? throw new InvalidOperationException("ConfigOptions is not initialized.")).AddConfigEntry(configEntry);
@@ -35,19 +41,5 @@ internal static class ConfigOptions
         Config(group, name, value, new ConfigDescription(description), synchronizedSetting);
 
     internal static ConfigEntry<T> Config<T>(ConfigInfo<T> configInfo) =>
-        Config(configInfo.Group, configInfo.Name, configInfo.DefaultValue, configInfo.Description, configInfo.Synchronized);
-
-    internal static ConfigEntry<T> Config<T>(ConfigInfo<T> configInfo, string legacyGroup)
-    {
-        ConfigFile config = _configFile ?? throw new InvalidOperationException("ConfigOptions is not initialized.");
-        ConfigEntry<T> legacyEntry = config.Bind(legacyGroup, configInfo.Name, configInfo.DefaultValue, configInfo.Description);
-        T legacyValue = legacyEntry.Value;
-        config.Remove(legacyEntry.Definition);
-
-        ConfigEntry<T> configEntry = Config(configInfo);
-        if (!EqualityComparer<T>.Default.Equals(legacyValue, configInfo.DefaultValue))
-            configEntry.Value = legacyValue;
-
-        return configEntry;
-    }
+        Config(configInfo.Group, configInfo.Name, configInfo.DefaultValue, configInfo.Description, configInfo.Synchronized, configInfo.IsAdvanced);
 }

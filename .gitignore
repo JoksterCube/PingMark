@@ -8,3 +8,5 @@ riderModule.iml
 *.sln.DotSettings.user
 *.zip
 /Thunderstore/README.md
+environment.props.user
+Nexus/

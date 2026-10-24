@@ -3,20 +3,22 @@ using System.Collections.Generic;
 using System.Globalization;
 using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Domain;
-using MobHighlightService = JoksterCube.PingMark.Domain.MobHighlight;
 using TMPro;
 using UnityEngine;
 using static JoksterCube.PingMark.Settings.PluginConfig;
 
-namespace JoksterCube.PingMark.Patches.PingLabels;
+namespace JoksterCube.PingMark.Domain;
 
-internal static class PingMarkLabels
+internal static class PingLabelFormatter
 {
     private static readonly Dictionary<Chat.WorldTextInstance, string> Cache = [];
     private static float _timer;
 
     internal static TMP_FontAsset? MapFont { get; set; }
     internal static TMP_Text? MapLabelTemplate { get; set; }
+
+    // Unity-aware fallback: `??` would return a destroyed template instead of the fallback.
+    internal static TMP_Text StyleSource(TMP_Text fallback) => MapLabelTemplate ? MapLabelTemplate! : fallback;
 
     internal static string Get(Chat.WorldTextInstance worldText, Player localPlayer)
     {
@@ -27,6 +29,8 @@ internal static class PingMarkLabels
 
     internal static void Invalidate(Chat.WorldTextInstance worldText) => Cache.Remove(worldText);
 
+    internal static void Clear() => Cache.Clear();
+
     internal static void Tick(float dt, List<Chat.WorldTextInstance> worldTexts, Player localPlayer)
     {
         _timer += dt;
@@ -36,7 +40,7 @@ internal static class PingMarkLabels
         Cache.Clear();
         foreach (Chat.WorldTextInstance worldText in worldTexts)
         {
-            if (worldText.m_type == Talker.Type.Ping)
+            if (worldText.m_type == Talker.Type.Ping && worldText.m_textMeshField)
                 worldText.m_textMeshField.text = Get(worldText, localPlayer);
         }
     }
@@ -71,7 +75,7 @@ internal static class PingMarkLabels
     {
         if (ShowPingerName.IsOn())
         {
-            string name = MobHighlightService.GetPingerName(character);
+            string name = MobHighlight.GetPingerName(character);
             return ShowDistance.IsOn() ? name + "\n" + distance : name;
         }
         return ShowDistance.IsOn() ? distance : string.Empty;

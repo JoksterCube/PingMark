@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
-using HarmonyLib;
 using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Domain.Models;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Object = UnityEngine.Object;
 using static JoksterCube.PingMark.Settings.PluginConfig;
 
 namespace JoksterCube.PingMark.Domain;
@@ -13,11 +14,12 @@ internal static class OutlineManager
     private const CameraEvent RenderEvent = CameraEvent.AfterForwardAlpha;
     private const int StencilBit = 64;
     private const float Diagonal = 0.70710678f;
+    // Every renderer is drawn 17 times per submesh, so very large targets (whole locations) are capped.
+    private const int MaxRenderersPerTarget = 128;
+    private const float RendererRefreshInterval = 1f;
+    private const float HierarchyCheckInterval = 0.25f;
 
     private static readonly int ColorId = Shader.PropertyToID("_Color");
-
-    private static readonly AccessTools.FieldRef<EnemyHud, Dictionary<Character, EnemyHud.HudData>> HudsRef =
-        AccessTools.FieldRefAccess<EnemyHud, Dictionary<Character, EnemyHud.HudData>>("m_huds");
 
     private static readonly Vector2[] Directions =
     [
@@ -35,12 +37,16 @@ internal static class OutlineManager
     private static readonly Dictionary<Chat.WorldTextInstance, PingTarget> PingTargets = [];
     private static readonly List<Chat.WorldTextInstance> ExpiredPings = [];
     private static readonly HashSet<Chat.WorldTextInstance> ExistingPings = [];
+    // Outlines without a ping label (Perception), each kept until its own expiry time.
+    private static readonly Dictionary<GameObject, (Color Color, float Until)> TimedOutlines = [];
+    private static readonly List<GameObject> ExpiredTimedOutlines = [];
 
     private static CommandBuffer? _buffer;
     private static Camera? _camera;
     private static Shader? _shader;
     private static Material? _clearMaterial;
     private static Material? _maskMaterial;
+    private static Mesh? _fullScreenQuad;
     private static bool _shaderMissing;
 
     private sealed class RendererCache
@@ -49,6 +55,7 @@ internal static class OutlineManager
         internal readonly List<Transform> Transforms = [];
         internal readonly List<int> ChildCounts = [];
         internal float NextRefresh;
+        internal float NextHierarchyCheck;
     }
 
     internal static void Initialize() => Camera.onPreRender += OnPreRender;
@@ -57,6 +64,16 @@ internal static class OutlineManager
     {
         if (target.HasValue) PingTargets[ping] = target.Value;
         else PingTargets.Remove(ping);
+    }
+
+    internal static void AddTimedOutline(GameObject target, Color color, float until) => TimedOutlines[target] = (color, until);
+
+    private static void RemoveExpiredTimedOutlines(float now)
+    {
+        foreach (KeyValuePair<GameObject, (Color Color, float Until)> entry in TimedOutlines)
+            if (!entry.Key || entry.Value.Until <= now) ExpiredTimedOutlines.Add(entry.Key!);
+        foreach (GameObject target in ExpiredTimedOutlines) TimedOutlines.Remove(target);
+        ExpiredTimedOutlines.Clear();
     }
 
     internal static bool TryGetPingColor(Chat.WorldTextInstance ping, out Color color)
@@ -87,6 +104,14 @@ internal static class OutlineManager
         ExistingPings.Clear();
     }
 
+    internal static void ClearSession()
+    {
+        PingTargets.Clear();
+        TimedOutlines.Clear();
+        RendererCaches.Clear();
+        ActiveOutlineTargets.Clear();
+    }
+
     internal static void Dispose()
     {
         Camera.onPreRender -= OnPreRender;
@@ -95,10 +120,12 @@ internal static class OutlineManager
         _buffer = null;
         if (_clearMaterial) Object.Destroy(_clearMaterial);
         if (_maskMaterial) Object.Destroy(_maskMaterial);
+        if (_fullScreenQuad) Object.Destroy(_fullScreenQuad);
         foreach (Material material in OutlineMaterials.Values)
             if (material) Object.Destroy(material);
         OutlineMaterials.Clear();
         PingTargets.Clear();
+        TimedOutlines.Clear();
         ExpiredPings.Clear();
         ExistingPings.Clear();
         RendererCaches.Clear();
@@ -106,7 +133,20 @@ internal static class OutlineManager
         ExpiredOutlineTargets.Clear();
     }
 
+    private const string Feature = "Outlines";
+
     private static void OnPreRender(Camera camera)
+    {
+        if (PatchGuard.IsDisabled(Feature)) return;
+        try { DrawOutlines(camera); }
+        catch (Exception exception)
+        {
+            _buffer?.Clear();
+            PatchGuard.Fail(Feature, exception);
+        }
+    }
+
+    private static void DrawOutlines(Camera camera)
     {
         GameCamera gameCamera = GameCamera.instance;
         if (!gameCamera || camera.gameObject != gameCamera.gameObject) return;
@@ -125,7 +165,9 @@ internal static class OutlineManager
         if ((MobOutlineEnabled.IsOn() || (PlayersEnabled.IsOn() && PingOutlineEnabled.IsOn())) && ZNetScene.instance)
             MobHighlight.GetMarkedIds(MarkedIds);
         bool drawPings = PingOutlineEnabled.IsOn() && PingTargets.Count > 0;
-        if ((MarkedIds.Count == 0 && !drawPings) || !EnsureMaterials())
+        RemoveExpiredTimedOutlines(Time.time);
+        bool drawTimed = TimedOutlines.Count > 0;
+        if ((MarkedIds.Count == 0 && !drawPings && !drawTimed) || !EnsureMaterials())
         {
             RendererCaches.Clear();
             return;
@@ -134,6 +176,10 @@ internal static class OutlineManager
         Matrix4x4 view = camera.worldToCameraMatrix;
         Matrix4x4 projection = camera.projectionMatrix;
         Vector2 pixel = new(2f * OutlineWidth.Value / camera.pixelWidth, 2f * OutlineWidth.Value / camera.pixelHeight);
+
+        // The deferred renderer also uses this stencil bit, so clear it once for the whole screen first.
+        _buffer!.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+        _buffer.DrawMesh(_fullScreenQuad!, Matrix4x4.identity, _clearMaterial!);
 
         if (drawPings && Chat.instance)
         {
@@ -147,6 +193,9 @@ internal static class OutlineManager
                 DrawCollectedOutline(entry.Value.Color, view, projection, pixel);
             }
         }
+
+        foreach (KeyValuePair<GameObject, (Color Color, float Until)> entry in TimedOutlines)
+            DrawOutline(entry.Key, entry.Value.Color, view, projection, pixel);
 
         foreach (ZDOID id in MarkedIds)
         {
@@ -176,10 +225,13 @@ internal static class OutlineManager
     {
         if (Targets.Count == 0) return;
 
-        DrawOffsets(_clearMaterial!, view, projection, pixel);
+        // Mask the target, draw the offset copies only outside the mask, then unmask the same pixels so the
+        // next target starts clean: 10 draws per renderer instead of clearing the expanded area 8 more times.
         _buffer!.SetViewProjectionMatrices(view, projection);
         DrawTargets(_maskMaterial!);
         DrawOffsets(GetOutlineMaterial(color), view, projection, pixel);
+        _buffer.SetViewProjectionMatrices(view, projection);
+        DrawTargets(_clearMaterial!);
     }
 
     private static void Attach(Camera camera)
@@ -202,6 +254,7 @@ internal static class OutlineManager
         RendererCache cache = GetRendererCache(target);
         foreach (Renderer renderer in cache.Renderers)
         {
+            if (Targets.Count >= MaxRenderersPerTarget) break;
             if (!renderer)
             {
                 cache.NextRefresh = 0f;
@@ -222,14 +275,18 @@ internal static class OutlineManager
         if (!RendererCaches.TryGetValue(target, out RendererCache cache))
             RendererCaches[target] = cache = new RendererCache();
 
-        bool refresh = cache.Transforms.Count == 0 || Time.unscaledTime >= cache.NextRefresh;
-        if (!refresh)
+        float now = Time.unscaledTime;
+        bool refresh = cache.Transforms.Count == 0 || now >= cache.NextRefresh;
+        if (!refresh && now >= cache.NextHierarchyCheck)
+        {
+            cache.NextHierarchyCheck = now + HierarchyCheckInterval;
             for (int index = 0; index < cache.Transforms.Count; index++)
                 if (!cache.Transforms[index] || cache.Transforms[index].childCount != cache.ChildCounts[index])
                 {
                     refresh = true;
                     break;
                 }
+        }
         if (!refresh) return cache;
 
         cache.Renderers.Clear();
@@ -238,7 +295,8 @@ internal static class OutlineManager
         target.GetComponentsInChildren(true, cache.Renderers);
         target.GetComponentsInChildren(true, cache.Transforms);
         foreach (Transform transform in cache.Transforms) cache.ChildCounts.Add(transform.childCount);
-        cache.NextRefresh = Time.unscaledTime + 1f;
+        cache.NextRefresh = now + RendererRefreshInterval;
+        cache.NextHierarchyCheck = now + HierarchyCheckInterval;
         return cache;
     }
 
@@ -263,14 +321,14 @@ internal static class OutlineManager
     {
         bool ally = character.IsTamed();
         EnemyHud hud = EnemyHud.instance;
-        if (hud && HudsRef(hud).TryGetValue(character, out EnemyHud.HudData data))
+        if (hud && hud.m_huds.TryGetValue(character, out EnemyHud.HudData data))
             ally = ally || (data.m_healthFastFriendly && data.m_healthFastFriendly.gameObject.activeSelf);
         return ally ? AllyOutlineColor.Value : HostileOutlineColor.Value;
     }
 
     private static bool EnsureMaterials()
     {
-        if (_clearMaterial && _maskMaterial) return true;
+        if (_clearMaterial && _maskMaterial && _fullScreenQuad) return true;
         if (_shaderMissing) return false;
 
         // UI/Default ships with every Unity build and exposes stencil, color mask and ZTest overrides.
@@ -278,12 +336,19 @@ internal static class OutlineManager
         if (!_shader)
         {
             _shaderMissing = true;
-            Debug.LogWarning("[PingMark] UI/Default shader not found, outlines are disabled.");
+            Plugin.ModLogger.LogWarning("UI/Default shader not found, outlines are disabled.");
             return false;
         }
 
         _clearMaterial = CreateMaterial(CompareFunction.Always, StencilOp.Zero, false, Color.clear);
         _maskMaterial = CreateMaterial(CompareFunction.Always, StencilOp.Replace, false, Color.clear);
+        _fullScreenQuad = new Mesh
+        {
+            name = "PingMark Stencil Clear",
+            hideFlags = HideFlags.HideAndDontSave,
+            vertices = [new(-1f, -1f, 0f), new(-1f, 1f, 0f), new(1f, 1f, 0f), new(1f, -1f, 0f)],
+            triangles = [0, 1, 2, 0, 2, 3]
+        };
         return true;
     }
 
@@ -292,7 +357,7 @@ internal static class OutlineManager
         color.a = 1f;
         Color32 key = color;
         if (!OutlineMaterials.TryGetValue(key, out Material material) || !material)
-            OutlineMaterials[key] = material = CreateMaterial(CompareFunction.NotEqual, StencilOp.Replace, true, color);
+            OutlineMaterials[key] = material = CreateMaterial(CompareFunction.NotEqual, StencilOp.Keep, true, color);
         return material;
     }
 

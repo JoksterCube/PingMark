@@ -4,6 +4,7 @@ using System.IO;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
+using JoksterCube.PingMark.Common;
 using JoksterCube.PingMark.Domain.Collections;
 using JoksterCube.PingMark.Domain;
 using JoksterCube.PingMark.Domain.Networking;
@@ -29,17 +30,21 @@ public class Plugin : BaseUnityPlugin
 
     internal static bool InitialConfigSyncDone => ConfigSync.InitialSyncDone;
     internal static bool CanEditPrefabCollections => ConfigSync.IsSourceOfTruth || ConfigSync.IsAdmin;
-    internal static bool IsPrefabConfigSource => ConfigSync.IsSourceOfTruth;
 
-    private readonly string ConfigFileFullPath = Paths.ConfigPath + Path.DirectorySeparatorChar + ConfigFileName;
+    private readonly string _configFileFullPath = Path.Combine(Paths.ConfigPath, ConfigFileName);
 
     private FileSystemWatcher? _configWatcher;
+    private DateTime _lastConfigWrite;
+
+    private const string UpdateFeature = "Ping input and highlights";
 
     private readonly Harmony _harmony = new(ModGUID);
 
     private void Awake()
     {
         PluginConfig.Build(Config, ConfigSync);
+        PrefabCollectionStore.Initialize(Config);
+        PrefabCollectionEditor.View = PrefabCollectionEditorView.Create(this);
 
         var assembly = Assembly.GetExecutingAssembly();
         _harmony.PatchAll(assembly);
@@ -49,20 +54,28 @@ public class Plugin : BaseUnityPlugin
 
     private void Update()
     {
-        ZPingNetwork.Update();
-        MobHighlight.Update();
-        InputManager.Update(this);
+        if (PatchGuard.IsDisabled(UpdateFeature)) return;
+        try
+        {
+            ZPingNetwork.Update();
+            MobHighlight.Update();
+            InputManager.Update();
+        }
+        catch (Exception exception)
+        {
+            PatchGuard.Fail(UpdateFeature, exception);
+        }
     }
 
     private void OnDestroy()
     {
         PrefabCollectionEditor.Close();
         OutlineManager.Dispose();
+        _harmony.UnpatchSelf();
+        PrefabCollectionStore.Dispose();
         _configWatcher?.Dispose();
         Config.Save();
     }
-
-    private void OnGUI() => PrefabCollectionEditor.Draw(this);
 
     private void SetupWatcher()
     {
@@ -70,7 +83,6 @@ public class Plugin : BaseUnityPlugin
         watcher.Changed += ReadConfigValues;
         watcher.Created += ReadConfigValues;
         watcher.Renamed += ReadConfigValues;
-        watcher.IncludeSubdirectories = true;
         watcher.SynchronizingObject = ThreadingHelper.SynchronizingObject;
         _configWatcher = watcher;
         watcher.EnableRaisingEvents = true;
@@ -78,7 +90,11 @@ public class Plugin : BaseUnityPlugin
 
     private void ReadConfigValues(object sender, FileSystemEventArgs e)
     {
-        if (!File.Exists(ConfigFileFullPath)) return;
+        if (!File.Exists(_configFileFullPath)) return;
+        // The watcher usually raises several events per save; reload once per actual write.
+        DateTime lastWrite = File.GetLastWriteTimeUtc(_configFileFullPath);
+        if (lastWrite == _lastConfigWrite) return;
+        _lastConfigWrite = lastWrite;
         try
         {
             ModLogger.LogDebug(DebugMessages.ReadConfigCalled);

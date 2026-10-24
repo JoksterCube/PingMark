@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using JoksterCube.PingMark.Domain.Collections;
 using UnityEngine;
 using static JoksterCube.PingMark.Settings.Constants.Plugin;
 
@@ -29,16 +30,26 @@ internal static class RpcHandlers
         _waitingForServerVersion = true;
         _serverVersionReceived = false;
         _serverVersionCheckStartedAt = Time.realtimeSinceStartup;
+        Plugin.ConnectionError = string.Empty;
+        PrefabCollectionStore.ResetServerValue();
+    }
+
+    internal static void ClearSession()
+    {
+        ValidatedPeers.Clear();
+        ResetServerVersionCheck();
     }
 
     internal static void ResetServerVersionCheck()
     {
         _waitingForServerVersion = false;
         _serverVersionReceived = false;
+        PrefabCollectionStore.ResetServerValue();
     }
 
-    internal static void RPC_ServerSyncModTemplate_Version(ZRpc rpc, ZPackage pkg)
+    internal static void RPC_VersionCheck(ZRpc rpc, ZPackage pkg)
     {
+        // 1.2.0 also sent a protocol number after the version; it is ignored, since versions must match exactly.
         string version = pkg.ReadString();
         var instance = ZNet.instance;
         if (!instance) return;
@@ -47,7 +58,7 @@ internal static class RpcHandlers
         if (!isServer)
             _serverVersionReceived = true;
 
-        Plugin.ModLogger.LogInfo($"Version check, local: {ModVersion},  remote: {version}");
+        Plugin.ModLogger.LogInfo($"Version check, local: {ModVersion}, remote: {version}");
         if (version != ModVersion)
         {
             Plugin.ConnectionError = $"{ModName} Installed: {ModVersion}\n Needed: {version}";
@@ -57,12 +68,13 @@ internal static class RpcHandlers
         }
         else if (!isServer)
         {
-            Plugin.ModLogger.LogInfo("Received same version from server!");
+            Plugin.ModLogger.LogInfo("Server uses the same PingMark version.");
         }
         else
         {
             Plugin.ModLogger.LogInfo($"Adding peer ({rpc.GetPeerHostName()}) to validated list");
             ValidatedPeers.Add(rpc);
+            PrefabCollectionStore.SendTo(rpc);
         }
     }
 }

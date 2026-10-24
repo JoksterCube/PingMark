@@ -10,11 +10,6 @@ internal sealed class PrefabCollections
     private readonly Stack<(string Name, int Source)[]> _undo = new();
     private readonly List<HashSet<string>> _collections = [new(StringComparer.OrdinalIgnoreCase)];
 
-    internal PrefabCollections(IEnumerable<string> available, string valuables, string locations, string useful)
-        : this(available, [valuables, locations, useful])
-    {
-    }
-
     internal PrefabCollections(IEnumerable<string> available, IEnumerable<PrefabCollectionSection> sections)
         : this(available, sections.Select(section => section.Prefabs))
     {
@@ -36,6 +31,17 @@ internal sealed class PrefabCollections
             if (!string.IsNullOrWhiteSpace(name) && assigned.Add(name))
                 _collections[0].Add(name);
     }
+
+    private PrefabCollections(PrefabCollections source)
+    {
+        _collections.Clear();
+        foreach (HashSet<string> collection in source._collections)
+            _collections.Add(new(collection, StringComparer.OrdinalIgnoreCase));
+        foreach ((string Name, int Source)[] changes in source._undo.Reverse())
+            _undo.Push(changes);
+    }
+
+    internal PrefabCollections Clone() => new(this);
 
     internal string[] Names(int collection, string search) => _collections[collection]
         .Where(name => name.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0)
@@ -88,20 +94,33 @@ internal sealed class PrefabCollections
         return true;
     }
 
-    internal int AutoSort(Func<string, int> destination, ISet<int> sources)
+    // Makes `names` exactly the content of one section: missing names are added, names listed elsewhere move
+    // here and the section's other names return to Unassigned. Move history no longer matches, so it is cleared.
+    internal void Replace(int collection, string names)
     {
-        List<(string Name, int Source)> changes = [];
-        foreach (int source in sources.OrderBy(index => index))
-            foreach (string name in _collections[source].ToArray())
+        if (collection <= 0 || collection >= _collections.Count)
+            throw new ArgumentOutOfRangeException(nameof(collection));
+
+        HashSet<string> incoming = new(Parse(names), StringComparer.OrdinalIgnoreCase);
+        foreach (string name in _collections[collection].ToArray())
+            if (!incoming.Contains(name))
             {
-                int target = destination(name);
-                if (target <= 0 || target >= _collections.Count || target == source) continue;
-                _collections[source].Remove(name);
-                _collections[target].Add(name);
-                changes.Add((name, source));
+                _collections[collection].Remove(name);
+                _collections[0].Add(name);
             }
-        if (changes.Count > 0) _undo.Push(changes.ToArray());
-        return changes.Count;
+        foreach (string name in incoming)
+        {
+            // Keep the spelling already known from the game, since prefab IDs are shown and saved as listed.
+            string known = name;
+            foreach (HashSet<string> other in _collections)
+                if (other.TryGetValue(name, out string existing))
+                {
+                    known = existing;
+                    other.Remove(name);
+                }
+            _collections[collection].Add(known);
+        }
+        _undo.Clear();
     }
 
     internal string Serialize(int collection) => string.Join(", ", Names(collection, string.Empty));

@@ -28,7 +28,6 @@ internal static class PluginConfig
     internal static ConfigEntry<float> CameraPingMaxDistance = null!;
     internal static ConfigEntry<float> MaxUnderwaterDepth = null!;
 
-    internal static ConfigEntry<string> PrefabSections = null!;
     internal static ConfigEntry<Toggle> DropsEnabled = null!;
     internal static ConfigEntry<Toggle> GravestonesEnabled = null!;
     internal static ConfigEntry<Toggle> PlayersEnabled = null!;
@@ -53,17 +52,23 @@ internal static class PluginConfig
 
     internal static ConfigEntry<KeyboardShortcut> ToggleModShortcut = null!;
     internal static ConfigEntry<KeyboardShortcut> PrefabEditorShortcut = null!;
-    internal static ConfigEntry<KeyboardShortcut> MobHighlightShortcut = null!;
+    internal static ConfigEntry<KeyboardShortcut> PingShortcut = null!;
     internal static ConfigEntry<Toggle> PrefabEditorShortcutEnabled = null!;
+    internal static ConfigEntry<KeyboardShortcut> PerceptionShortcut = null!;
+
+    internal static ConfigEntry<Toggle> PerceptionEnabled = null!;
+    internal static ConfigEntry<float> PerceptionRange = null!;
+    internal static ConfigEntry<int> PerceptionMaxTargets = null!;
+    internal static ConfigEntry<float> PerceptionFatigueDuration = null!;
+    internal static ConfigEntry<Toggle> PerceptionCreaturesEnabled = null!;
 
     internal static void Build(ConfigFile config, ConfigSync configSync)
     {
         ConfigOptions.Initialize(config, configSync);
 
+        Enabled = ConfigOptions.Config(General.Enabled);
         _serverConfigLocked = ConfigOptions.Config(General.Lock);
         configSync.AddLockingConfigEntry(_serverConfigLocked);
-
-        Enabled = ConfigOptions.Config(General.Enabled);
         RefreshInterval = ConfigOptions.Config(General.RefreshInterval);
         PingCooldown = ConfigOptions.Config(General.PingCooldown);
         ZPingBroadcastDistance = ConfigOptions.Config(General.ZPingBroadcastDistance);
@@ -81,12 +86,11 @@ internal static class PluginConfig
         CameraPingMaxDistance = ConfigOptions.Config(CameraPing.MaxDistance);
         MaxUnderwaterDepth = ConfigOptions.Config(CameraPing.MaxUnderwaterDepth);
 
-        PrefabSections = ConfigOptions.Config(PingTargets.PrefabSections);
         DropsEnabled = ConfigOptions.Config(PingTargets.DropsEnabled);
         GravestonesEnabled = ConfigOptions.Config(PingTargets.GravestonesEnabled);
         PlayersEnabled = ConfigOptions.Config(PingTargets.PlayersEnabled);
-        PlayerHighlightDuration = ConfigOptions.Config(PlayerHighlight.Duration, PingTargets.Group);
-        HideOwnPlayerOutline = ConfigOptions.Config(PlayerHighlight.HideOwnOutline, PingTargets.Group);
+        PlayerHighlightDuration = ConfigOptions.Config(PlayerHighlight.Duration);
+        HideOwnPlayerOutline = ConfigOptions.Config(PlayerHighlight.HideOwnOutline);
         OthersEnabled = ConfigOptions.Config(PingTargets.OthersEnabled);
 
         PingOutlineEnabled = ConfigOptions.Config(Outlines.PingOutlineEnabled);
@@ -96,6 +100,7 @@ internal static class PluginConfig
         PingAnythingColor = ConfigOptions.Config(Outlines.PingAnythingColor);
         HostileOutlineColor = ConfigOptions.Config(Outlines.HostileOutlineColor);
         AllyOutlineColor = ConfigOptions.Config(Outlines.AllyOutlineColor);
+        MigrateAllyOutlineColor();
         PrefabSectionColors =
         [
             ConfigOptions.Config(PrefabCollections.Color1),
@@ -120,8 +125,38 @@ internal static class PluginConfig
 
         ToggleModShortcut = ConfigOptions.Config(Inputs.ToggleModShortcut);
         PrefabEditorShortcut = ConfigOptions.Config(Inputs.PrefabEditorShortcut);
-        MobHighlightShortcut = ConfigOptions.Config(Inputs.MobHighlightShortcut);
+        PingShortcut = ConfigOptions.Config(Inputs.PingShortcut);
+        MigrateRenamedShortcut(config);
+        PerceptionShortcut = ConfigOptions.Config(Inputs.PerceptionShortcut);
         PrefabEditorShortcutEnabled = ConfigOptions.Config(Inputs.PrefabEditorShortcutEnabled);
+
+        PerceptionEnabled = ConfigOptions.Config(Perception.Enabled);
+        PerceptionRange = ConfigOptions.Config(Perception.Range);
+        PerceptionMaxTargets = ConfigOptions.Config(Perception.MaxTargets);
+        PerceptionFatigueDuration = ConfigOptions.Config(Perception.FatigueDuration);
+        PerceptionCreaturesEnabled = ConfigOptions.Config(Perception.CreaturesEnabled);
+    }
+
+    // Untouched configs still hold an earlier default (pale green before 1.2.0, blue in 1.2.0); move them to
+    // the health bar green. A color the player picked is kept.
+    private static void MigrateAllyOutlineColor()
+    {
+        // The config file stores 8-bit hex, so compare at that precision.
+        Color32 value = AllyOutlineColor.Value;
+        if (SameColor(value, new Color(0.5f, 0.85f, 0.3f)) || SameColor(value, new Color(0.3f, 0.65f, 1f)))
+            AllyOutlineColor.Value = Outlines.AllyOutlineColor.DefaultValue;
+    }
+
+    private static bool SameColor(Color32 left, Color32 right) =>
+        left.r == right.r && left.g == right.g && left.b == right.b && left.a == right.a;
+
+    // Keeps a player's custom key from the old "Mob Highlight Shortcut" entry and drops the old entry.
+    private static void MigrateRenamedShortcut(ConfigFile config)
+    {
+        ConfigEntry<KeyboardShortcut> legacy = config.Bind(Inputs.Group, Inputs.LegacyPingShortcutName, Inputs.PingShortcut.DefaultValue);
+        if (!legacy.Value.Equals(Inputs.PingShortcut.DefaultValue)) PingShortcut.Value = legacy.Value;
+        config.Remove(legacy.Definition);
+        config.Save();
     }
 
     internal static Color GetPrefabSectionColor(int colorId)
