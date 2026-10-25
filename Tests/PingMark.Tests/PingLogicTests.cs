@@ -183,6 +183,36 @@ public class PrefabAutoSortTests
     }
 
     [Fact]
+    public void Wood_only_roots_are_not_curated_valuables()
+    {
+        // Deep North roots drop nothing but Frostwood.
+        Assert.Equal(-1, PrefabAutoSort.DefaultCategory("HoleRock_root1"));
+        Assert.Equal(-1, PrefabAutoSort.Category("HoleRock_root1", PrefabBrowserKind.Lod | PrefabBrowserKind.CommonDropsOnly));
+    }
+
+    [Fact]
+    public void Felled_logs_are_valuables_while_trees_are_not()
+    {
+        const PrefabBrowserKind tree = PrefabBrowserKind.Vegetation | PrefabBrowserKind.Resource | PrefabBrowserKind.Tree;
+        Assert.Equal(0, PrefabAutoSort.DefaultCategory("beech_log"));
+        Assert.Equal(0, PrefabAutoSort.Category("SomeModdedLog", tree | PrefabBrowserKind.Projectile | PrefabBrowserKind.Log));
+        Assert.Equal(-1, PrefabAutoSort.Category("SomeModdedTree", tree));
+        Assert.Equal(-1, PrefabAutoSort.Category("caverock_ice_stalagtite_falling", tree | PrefabBrowserKind.Projectile));
+    }
+
+    [Fact]
+    public void Merchants_and_merchant_locations_are_sorted()
+    {
+        Assert.Equal(2, PrefabAutoSort.Category("ModdedTraderNpc",
+            PrefabBrowserKind.Creature | PrefabBrowserKind.Merchant | PrefabBrowserKind.Useful));
+        Assert.Equal(1, PrefabAutoSort.Category("ModdedTraderPort", PrefabBrowserKind.Location | PrefabBrowserKind.Merchant));
+        Assert.Equal(1, PrefabAutoSort.Category("ModdedTraderOutpost",
+            PrefabBrowserKind.Location | PrefabBrowserKind.Merchant | PrefabBrowserKind.Useful));
+        // Other creatures with utility components (summoners, turrets) stay unassigned.
+        Assert.Equal(-1, PrefabAutoSort.Category("ModdedSummoner", PrefabBrowserKind.Creature | PrefabBrowserKind.Useful));
+    }
+
+    [Fact]
     public void Environment_helpers_registered_as_locations_stay_unassigned() =>
         Assert.Equal(-1, PrefabAutoSort.Category("InteriorEnvironmentZoneForce", PrefabBrowserKind.Location));
 

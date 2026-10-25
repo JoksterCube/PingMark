@@ -1,6 +1,7 @@
 using BepInEx.Configuration;
 using JoksterCube.PingMark.Common;
 using ServerSync;
+using JoksterCube.PingMark.Domain.Enums;
 using UnityEngine;
 using static JoksterCube.PingMark.Settings.Constants.Groups;
 
@@ -58,9 +59,20 @@ internal static class PluginConfig
 
     internal static ConfigEntry<Toggle> PerceptionEnabled = null!;
     internal static ConfigEntry<float> PerceptionRange = null!;
+    internal static ConfigEntry<float> PerceptionDuration = null!;
+    internal static ConfigEntry<Toggle> PerceptionEarlyEnd = null!;
     internal static ConfigEntry<int> PerceptionMaxTargets = null!;
     internal static ConfigEntry<float> PerceptionFatigueDuration = null!;
     internal static ConfigEntry<Toggle> PerceptionCreaturesEnabled = null!;
+    internal static ConfigEntry<FatigueMode> PerceptionFatigueMode = null!;
+    internal static ConfigEntry<float> PerceptionObjectCost = null!;
+    internal static ConfigEntry<float> PerceptionDropCost = null!;
+    internal static ConfigEntry<float> PerceptionAllyCost = null!;
+    internal static ConfigEntry<float> PerceptionEnemyCost = null!;
+    internal static ConfigEntry<float> PerceptionMaxFatigue = null!;
+    internal static ConfigEntry<Toggle> PerceptionEffectEnabled = null!;
+    internal static ConfigEntry<Color> PerceptionEffectColor = null!;
+    internal static ConfigEntry<string> PerceptionEffectSound = null!;
 
     internal static void Build(ConfigFile config, ConfigSync configSync)
     {
@@ -132,9 +144,20 @@ internal static class PluginConfig
 
         PerceptionEnabled = ConfigOptions.Config(Perception.Enabled);
         PerceptionRange = ConfigOptions.Config(Perception.Range);
+        PerceptionDuration = ConfigOptions.Config(Perception.Duration);
+        PerceptionEarlyEnd = ConfigOptions.Config(Perception.EarlyEnd);
         PerceptionMaxTargets = ConfigOptions.Config(Perception.MaxTargets);
         PerceptionFatigueDuration = ConfigOptions.Config(Perception.FatigueDuration);
         PerceptionCreaturesEnabled = ConfigOptions.Config(Perception.CreaturesEnabled);
+        PerceptionFatigueMode = ConfigOptions.Config(Perception.Mode);
+        PerceptionObjectCost = ConfigOptions.Config(Perception.ObjectCost);
+        PerceptionDropCost = ConfigOptions.Config(Perception.DropCost);
+        PerceptionAllyCost = ConfigOptions.Config(Perception.AllyCost);
+        PerceptionEnemyCost = ConfigOptions.Config(Perception.EnemyCost);
+        PerceptionMaxFatigue = ConfigOptions.Config(Perception.MaxFatigue);
+        PerceptionEffectEnabled = ConfigOptions.Config(Perception.EffectEnabled);
+        PerceptionEffectColor = ConfigOptions.Config(Perception.EffectColor);
+        PerceptionEffectSound = ConfigOptions.Config(Perception.EffectSound);
     }
 
     // Untouched configs still hold an earlier default (pale green before 1.2.0, blue in 1.2.0); move them to

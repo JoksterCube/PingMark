@@ -16,8 +16,9 @@ internal static class InputManager
         PrefabCollectionEditor.Update();
         bool allowed = !RpcHandlers.ShouldWaitForInitialConfigSync && !PrefabCollectionEditor.BlocksInput && CanTakeInput();
         if (!allowed) return;
-        // KeyboardShortcut.IsDown matches modifiers exactly, so Ctrl+P does not fire inside Ctrl+Shift+P.
-        if (PrefabEditorShortcutEnabled.IsOn() && PrefabEditorShortcut.Value.IsDown())
+        // Modifiers match exactly, so Ctrl+P does not fire inside Ctrl+Shift+P; movement keys never block a shortcut,
+        // except Perception, which needs the player standing still with nothing else held.
+        if (PrefabEditorShortcutEnabled.IsOn() && PrefabEditorShortcut.Value.IsDownWhileMoving())
         {
             PrefabCollectionEditor.Open();
             return;
@@ -27,8 +28,10 @@ internal static class InputManager
             Perception.TryActivate();
             return;
         }
-        bool togglePressed = ToggleModShortcut.Value.IsDown();
-        bool pingPressed = PingShortcut.Value.IsDown();
+        bool togglePressed = ToggleModShortcut.Value.IsDownWhileMoving();
+        // Perception's modifier on the same key (Shift+Z) is sprint, so sprinting with W held still pings.
+        bool pingPressed = PingShortcut.Value.IsDownWhileMoving(
+            PerceptionShortcut.Value.MainKey == PingShortcut.Value.MainKey ? PerceptionShortcut.Value.Modifiers : null);
         if (!togglePressed && !pingPressed) return;
 
         if (togglePressed)

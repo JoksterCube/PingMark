@@ -60,6 +60,7 @@ public class Plugin : BaseUnityPlugin
             ZPingNetwork.Update();
             MobHighlight.Update();
             InputManager.Update();
+            Perception.Update();
         }
         catch (Exception exception)
         {

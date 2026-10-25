@@ -69,12 +69,13 @@ internal static class ZPingNetwork
         SendVanillaPing(position);
     }
 
-    // Only networked objects can be named across clients; the sender already outlined everything locally.
+    // Only networked objects can be named across clients; the sender already outlined everything locally. Sent even
+    // when nothing was found, so nearby players still see the Perception effect.
     internal static void SendPerception(List<ZDOID> ids, List<ZDOID> creatureIds)
     {
         Update();
         Player player = Player.m_localPlayer;
-        if (!player || (ids.Count == 0 && creatureIds.Count == 0)) return;
+        if (!player) return;
         ZPackage targets = new();
         WriteIds(targets, ids);
         WriteIds(targets, creatureIds);

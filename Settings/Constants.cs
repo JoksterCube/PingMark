@@ -1,5 +1,6 @@
 using JoksterCube.PingMark.Common;
 using BepInEx.Configuration;
+using JoksterCube.PingMark.Domain.Enums;
 using UnityEngine;
 
 namespace JoksterCube.PingMark.Settings;
@@ -9,7 +10,7 @@ internal static class Constants
     internal static class Plugin
     {
         internal const string ModName = "PingMark";
-        internal const string ModVersion = "1.3.0";
+        internal const string ModVersion = "1.4.0";
         internal const string Author = "JoksterCube";
         internal const string ModGUID = $"{Author}.{ModName}";
         internal const string Description = "Mark loot, creatures, and locations with named pings, colored outlines, and live distances. Sense what's hidden around you and share discoveries with your party.";
@@ -307,7 +308,7 @@ internal static class Constants
             internal static readonly ConfigInfo<KeyboardShortcut> PerceptionShortcut = new(
                 Group,
                 "Perception Shortcut",
-                "Outline nearby listed objects and dropped items for as long as a ping lasts, without pinging anyone. Causes Perception Fatigue.",
+                "Outline nearby listed objects and dropped items for as long as a ping lasts, without pinging anyone. Only works standing still: no other key may be held. Causes Perception Fatigue.",
                 new KeyboardShortcut(KeyCode.Z, KeyCode.LeftShift),
                 false);
 
@@ -332,7 +333,22 @@ internal static class Constants
                 Group,
                 "Perception Range",
                 new ConfigDescription("Radius in meters around the player that Perception searches.", new AcceptableValueRange<float>(1f, 30f)),
-                5f,
+                10f,
+                true);
+
+            internal static readonly ConfigInfo<float> Duration = new(
+                Group,
+                "Perception Duration",
+                new ConfigDescription("Seconds Perception keeps nearby objects and creatures outlined, shown as the Perception status effect. Perception Fatigue starts when it ends.",
+                    new AcceptableValueRange<float>(1f, 60f)),
+                10f,
+                true);
+
+            internal static readonly ConfigInfo<Toggle> EarlyEnd = new(
+                Group,
+                "End Perception Early",
+                "End Perception, and start its fatigue, as soon as everything it found that can run out is gone: drops picked up, pickables picked, chests emptied, deposits and other destructibles broken, and enemies killed. Allies and lasting objects such as portals and stations do not count.",
+                Toggle.On,
                 true);
 
             internal static readonly ConfigInfo<int> MaxTargets = new(
@@ -346,17 +362,85 @@ internal static class Constants
             internal static readonly ConfigInfo<float> FatigueDuration = new(
                 Group,
                 "Perception Fatigue Duration",
-                new ConfigDescription("Seconds of Perception Fatigue after using Perception. It cannot be used again until the fatigue ends. Set to 0 to disable.",
+                new ConfigDescription("Seconds of Perception Fatigue once Perception ends; in Relative mode, the base that the found objects and creatures add to. Perception cannot be used again until the fatigue ends. Set to 0 (and every cost to 0 in Relative mode) to disable.",
                     new AcceptableValueRange<float>(0f, 300f)),
-                15f,
+                5f,
+                true);
+
+            internal static readonly ConfigInfo<FatigueMode> Mode = new(
+                Group,
+                "Perception Fatigue Mode",
+                "Fixed: every use causes Perception Fatigue Duration. Relative: the more Perception finds, the longer the fatigue, using the costs below up to Perception Max Fatigue.",
+                FatigueMode.Relative,
+                true);
+
+            internal static readonly ConfigInfo<float> ObjectCost = new(
+                Group,
+                "Fatigue Per Object",
+                new ConfigDescription("Relative mode: seconds of fatigue added for each listed object Perception outlines.",
+                    new AcceptableValueRange<float>(0f, 30f)),
+                1.5f,
+                true);
+
+            internal static readonly ConfigInfo<float> DropCost = new(
+                Group,
+                "Fatigue Per Drop",
+                new ConfigDescription("Relative mode: seconds of fatigue added for each dropped item on the ground Perception outlines.",
+                    new AcceptableValueRange<float>(0f, 30f)),
+                0.25f,
+                true);
+
+            internal static readonly ConfigInfo<float> AllyCost = new(
+                Group,
+                "Fatigue Per Ally",
+                new ConfigDescription("Relative mode: seconds of fatigue added for each tamed or non-hostile creature Perception highlights.",
+                    new AcceptableValueRange<float>(0f, 30f)),
+                0.5f,
+                true);
+
+            internal static readonly ConfigInfo<float> EnemyCost = new(
+                Group,
+                "Fatigue Per Enemy",
+                new ConfigDescription("Relative mode: seconds of fatigue added for each hostile creature Perception highlights.",
+                    new AcceptableValueRange<float>(0f, 30f)),
+                2.5f,
+                true);
+
+            internal static readonly ConfigInfo<float> MaxFatigue = new(
+                Group,
+                "Perception Max Fatigue",
+                new ConfigDescription("Relative mode: the longest Perception Fatigue can get, however much was found.",
+                    new AcceptableValueRange<float>(0f, 600f)),
+                90f,
                 true);
 
             internal static readonly ConfigInfo<Toggle> CreaturesEnabled = new(
                 Group,
                 "Perceive Creatures",
                 "Perception also highlights every hostile and allied creature within Perception Range with a nameplate and outline, up to Perception Max Outlines. These highlights do not count toward Max Highlighted Mobs. Requires Enable Mob Highlight.",
-                Toggle.Off,
+                Toggle.On,
                 true);
+
+            internal static readonly ConfigInfo<Toggle> EffectEnabled = new(
+                Group,
+                "Perception Effect",
+                "Play a Guardian Power style burst around a player who uses Perception, so you can see it was used. Nearby PingMark players see it too.",
+                Toggle.On,
+                false);
+
+            internal static readonly ConfigInfo<Color> EffectColor = new(
+                Group,
+                "Perception Effect Color",
+                "Color of the Perception burst, for your own Perception and other players'. Brightness follows the original effect.",
+                new Color(0.35f, 0.8f, 1f),
+                false);
+
+            internal static readonly ConfigInfo<string> EffectSound = new(
+                Group,
+                "Perception Sound",
+                "Sound prefab played with the Perception burst instead of its Guardian Power blast, for example sfx_WishbonePing_near, sfx_secretfound or sfx_runestone_activate. Leave empty for silence.",
+                "sfx_WishbonePing_near",
+                false);
         }
 
         internal static class PlayerHighlight
@@ -414,7 +498,7 @@ internal static class Constants
                                 Version: 1
                                 Sections:
                                 - Name: Valuables
-                                  Prefabs: AshCrow, AshlandsBush2, Barnacle, BarnacleLava, barrell, barreltrap, Beehive, Beehive_Destruction, blackmarble_altar_crystal, blackmarble_post01, BlueberryBush, CargoCrate, CastleKit_brazier, caverock_ice_stalagmite, Charred_altar_bellfragment, Chest, cloth_hanging_door, cloth_hanging_door_double, cloth_hanging_long, CloudberryBush, Crow, dungeon_iron_pile, dvergrprops_barrel, DvergrProps_extractor_crate, dvergrprops_pickaxe, dvergrtown_wood_pole, dvergrtown_wood_wall01, elaking_trashpile, fenrirhide_hanging, FlametalRockstand, FlametalRockstand_frac, FrozenGD, FrozenSkeleton_Pose1, FrozenSkeleton_Pose2, giant_brain, giant_brain_frac, giant_helmet1, giant_helmet1_destruction, giant_helmet2, giant_helmet2_destruction, giant_ribs, giant_ribs_frac, giant_skull, giant_skull_frac, giant_sword1, giant_sword1_destruction, giant_sword2, giant_sword2_destruction, goblin_totempole, goblin_trashpile, goldvein, goldvein_frac, Greydwarf_Root, Greydwarf_Surprise, GuckSack, GuckSack_small, hanging_hairstrands, HoleRock_root1, HoleRock_rootBush1, HoleRock_rootFloor1, HoleRock_rootWall1, Ice_floor_fractured, ice_rock1, ice_rock1_frac, IceShore, IronOre_scraps, LargeBone, LargeBone_half01, LargeBone_half02, Leviathan, LeviathanLava, LingonberryBush, loot_chest_stone, loot_chest_wood, loot_deepNorth_Granary, loot_deepNorth_TimberHall, LuredFaderEmber, LuredWisp, MineRock_Copper, MineRock_Iron, MineRock_Meteorite, MineRock_Meteorite_frac, MineRock_Obsidian, MineRock_Obsidian_frac, MineRock_Tin, MineRock_Tin_frac, morgenhole_pile, Morkhalla_Bedroll1, Morkhalla_Bedroll2, Morkhalla_ChestAncient, Morkhalla_Eye1, Morkhalla_Eye2, Morkhalla_Eye3, Morkhalla_Eye4, Morkhalla_Eye5_gemstone, Morkhalla_Eye6_gemstone, Morkhalla_Eye7_gemstone, Morkhalla_Rubble1, Morkhalla_Rubble2, Morkhalla_Rubble3, Morkhalla_Rubble4, Morkhalla_Rug_corner, Morkhalla_Rug_end1, Morkhalla_Rug_end2, Morkhalla_Rug_middle, Morkhalla_Rug_stair, Morkhalla_WeaponStand, MountainKit_brazier, MountainKit_brazier_blue, mountainkit_chair, mountainkit_table, mudpile, mudpile2, mudpile2_frac, mudpile_beacon, mudpile_frac, mudpile_fragile, mudpile_old, Pickable_Ashstone, Pickable_Barley, Pickable_Barley_Wild, Pickable_BlackCoreStand, Pickable_Bloodbag, Pickable_BogIronOre, Pickable_Branch, Pickable_Branch_Snow, Pickable_Carrot, Pickable_Charredskull, Pickable_Dandelion, Pickable_DolmenTreasure, Pickable_DragonEgg, Pickable_DvergerThing, Pickable_DvergrLantern, Pickable_DvergrMineTreasure, Pickable_DvergrStein, Pickable_Fiddlehead, Pickable_Fishingrod, Pickable_Flax, Pickable_Flax_Wild, Pickable_Flint, Pickable_ForestCryptRandom, Pickable_ForestCryptRemains01, Pickable_ForestCryptRemains02, Pickable_ForestCryptRemains03, Pickable_ForestCryptRemains04, Pickable_FrostCoreHanger, Pickable_GlowWorm, Pickable_Guck, Pickable_Hairstrands, Pickable_Hairstrands01, Pickable_Hairstrands02, Pickable_HardRockOffspring, Pickable_Item, Pickable_Kale, Pickable_MeatPile, Pickable_MeatRemains, Pickable_Meteorite, Pickable_MoltenCoreStand, Pickable_MorkHallaTreasure, Pickable_MountainCaveCrystal, Pickable_MountainCaveObsidian, Pickable_MountainCaveRandom, Pickable_MountainRemains01_buried, Pickable_Mushroom, Pickable_Mushroom_blue, Pickable_Mushroom_JotunPuffs, Pickable_Mushroom_Magecap, Pickable_Mushroom_yellow, Pickable_Oat, Pickable_Obsidian, Pickable_Onion, Pickable_Pot_Shard, Pickable_Poteitr, Pickable_RandomFood, Pickable_RoyalJelly, Pickable_SeedCarrot, Pickable_SeedKale, Pickable_SeedOnion, Pickable_SeedTurnip, Pickable_SmokePuff, Pickable_Snowball, Pickable_Stone, Pickable_StoneRock, Pickable_SulfurRock, Pickable_SunkenCryptRandom, Pickable_SurtlingCoreStand, Pickable_Swordpiece1, Pickable_Swordpiece2, Pickable_Swordpiece3, Pickable_Tar, Pickable_TarBig, Pickable_Thistle, Pickable_Tin, Pickable_Turnip, Pickable_VoltureEgg, piece_beehive, piece_birdnest, piece_chest, piece_chest_barrel, piece_chest_blackmetal, piece_chest_grausten, piece_chest_private, piece_chest_warderobe, piece_chest_wood, piece_gift1, piece_gift2, piece_gift3, piece_pot1, piece_pot1_cracked, piece_pot1_red, piece_pot2, piece_pot2_cracked, piece_pot2_red, piece_pot3, piece_pot3_cracked, piece_pot3_red, piece_sapcollector, Placeable_Stone, prop_ashwood_bed, prop_bed02, prop_bonfire, prop_cauldron_ext1_spice, prop_cauldron_ext3_butchertable, prop_cauldron_ext5_mortarandpestle, prop_cauldron_ext6_rollingpins, prop_chest_warderobe, prop_FeastAshlands, prop_forge_ext5, prop_itemstand, prop_itemstand_TrophyDraugrElite, prop_itemstand_TrophyGoblinBrute, prop_itemstand_TrophyGoblinShaman, prop_itemstand_TrophyGreydwarf, prop_itemstand_TrophyGreydwarfBrute, prop_itemstand_TrophySeekerBrute, prop_piece_bench_runed, prop_piece_brazierfloor01, prop_piece_cauldron, prop_piece_chair03, prop_piece_MeadCauldron, prop_piece_workbench_ext3, prop_piece_workbench_ext4, prop_preptable, prop_Tankard, PropFeastDeepNorth, RaspberryBush, rock3_ice_frac, rock3_silver, rock3_silver_frac, rock4_copper, rock4_copper_frac, Seagal, shipwreck_karve_chest, shipwreck_vikingship_chest, silvervein, silvervein_frac, stoneblock_fracture, stonechest, StumpHut_frac, SulfurArch, trader_wagon_destructable, TreasureChest_ashland_stone, TreasureChest_ashlands, TreasureChest_ashlands_fortress, TreasureChest_blackforest, TreasureChest_charredfortress, TreasureChest_deepnorth_village, TreasureChest_dvergr_loose_stone, TreasureChest_dvergrtower, TreasureChest_dvergrtown, TreasureChest_fCrypt, TreasureChest_forestcrypt, TreasureChest_forestcrypt_hildir, TreasureChest_heath, TreasureChest_heath_hildir, TreasureChest_meadows, TreasureChest_meadows_01, TreasureChest_meadows_02, TreasureChest_meadows_buried, TreasureChest_meadows_combat, TreasureChest_memorial_buried, TreasureChest_mistlands, TreasureChest_morkhalla, TreasureChest_mountaincave, TreasureChest_mountaincave_hildir, TreasureChest_mountains, TreasureChest_plains, TreasureChest_plains_stone, TreasureChest_plainsfortress_hildir, TreasureChest_sunkencrypt, TreasureChest_swamp, TreasureChest_trollcave, TrollFrost_Dead, TrollFrost_Frac, TrollFrost_Frac_arm, TrollFrost_Frac_legs, UnstableLavaRock, veg_skull_Ashlands, VineAsh, VineGreen, YggdrasilRoot
+                                  Prefabs: AshCrow, AshlandsBush2, AshlandsTreeLog1, AshlandsTreeLog2, AshlandsTreeLogHalf1, AshlandsTreeLogHalf2, Barnacle, BarnacleLava, barrell, barreltrap, beech_log, beech_log_half, Beehive, Beehive_Destruction, Birch_log, Birch_log_half, blackmarble_altar_crystal, blackmarble_post01, BlueberryBush, CargoCrate, CastleKit_brazier, caverock_ice_stalagmite, Charred_altar_bellfragment, Chest, cloth_hanging_door, cloth_hanging_door_double, cloth_hanging_long, CloudberryBush, Crow, dungeon_iron_pile, dvergrprops_barrel, DvergrProps_extractor_crate, dvergrprops_pickaxe, dvergrtown_wood_pole, dvergrtown_wood_wall01, elaking_trashpile, fenrirhide_hanging, FirTree_Big_log, FirTree_big_log_half, FirTree_log, FirTree_log_half, FirTree_Snow_log, FirTree_Snow_log_half, FlametalRockstand, FlametalRockstand_frac, FrozenGD, FrozenSkeleton_Pose1, FrozenSkeleton_Pose2, giant_brain, giant_brain_frac, giant_helmet1, giant_helmet1_destruction, giant_helmet2, giant_helmet2_destruction, giant_ribs, giant_ribs_frac, giant_skull, giant_skull_frac, giant_sword1, giant_sword1_destruction, giant_sword2, giant_sword2_destruction, goblin_totempole, goblin_trashpile, goldvein, goldvein_frac, Greydwarf_Root, Greydwarf_Surprise, GuckSack, GuckSack_small, hanging_hairstrands, Ice_floor_fractured, ice_rock1, ice_rock1_frac, IceShore, IronOre_scraps, LargeBone, LargeBone_half01, LargeBone_half02, Leviathan, LeviathanLava, LingonberryBush, loot_chest_stone, loot_chest_wood, loot_deepNorth_Granary, loot_deepNorth_TimberHall, LuredFaderEmber, LuredWisp, MineRock_Copper, MineRock_Iron, MineRock_Meteorite, MineRock_Meteorite_frac, MineRock_Obsidian, MineRock_Obsidian_frac, MineRock_Tin, MineRock_Tin_frac, morgenhole_pile, Morkhalla_Bedroll1, Morkhalla_Bedroll2, Morkhalla_ChestAncient, Morkhalla_Eye1, Morkhalla_Eye2, Morkhalla_Eye3, Morkhalla_Eye4, Morkhalla_Eye5_gemstone, Morkhalla_Eye6_gemstone, Morkhalla_Eye7_gemstone, Morkhalla_Rubble1, Morkhalla_Rubble2, Morkhalla_Rubble3, Morkhalla_Rubble4, Morkhalla_Rug_corner, Morkhalla_Rug_end1, Morkhalla_Rug_end2, Morkhalla_Rug_middle, Morkhalla_Rug_stair, Morkhalla_WeaponStand, MountainKit_brazier, MountainKit_brazier_blue, mudpile, mudpile2, mudpile2_frac, mudpile_beacon, mudpile_frac, mudpile_fragile, mudpile_old, Oak_log, Oak_log_half, Pickable_Ashstone, Pickable_Barley, Pickable_Barley_Wild, Pickable_BlackCoreStand, Pickable_Bloodbag, Pickable_BogIronOre, Pickable_Branch, Pickable_Branch_Snow, Pickable_Carrot, Pickable_Charredskull, Pickable_Dandelion, Pickable_DolmenTreasure, Pickable_DragonEgg, Pickable_DvergerThing, Pickable_DvergrLantern, Pickable_DvergrMineTreasure, Pickable_DvergrStein, Pickable_Fiddlehead, Pickable_Fishingrod, Pickable_Flax, Pickable_Flax_Wild, Pickable_Flint, Pickable_ForestCryptRandom, Pickable_ForestCryptRemains01, Pickable_ForestCryptRemains02, Pickable_ForestCryptRemains03, Pickable_ForestCryptRemains04, Pickable_FrostCoreHanger, Pickable_GlowWorm, Pickable_Guck, Pickable_Hairstrands, Pickable_Hairstrands01, Pickable_Hairstrands02, Pickable_HardRockOffspring, Pickable_Item, Pickable_Kale, Pickable_MeatPile, Pickable_MeatRemains, Pickable_Meteorite, Pickable_MoltenCoreStand, Pickable_MorkHallaTreasure, Pickable_MountainCaveCrystal, Pickable_MountainCaveObsidian, Pickable_MountainCaveRandom, Pickable_MountainRemains01_buried, Pickable_Mushroom, Pickable_Mushroom_blue, Pickable_Mushroom_JotunPuffs, Pickable_Mushroom_Magecap, Pickable_Mushroom_yellow, Pickable_Oat, Pickable_Obsidian, Pickable_Onion, Pickable_Pot_Shard, Pickable_Poteitr, Pickable_RandomFood, Pickable_RoyalJelly, Pickable_SeedCarrot, Pickable_SeedKale, Pickable_SeedOnion, Pickable_SeedTurnip, Pickable_SmokePuff, Pickable_Snowball, Pickable_Stone, Pickable_StoneRock, Pickable_SulfurRock, Pickable_SunkenCryptRandom, Pickable_SurtlingCoreStand, Pickable_Swordpiece1, Pickable_Swordpiece2, Pickable_Swordpiece3, Pickable_Tar, Pickable_TarBig, Pickable_Thistle, Pickable_Tin, Pickable_Turnip, Pickable_VoltureEgg, piece_beehive, piece_birdnest, piece_chest, piece_chest_barrel, piece_chest_blackmetal, piece_chest_grausten, piece_chest_private, piece_chest_warderobe, piece_chest_wood, piece_gift1, piece_gift2, piece_gift3, piece_pot1, piece_pot1_cracked, piece_pot1_red, piece_pot2, piece_pot2_cracked, piece_pot2_red, piece_pot3, piece_pot3_cracked, piece_pot3_red, piece_sapcollector, PineTree_log, PineTree_log_half, PineTree_log_halfOLD, PineTree_logOLD, PineTree_Snow_log, PineTree_Snow_log_half, PineTree_Snow_log_half_frost_troll, PineTree_Snow_log_XL, PineTree_Snow_log_XL_half, Placeable_Stone, prop_bonfire, prop_cauldron_ext5_mortarandpestle, prop_itemstand_TrophyDraugrElite, prop_itemstand_TrophyGoblinBrute, prop_itemstand_TrophyGoblinShaman, prop_itemstand_TrophyGreydwarf, prop_itemstand_TrophyGreydwarfBrute, prop_itemstand_TrophySeekerBrute, prop_piece_brazierfloor01, prop_piece_cauldron, prop_piece_MeadCauldron, RaspberryBush, rock3_ice_frac, rock3_silver, rock3_silver_frac, rock4_copper, rock4_copper_frac, Seagal, shipwreck_karve_chest, shipwreck_vikingship_chest, silvervein, silvervein_frac, stoneblock_fracture, stonechest, SulfurArch, SwampTree1_log, TreasureChest_ashland_stone, TreasureChest_ashlands, TreasureChest_ashlands_fortress, TreasureChest_blackforest, TreasureChest_charredfortress, TreasureChest_deepnorth_village, TreasureChest_dvergr_loose_stone, TreasureChest_dvergrtower, TreasureChest_dvergrtown, TreasureChest_fCrypt, TreasureChest_forestcrypt, TreasureChest_forestcrypt_hildir, TreasureChest_heath, TreasureChest_heath_hildir, TreasureChest_meadows, TreasureChest_meadows_01, TreasureChest_meadows_02, TreasureChest_meadows_buried, TreasureChest_meadows_combat, TreasureChest_memorial_buried, TreasureChest_mistlands, TreasureChest_morkhalla, TreasureChest_mountaincave, TreasureChest_mountaincave_hildir, TreasureChest_mountains, TreasureChest_plains, TreasureChest_plains_stone, TreasureChest_plainsfortress_hildir, TreasureChest_sunkencrypt, TreasureChest_swamp, TreasureChest_trollcave, TrollFrost_Dead, TrollFrost_Frac, TrollFrost_Frac_arm, TrollFrost_Frac_legs, UnstableLavaRock, veg_skull_Ashlands, VineAsh, VineGreen, yggashoot_log, yggashoot_log_half, YggdrasilRoot
                                   Enabled: true
                                   ColorId: 5
                                 - Name: Locations

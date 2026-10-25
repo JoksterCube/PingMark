@@ -2,7 +2,7 @@
 
 ## Share discoveries and keep your party on target!
 
-See **how far away** every ping is, something vanilla Valheim never shows. Aim, press **Z**, and your friends see exactly what you found: a named marker, a colored outline and a live distance. Press **Left Shift + Z** to sense loot hidden in the dark around you.
+See **how far away** every ping is, something vanilla Valheim never shows. Aim, press **Z**, and your friends see exactly what you found: a named marker, a colored outline and a live distance. Stand still and press **Left Shift + Z** to sense loot and creatures hidden in the dark around you.
 
 ---
 
@@ -34,11 +34,11 @@ See **how far away** every ping is, something vanilla Valheim never shows. Aim, 
 ### 🧭 Features
 
 - **📏 Distance on every ping:** world and map pings show who pinged and how far away it is, updating as you move. Works on regular map pings too.
-- **Aim and ping:** mark what you are looking at with its name and an outline.
-- **Find the loot:** dropped weapons, armor and materials glow so they're easy to spot in the grass.
+- **Aim and ping:** mark what you are looking at with its name and an outline, even while running.
+- **Find the loot:** dropped weapons, armor and materials glow so they're easy to spot in the grass, and so do cut logs and broken ore deposits.
 - **Track creatures:** highlight a mob with a nameplate and distance that follow it, colored red (hostile) or green (friendly).
-- **🔮 Perception:** press **Left Shift + Z** to briefly outline listed objects and dropped items around you, handy for coins and gems in dark dungeons. Nearby PingMark players see the outlines too, and Perception Fatigue limits how often you can use it.
-- **Sense creatures:** with **Perceive Creatures** on, Perception also highlights every hostile and friendly creature around you, beyond the usual highlight limit (off by default).
+- **🔮 Perception:** stand still and press **Left Shift + Z** to outline listed objects and dropped items around you for a few seconds, handy for coins and gems in dark dungeons. A colored burst marks the moment, and nearby PingMark players see it and the outlines too. Perception Fatigue follows: the more you sensed, the longer it lasts, and it starts early once everything you found is looted or slain.
+- **Sense creatures:** Perception also highlights every hostile and friendly creature around you, beyond the usual highlight limit (turn off **Perceive Creatures** to sense only objects).
 - **Mark teammates:** optionally highlight players instead of the spot they stood on (off by default).
 - **Your rules:** pick which objects count as **Valuables**, **Locations** or **Useful**, and customize colors, labels, shortcuts and range.
 
@@ -49,7 +49,7 @@ See **how far away** every ping is, something vanilla Valheim never shows. Aim, 
 | Shortcut | Action |
 | --- | --- |
 | **Z** | Highlight the creature you aim at, or ping the spot/object. |
-| **Left Shift + Z** | Perception: outline listed objects and drops near you, plus creatures with Perceive Creatures on (nearby PingMark players see them too). |
+| **Left Shift + Z** | Perception (standing still): outline listed objects, drops and creatures near you (nearby PingMark players see them too). |
 | **Right Ctrl + P** | Turn PingMark on or off. |
 | **Right Ctrl + Right Shift + P** | Open the Prefab Collections menu (admins only on servers). |
 
@@ -64,7 +64,7 @@ Decide which objects get a name and outline when pinged.
 - **Search and filter** every object and location in the game, including modded ones.
 - **Move** objects between colored sections, or add, rename and remove sections.
 - **Find an object's ID:** turn on **Debug Ping Names** (1 - General, shown with Advanced settings in Configuration Manager) and press **Z** on it; its IDs appear in the top-left corner.
-- **Auto Sort** rebuilds the default Valuables, Locations and Useful sections. **Undo** reverts changes, **Apply** saves them. **Copy YAML** copies every section, including unapplied changes; **Import YAML** replaces all sections from the clipboard. A section's **Import** button replaces just that section from a copied CSV list or YAML section. **Export Report** writes every prefab's detected kinds and auto sort result to `BepInEx/config/JoksterCube.PingMark.AutoSortReport.csv`, useful for checking modded prefabs.
+- **Auto Sort** rebuilds the default Valuables, Locations and Useful sections, sorting modded objects too: traders and trader outposts, cut logs and deposits are listed, while rocks, roots and props that only drop wood or stone are left out. **Undo** reverts changes, **Apply** saves them. **Copy YAML** copies every section, including unapplied changes; **Import YAML** replaces all sections from the clipboard. A section's **Import** button replaces just that section from a copied CSV list or YAML section. **Export Report** writes every prefab's detected kinds and auto sort result to `BepInEx/config/JoksterCube.PingMark.AutoSortReport.csv`, useful for checking modded prefabs.
 
 > 🔒 On a server with PingMark, only admins can change collections, and the server checks every change. Collections are saved in `BepInEx/config/JoksterCube.PingMark.Collections.yml` and synced to all players.
 
@@ -191,7 +191,7 @@ Most players never need to change anything. These are the settings worth knowing
 | Ping Shortcut | Z | | Ping what you aim at, or highlight the creature you aim at. |
 | Toggle Mod Shortcut | Right Ctrl + P | | Turn PingMark on or off. |
 | Prefab Editor Shortcut | Right Ctrl + Right Shift + P | | Open the Prefab Collections menu. |
-| Perception Shortcut | Left Shift + Z | | Outline listed objects and drops near you. |
+| Perception Shortcut | Left Shift + Z | | Outline listed objects and drops near you. Only while standing still (no other key held). |
 | Enable Prefab Editor Shortcut ⚙️ | On | | Turn the menu shortcut on or off. |
 
 #### 10 - Perception
@@ -199,10 +199,21 @@ Most players never need to change anything. These are the settings worth knowing
 | Setting | Default | Synced | What it does |
 | --- | --- | :---: | --- |
 | Enable Perception | On | ✔ | Allow the Perception Shortcut. |
-| Perception Range | 5 m | ✔ | How far around you Perception looks. |
+| Perception Range | 10 m | ✔ | How far around you Perception looks. |
+| Perception Duration | 8 s | ✔ | How long Perception keeps things outlined (the Perception status). Fatigue starts after it. |
+| End Perception Early | On | ✔ | End Perception and start fatigue once every drop, pickable, chest, deposit and enemy it found is gone. |
 | Perception Max Outlines | 64 | ✔ | Most objects outlined per use, nearest first. |
-| Perception Fatigue Duration | 15 s | ✔ | Cooldown after using Perception, shown as a status effect. `0` = none. |
-| Perceive Creatures | Off | ✔ | Perception also highlights every hostile and allied creature in range, ignoring Max Highlighted Mobs. |
+| Perception Fatigue Duration | 5 s | ✔ | Cooldown once Perception ends, shown as a status effect; the base cost in Relative mode. `0` = none. |
+| Perception Fatigue Mode | Relative | ✔ | `Fixed`: always the duration above. `Relative`: the duration plus a cost for everything sensed. |
+| Fatigue Per Object | 1.5 s | ✔ | Relative mode: added for each listed object outlined. |
+| Fatigue Per Drop | 0.25 s | ✔ | Relative mode: added for each dropped item on the ground outlined. |
+| Fatigue Per Ally | 0.5 s | ✔ | Relative mode: added for each tamed or non-hostile creature. |
+| Fatigue Per Enemy | 2.5 s | ✔ | Relative mode: added for each hostile creature. |
+| Perception Max Fatigue | 90 s | ✔ | Relative mode: the longest the fatigue can get. |
+| Perceive Creatures | On | ✔ | Perception also highlights every hostile and allied creature in range, ignoring Max Highlighted Mobs. |
+| Perception Effect | On | | Play a Guardian Power style burst around a player who uses Perception (nearby PingMark players see it too). |
+| Perception Effect Color | Light blue | | Color of that burst, for your Perception and other players'. |
+| Perception Sound | sfx_WishbonePing_near | | Sound played with the burst (any sound prefab, e.g. `sfx_secretfound`). Empty = silent. |
 
 </details>
 
@@ -215,5 +226,5 @@ Report bugs or suggest improvements on [GitHub](https://github.com/JoksterCube/P
 ---
 
 **Author:** JoksterCube<br>
-**Version:** 1.3.0<br>
+**Version:** 1.4.0<br>
 **License:** MIT

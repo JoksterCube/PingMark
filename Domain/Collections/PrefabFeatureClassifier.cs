@@ -13,10 +13,13 @@ namespace JoksterCube.PingMark.Domain.Collections;
 internal sealed class PrefabFeatureClassifier(PrefabBrowserFilter filter)
 {
     private static readonly Dictionary<Type, FieldInfo[]> Fields = [];
-    // Everyday materials found everywhere (Grausten in the Ashlands, Ice in the Deep North): dropping them does
-    // not make an object worth pinging.
-    private static readonly HashSet<string> CommonMaterials = new(StringComparer.OrdinalIgnoreCase)
-        { "Wood", "Stone", "Grausten", "Ice" };
+    // Everyday materials found everywhere (Grausten in the Ashlands, Ice in the Deep North) and every kind of wood
+    // and bark (Blackwood is ashwood, Frostwood is the Deep North's): dropping them does not make an object worth pinging.
+    private static readonly string[] BaseCommonMaterials =
+        ["Wood", "Stone", "Grausten", "Ice", "FineWood", "RoundLog", "ElderBark", "YggdrasilWood", "Blackwood", "Frostwood"];
+    // Modded woods are found by what trees drop, keeping only drops named like wood so seeds and resin still count.
+    private static readonly string[] WoodNameParts = ["wood", "bark", "log"];
+    private readonly HashSet<string> _commonMaterials = new(BaseCommonMaterials, StringComparer.OrdinalIgnoreCase);
     private readonly List<GameObject> _prefabs = [];
     private readonly HashSet<GameObject> _known = [];
     private readonly Dictionary<string, GameObject> _byName = new(StringComparer.OrdinalIgnoreCase);
@@ -104,6 +107,7 @@ internal sealed class PrefabFeatureClassifier(PrefabBrowserFilter filter)
         }
         foreach (int progress in IndexLoadedRooms()) yield return progress;
         foreach (int progress in IndexResourceInputs()) yield return progress;
+        foreach (int progress in IndexTreeWoods()) yield return progress;
         for (int index = 0; index < _prefabs.Count; index++)
         {
             GameObject prefab = _prefabs[index];
@@ -171,6 +175,8 @@ internal sealed class PrefabFeatureClassifier(PrefabBrowserFilter filter)
         if (Has<Pickable>() || Has<PickableItem>()) kind |= PrefabBrowserKind.Pickable;
         if (Has<TeleportWorld>() || Has<Teleport>()) kind |= PrefabBrowserKind.Portal;
         if (Has<Turret>()) kind |= PrefabBrowserKind.Turret | PrefabBrowserKind.Useful;
+        if (components.Any(component => component is MonoBehaviour && PingTargetResolver.IsMerchantType(component.GetType())))
+            kind |= PrefabBrowserKind.Merchant | PrefabBrowserKind.Useful;
         if (Has<Trader>() || Has<TeleportWorld>() || Has<Teleport>() || Has<RuneStone>()
             || Has<Vegvisir>() || Has<BossStone>() || Has<Door>() || Has<OfferingBowl>()
             || Has<CraftingStation>() || Has<StationExtension>() || Has<CreatureSpawner>() || Has<SpawnArea>()
@@ -205,6 +211,11 @@ internal sealed class PrefabFeatureClassifier(PrefabBrowserFilter filter)
             kind |= PrefabBrowserKind.SystemController;
         if (Has<TreeBase>() || Has<TreeLog>() || destructible && (destructible!.m_destructibleType & DestructibleType.Tree) != 0)
             kind |= PrefabBrowserKind.Vegetation | PrefabBrowserKind.Tree | PrefabBrowserKind.Resource;
+        // Felled logs are physics objects waiting to be chopped: a whole log splits into halves, a half drops the wood.
+        // A falling icicle reuses TreeLog but does neither.
+        if (components.OfType<TreeLog>().Any(log => log.m_subLogPrefab
+                || log.m_dropWhenDestroyed?.m_drops?.Any(drop => drop.m_item && IsWood(drop.m_item)) == true))
+            kind |= PrefabBrowserKind.Log;
         if (Has<MineRock>() || Has<MineRock5>()) kind |= PrefabBrowserKind.Geology | PrefabBrowserKind.Mineable;
         if (Has<MineRock5>()) kind |= PrefabBrowserKind.Fracture;
         if (_nature.Contains(prefab) && kind == PrefabBrowserKind.None && !Has<ParticleSystem>()
@@ -320,6 +331,10 @@ internal sealed class PrefabFeatureClassifier(PrefabBrowserFilter filter)
             if (view.gameObject == source) continue;
             if (!_byName.TryGetValue(global::Utils.GetPrefabName(view.gameObject), out GameObject prefab)) continue;
             if (dungeon) Mark(prefab, PrefabBrowserKind.Dungeon);
+            // A trader inside a location makes it a merchant location (Haldor's camp, modded trader outposts).
+            if (source.GetComponent<Location>()
+                && Components(prefab).Any(component => component is MonoBehaviour && PingTargetResolver.IsMerchantType(component.GetType())))
+                Mark(source, PrefabBrowserKind.Merchant);
             WearNTear? wear = prefab.GetComponent<WearNTear>();
             _evidence.TryGetValue(prefab, out PrefabBrowserKind kind);
             if (wear && wear!.m_supports && (kind & PrefabBrowserKind.Buildable) == 0) Mark(prefab, PrefabBrowserKind.Ruin);
@@ -444,6 +459,32 @@ internal sealed class PrefabFeatureClassifier(PrefabBrowserFilter filter)
         return true;
     }
 
+    private IEnumerable<int> IndexTreeWoods()
+    {
+        List<GameObject> drops = [];
+        foreach (GameObject prefab in _prefabs)
+        {
+            yield return _names.Count;
+            drops.Clear();
+            foreach (Component component in Components(prefab))
+            {
+                if (component is TreeBase tree) AddDrops(tree.m_dropWhenDestroyed, drops);
+                else if (component is TreeLog log) AddDrops(log.m_dropWhenDestroyed, drops);
+            }
+            foreach (GameObject drop in drops)
+            {
+                string name = global::Utils.GetPrefabName(drop);
+                if (IsWood(drop)) _commonMaterials.Add(name);
+            }
+        }
+    }
+
+    private static bool IsWood(GameObject item)
+    {
+        string name = global::Utils.GetPrefabName(item);
+        return WoodNameParts.Any(part => name.IndexOf(part, StringComparison.OrdinalIgnoreCase) >= 0);
+    }
+
     private IEnumerable<int> IndexResourceInputs()
     {
         foreach (GameObject prefab in _prefabs)
@@ -520,7 +561,7 @@ internal sealed class PrefabFeatureClassifier(PrefabBrowserFilter filter)
             drops.AddRange(replacement.OfType<ItemDrop>().Select(item => item.gameObject));
             drops.AddRange(replacement.OfType<Pickable>().Where(pickable => pickable.m_itemPrefab).Select(pickable => pickable.m_itemPrefab));
         }
-        return drops.Count > 0 && drops.All(item => CommonMaterials.Contains(global::Utils.GetPrefabName(item)));
+        return drops.Count > 0 && drops.All(item => _commonMaterials.Contains(global::Utils.GetPrefabName(item)));
     }
 
     private static void CollectDrops(Component[] components, List<GameObject> drops)
@@ -554,7 +595,7 @@ internal sealed class PrefabFeatureClassifier(PrefabBrowserFilter filter)
     {
         if (!item) return false;
         string name = global::Utils.GetPrefabName(item!);
-        return !CommonMaterials.Contains(name)
+        return !_commonMaterials.Contains(name)
             && (_resourceInputs.Contains(name) || IsMaterial(item!));
     }
 

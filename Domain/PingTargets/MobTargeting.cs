@@ -1,5 +1,6 @@
 using System;
 using JoksterCube.PingMark.Common;
+using JoksterCube.PingMark.Domain.Enums;
 using JoksterCube.PingMark.Domain.Networking;
 using JoksterCube.PingMark.Domain.Models;
 using UnityEngine;
@@ -83,7 +84,9 @@ internal static class MobTargeting
                 MobHighlight.Mark(character);
                 return;
             }
-            if (MobHighlightEnabled.IsOn() && character && !character.IsPlayer() && !character.IsDead())
+            // A listed merchant (a modded trader that is a creature) is pinged like any listed object.
+            if (MobHighlightEnabled.IsOn() && character && !character.IsPlayer() && !character.IsDead()
+                && !IsListedMerchant(hit, character))
             {
                 MobHighlight.Mark(character);
                 return;
@@ -120,4 +123,8 @@ internal static class MobTargeting
         RegisterPendingGroundPing(position, targetName, target);
         ZPingNetwork.SendLocation(position, targetName ?? "", targetId);
     }
+
+    private static bool IsListedMerchant(RaycastHit hit, Character character) =>
+        PingTargetResolver.IsMerchant(character.gameObject)
+        && PingTargetResolver.Resolve(hit.collider, hit.point) is { Category: PingCategory.PrefabSection };
 }

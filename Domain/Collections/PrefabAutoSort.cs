@@ -88,7 +88,10 @@ internal static class PrefabAutoSort
     // (Buildable | Container) is a Valuable while a plain building piece stays Unassigned.
     private static int Category(string name, PrefabBrowserKind kind, bool useDefaults)
     {
-        if (Any(kind, NeverPinned) || ExcludedPrefabNames.Contains(name)) return Unassigned;
+        if (ExcludedPrefabNames.Contains(name)) return Unassigned;
+        // Standing trees are everywhere, but a felled log is wood already on the ground.
+        if (Any(kind, PrefabBrowserKind.Log) && !Any(kind, NeverPinned & ~PrefabBrowserKind.Tree)) return Valuables;
+        if (Any(kind, NeverPinned)) return Unassigned;
         // Anything that can be picked up is worth finding, whatever it gives and whatever else it is.
         // Player-planted crops still growing are the exception.
         if (Any(kind, PrefabBrowserKind.Pickable) && !Any(kind, PrefabBrowserKind.Planting)) return Valuables;
@@ -101,9 +104,13 @@ internal static class PrefabAutoSort
         if (Any(kind, PrefabBrowserKind.Location))
         {
             if (Any(kind, PrefabBrowserKind.Mineable)) return Valuables;
+            // Trader camps and modded trader outposts or ports are places to travel to, like Haldor's camp.
+            if (Any(kind, PrefabBrowserKind.Merchant)) return Locations;
             if (Any(kind, PrefabBrowserKind.Useful) && !Any(kind, PrefabBrowserKind.Dungeon)) return Useful;
             return Locations;
         }
+        // Merchants are worth finding even when a mod builds them as creatures.
+        if (Any(kind, PrefabBrowserKind.Merchant)) return Useful;
         // Creatures that summon or spawn (Troll_Summoned, modded summoners) are still creatures; pinging them
         // highlights the creature instead of using a section anyway. Birds are destructible and stay below.
         if (Any(kind, PrefabBrowserKind.Creature)) return Unassigned;

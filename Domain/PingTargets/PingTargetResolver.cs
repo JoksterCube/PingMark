@@ -28,6 +28,10 @@ internal static class PingTargetResolver
                 ? new PingTarget(PingCategory.Gravestone, "Gravestone", tombStone.gameObject)
                 : null;
 
+        // Merchants that are creatures (modded traders) are pinged like the stall or vendor they stand for.
+        if (IsMerchant(root) && FindSection(GetObjectId(root)) is { } merchantSection)
+            return new PingTarget(PingCategory.PrefabSection, GetObjectName(collider), root, merchantSection.Color);
+
         if (collider!.GetComponentInParent<Character>() is { } character)
         {
             if (character.IsPlayer())
@@ -136,13 +140,48 @@ internal static class PingTargetResolver
     }
 
     // Matches the editor, where a prefab listed in several sections belongs to the last one; when that
-    // section is disabled the prefab is not pinged as a section member at all.
+    // section is disabled the prefab is not pinged as a section member at all. A fractured replacement that is
+    // not listed itself ("mudpile2_frac") belongs where the intact object it replaced is listed.
     private static PrefabCollectionSection? FindSection(string prefabId)
     {
         List<PrefabCollectionSection> sections = PrefabCollectionSectionConfig.Load();
-        for (int index = sections.Count - 1; index >= 0; index--)
-            if (sections[index].Contains(prefabId)) return sections[index].Enabled ? sections[index] : null;
+        if (TryFindSection(sections, prefabId, out PrefabCollectionSection? section)) return section;
+        foreach (string source in FractureSources.SourcesOf(prefabId))
+            if (TryFindSection(sections, source, out section)) return section;
         return null;
+    }
+
+    private static bool TryFindSection(List<PrefabCollectionSection> sections, string prefabId, out PrefabCollectionSection? section)
+    {
+        for (int index = sections.Count - 1; index >= 0; index--)
+            if (sections[index].Contains(prefabId))
+            {
+                section = sections[index].Enabled ? sections[index] : null;
+                return true;
+            }
+        section = null;
+        return false;
+    }
+
+    // Vanilla traders and modded merchants whose component names say what they are.
+    internal static bool IsMerchant(GameObject candidate)
+    {
+        foreach (MonoBehaviour behaviour in candidate.GetComponents<MonoBehaviour>())
+            if (behaviour && IsMerchantType(behaviour.GetType())) return true;
+        return false;
+    }
+
+    private static readonly string[] MerchantTypeNames = ["Trader", "Merchant", "Vendor", "Shopkeeper"];
+    private static readonly Dictionary<Type, bool> MerchantTypes = [];
+
+    internal static bool IsMerchantType(Type type)
+    {
+        if (MerchantTypes.TryGetValue(type, out bool merchant)) return merchant;
+        merchant = typeof(Trader).IsAssignableFrom(type);
+        foreach (string name in MerchantTypeNames)
+            merchant |= type.Name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0;
+        MerchantTypes[type] = merchant;
+        return merchant;
     }
 
     internal static string GetDebugNames(RaycastHit hit)
@@ -329,8 +368,15 @@ internal static class PingTargetResolver
     private static bool IsRegisteredPrefab(GameObject candidate) =>
         ZNetScene.instance && ZNetScene.instance.GetPrefab(GetObjectId(candidate));
 
-    internal static string GetObjectId(GameObject candidate) =>
-        InstanceSuffix.Replace(Clean(global::Utils.GetPrefabName(candidate)), string.Empty);
+    // Networked objects are named by the prefab their ZDO was created from: MineRock5 renames its own object to
+    // "___MineRock5 m_meshFilter" by naming the mesh filter it adds, so fractured deposits lose their prefab name.
+    internal static string GetObjectId(GameObject candidate)
+    {
+        if (candidate.TryGetComponent(out ZNetView view) && view.GetZDO() is { } zdo && ZNetScene.instance
+            && ZNetScene.instance.GetPrefab(zdo.GetPrefab()) is { } prefab && prefab)
+            return prefab.name;
+        return InstanceSuffix.Replace(Clean(global::Utils.GetPrefabName(candidate)), string.Empty);
+    }
 
     private static bool IsTerrain(Collider collider) =>
         collider.gameObject.layer == LayerMask.NameToLayer("terrain")
