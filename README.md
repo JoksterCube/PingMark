@@ -23,6 +23,12 @@ See **how far away** every ping is, something vanilla Valheim never shows. Aim, 
 	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Treasure.jpg" alt="Treasure chest and hostile skeleton highlighted with distinct colors" width="497">
 </p>
 
+**Sense what's hidden.** Perception has its own slot next to your Guardian Power, showing when it's ready again.
+
+<p align="center">
+	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Perception.jpg" alt="Perception slot next to the Guardian Power on the HUD, both ready" width="393">
+</p>
+
 **Choose what your party can mark.** Objects and locations are sorted into searchable, color-coded collections.
 
 <p align="center">
@@ -37,8 +43,9 @@ See **how far away** every ping is, something vanilla Valheim never shows. Aim, 
 - **Aim and ping:** mark what you are looking at with its name and an outline, even while running.
 - **Find the loot:** dropped weapons, armor and materials glow so they're easy to spot in the grass, and so do cut logs and broken ore deposits.
 - **Track creatures:** highlight a mob with a nameplate and distance that follow it, colored red (hostile) or green (friendly).
-- **🔮 Perception:** stand still and press **Left Shift + Z** to outline listed objects and dropped items around you for a few seconds, handy for coins and gems in dark dungeons. A colored burst marks the moment, and nearby PingMark players see it and the outlines too. Perception Fatigue follows: the more you sensed, the longer it lasts, and it starts early once everything you found is looted or slain.
+- **🔮 Perception:** stand still and press **Left Shift + Z** to outline loot around you for 15 seconds, handy for coins and gems in dark dungeons. It senses whatever a ping could mark (listed objects, drops, and gravestones or players if enabled under **Ping Targets**), and nearby PingMark players see it too.
 - **Sense creatures:** Perception also highlights every hostile and friendly creature around you, beyond the usual highlight limit (turn off **Perceive Creatures** to sense only objects).
+- **Like a Guardian Power:** a Perception slot next to your power shows **Ready** or the time left; it's ready again 60 s after each use. Prefer a cost that grows with what you sensed? Switch **Perception Fatigue Mode** to `Relative`.
 - **Mark teammates:** optionally highlight players instead of the spot they stood on (off by default).
 - **Your rules:** pick which objects count as **Valuables**, **Locations** or **Useful**, and customize colors, labels, shortcuts and range.
 
@@ -49,11 +56,11 @@ See **how far away** every ping is, something vanilla Valheim never shows. Aim, 
 | Shortcut | Action |
 | --- | --- |
 | **Z** | Highlight the creature you aim at, or ping the spot/object. |
-| **Left Shift + Z** | Perception (standing still): outline listed objects, drops and creatures near you (nearby PingMark players see them too). |
+| **Left Shift + Z** | Perception (standing still): sense objects, drops and creatures near you (nearby PingMark players see them too). |
 | **Right Ctrl + P** | Turn PingMark on or off. |
 | **Right Ctrl + Right Shift + P** | Open the Prefab Collections menu (admins only on servers). |
 
-Shortcuts can be changed in the config under **9 - Inputs**.
+🎛️ **Ping** and **Perception** can be rebound right in the game's **Settings > Controls**. The new key keeps the shortcut's modifier, so Perception stays on Left Shift. Every shortcut can also be changed in the config under **9 - Inputs**.
 
 ---
 
@@ -147,8 +154,8 @@ Most players never need to change anything. These are the settings worth knowing
 | --- | --- | :---: | --- |
 | Enable Drops | On | ✔ | Name and outline dropped items. |
 | Enable Gravestones | On | ✔ | Name and outline gravestones. |
-| Enable Other Players | Off | ✔ | Highlight players instead of pinging their position. |
-| Enable All Other | Off | ✔ | Name and outline anything not in a collection. |
+| Enable Other Players | Off | ✔ | Highlight players instead of pinging their position (Perception highlights them too). |
+| Enable All Other | Off | ✔ | Name and outline anything not in a collection (Perception outlines it too). |
 
 #### 5 - Outlines
 
@@ -188,29 +195,29 @@ Most players never need to change anything. These are the settings worth knowing
 
 | Setting | Default | Synced | What it does |
 | --- | --- | :---: | --- |
-| Ping Shortcut | Z | | Ping what you aim at, or highlight the creature you aim at. |
+| Ping Shortcut | Z | | Ping what you aim at, or highlight the creature you aim at. Also in Settings > Controls. |
 | Toggle Mod Shortcut | Right Ctrl + P | | Turn PingMark on or off. |
 | Prefab Editor Shortcut | Right Ctrl + Right Shift + P | | Open the Prefab Collections menu. |
-| Perception Shortcut | Left Shift + Z | | Outline listed objects and drops near you. Only while standing still (no other key held). |
+| Perception Shortcut | Left Shift + Z | | Use Perception. Only while standing still (no other key held). Its main key can also be set in Settings > Controls. |
 | Enable Prefab Editor Shortcut ⚙️ | On | | Turn the menu shortcut on or off. |
 
 #### 10 - Perception
 
 | Setting | Default | Synced | What it does |
 | --- | --- | :---: | --- |
-| Enable Perception | On | ✔ | Allow the Perception Shortcut. |
+| Enable Perception | On | ✔ | Allow Perception and show its slot next to the Guardian Power. It senses what Ping Targets allows. |
 | Perception Range | 10 m | ✔ | How far around you Perception looks. |
-| Perception Duration | 8 s | ✔ | How long Perception keeps things outlined (the Perception status). Fatigue starts after it. |
+| Perception Duration | 15 s | ✔ | How long Perception keeps things outlined (the Perception status). |
 | End Perception Early | On | ✔ | End Perception and start fatigue once every drop, pickable, chest, deposit and enemy it found is gone. |
 | Perception Max Outlines | 64 | ✔ | Most objects outlined per use, nearest first. |
-| Perception Fatigue Duration | 5 s | ✔ | Cooldown once Perception ends, shown as a status effect; the base cost in Relative mode. `0` = none. |
-| Perception Fatigue Mode | Relative | ✔ | `Fixed`: always the duration above. `Relative`: the duration plus a cost for everything sensed. |
+| Perception Fatigue Duration | 60 s | ✔ | Fixed mode: cooldown from each use, like a Guardian Power. Relative mode: the base fatigue once Perception ends. `0` = none. |
+| Perception Fatigue Mode | Fixed | ✔ | `Fixed`: ready again the duration above after each use. `Relative`: fatigue starts once Perception ends, adds a cost for everything sensed, and starts early once it's all looted or slain. |
 | Fatigue Per Object | 1.5 s | ✔ | Relative mode: added for each listed object outlined. |
 | Fatigue Per Drop | 0.25 s | ✔ | Relative mode: added for each dropped item on the ground outlined. |
 | Fatigue Per Ally | 0.5 s | ✔ | Relative mode: added for each tamed or non-hostile creature. |
 | Fatigue Per Enemy | 2.5 s | ✔ | Relative mode: added for each hostile creature. |
 | Perception Max Fatigue | 90 s | ✔ | Relative mode: the longest the fatigue can get. |
-| Perceive Creatures | On | ✔ | Perception also highlights every hostile and allied creature in range, ignoring Max Highlighted Mobs. |
+| Perceive Creatures | On | ✔ | Perception also highlights every hostile and allied creature in range, ignoring Max Highlighted Mobs. Players follow Enable Other Players. |
 | Perception Effect | On | | Play a Guardian Power style burst around a player who uses Perception (nearby PingMark players see it too). |
 | Perception Effect Color | Light blue | | Color of that burst, for your Perception and other players'. |
 | Perception Sound | sfx_WishbonePing_near | | Sound played with the burst (any sound prefab, e.g. `sfx_secretfound`). Empty = silent. |
@@ -226,5 +233,5 @@ Report bugs or suggest improvements on [GitHub](https://github.com/JoksterCube/P
 ---
 
 **Author:** JoksterCube<br>
-**Version:** 1.4.0<br>
+**Version:** 1.5.0<br>
 **License:** MIT

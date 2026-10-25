@@ -10,14 +10,13 @@ using static JoksterCube.PingMark.Settings.PluginConfig;
 namespace JoksterCube.PingMark.Domain;
 
 // Outlines listed objects and drops around the local player for Perception Duration, without sending a ping, and
-// with Perceive Creatures also highlights nearby creatures. Perception Fatigue starts once Perception ends.
+// with Perceive Creatures also highlights nearby creatures. Perception Fatigue is shown as a cooldown on the Perception
+// slot next to the Guardian Power.
 internal static class Perception
 {
     private const string ActiveEffectName = "PingMark_Perception";
-    private const string FatigueEffectName = "PingMark_PerceptionFatigue";
-    // An eye for sensing, and a burnt-out lump of coal for the rest after it.
-    private const string ActiveIconItem = "GreydwarfEye";
-    private const string FatigueIconItem = "Coal";
+    // An eye for sensing.
+    private const string IconItem = "GreydwarfEye";
     // Checking a few dozen references twice a second costs nothing noticeable.
     private const float EarlyEndCheckInterval = 0.5f;
 
@@ -25,7 +24,8 @@ internal static class Perception
     private static readonly HashSet<GameObject> Seen = [];
     private static readonly List<ZDOID> SharedIds = [];
     private static readonly List<(Character Character, float Distance, bool Enemy)> Creatures = [];
-    private static readonly List<ZDOID> CreatureIds = [];
+    private static readonly List<(ZDOID Id, bool IsPlayer)> CreatureIds = [];
+    private static readonly List<ZDOID> SharedCreatureIds = [];
     // What can run out before Perception does: drops, pickables, chests, deposits and enemies.
     private static readonly List<Object> Remaining = [];
     private static int _enemyCount;
@@ -33,9 +33,18 @@ internal static class Perception
     private static float _activeUntil;
     private static float _nextEarlyEndCheck;
     private static float _pendingFatigue;
+    // Fixed mode counts the cooldown from the moment of use, like a Guardian Power; Relative mode starts it once Perception ends.
+    private static bool _fromActivation;
+    private static float _activatedAt;
     private static float _readyAt;
     private static StatusEffect? _activeEffect;
-    private static StatusEffect? _fatigueEffect;
+    private static Sprite? _icon;
+
+    // Seconds until Perception can be used again, counting its active time like a Guardian Power cooldown.
+    internal static float Cooldown => Mathf.Max(0f, _readyAt - Time.time);
+
+    // ObjectDB may not be ready on the first look after loading, so it is looked up until found.
+    internal static Sprite? Icon => _icon ? _icon : _icon = FindIcon(IconItem);
 
     internal static void Clear()
     {
@@ -91,36 +100,39 @@ internal static class Perception
         {
             if (Found[index].Target.Category == PingCategory.Drop) drops++;
             Outline(Found[index].Target, until);
-            TrackRemaining(Found[index].Target);
+            // Anything else nearby (trees, rocks, building pieces) would keep Perception from ever ending early.
+            if (Found[index].Target.Category != PingCategory.Other) TrackRemaining(Found[index].Target);
             if (!Found[index].Id.IsNone()) SharedIds.Add(Found[index].Id);
         }
         CollectCreatures(player);
-        foreach (ZDOID id in CreatureIds)
-            MobHighlight.Highlight(ZNet.GetUID(), id, UserInfo.GetLocalUser(), unlimited: true, duration: duration);
+        foreach ((ZDOID id, bool isPlayer) in CreatureIds)
+            MobHighlight.Highlight(ZNet.GetUID(), id, UserInfo.GetLocalUser(), isPlayer, unlimited: true, duration: duration);
         if (count == 0 && CreatureIds.Count == 0) PlayerMessages.TopLeft("You sense nothing of note nearby.");
         // Nearby PingMark players see the same objects, resolved against their own collections, and creatures.
-        ZPingNetwork.SendPerception(SharedIds, CreatureIds);
+        SharedCreatureIds.Clear();
+        foreach ((ZDOID id, _) in CreatureIds) SharedCreatureIds.Add(id);
+        ZPingNetwork.SendPerception(SharedIds, SharedCreatureIds);
 
-        // Fatigue is decided by what was found, but only starts once Perception ends.
+        // Relative fatigue is decided by what was found, but only starts once Perception ends.
         _pendingFatigue = FatigueFor(count - drops, drops, CreatureIds.Count - _enemyCount, _enemyCount);
+        _fromActivation = PerceptionFatigueMode.Value != FatigueMode.Relative;
+        _activatedAt = now;
         _active = true;
         _activeUntil = until;
         _nextEarlyEndCheck = now + EarlyEndCheckInterval;
-        _readyAt = until + _pendingFatigue;
+        _readyAt = _fromActivation ? Mathf.Max(until, now + _pendingFatigue) : until + _pendingFatigue;
         ApplyEffect(player, ref _activeEffect, ActiveEffectName, "Perception",
-            "Your senses are heightened: nearby treasures and creatures stand out.", ActiveIconItem, duration);
+            "Your senses are heightened: nearby treasures and creatures stand out.", duration);
     }
 
     private static void End(bool early)
     {
         _active = false;
         Remaining.Clear();
-        _readyAt = Time.time + _pendingFatigue;
+        float now = Time.time;
+        _readyAt = _fromActivation ? Mathf.Max(now, _activatedAt + _pendingFatigue) : now + _pendingFatigue;
         Player player = Player.m_localPlayer;
-        if (!player) return;
-        if (early && _activeEffect) player.GetSEMan().RemoveStatusEffect(_activeEffect!.NameHash(), true);
-        ApplyEffect(player, ref _fatigueEffect, FatigueEffectName, "Perception Fatigue",
-            "Your senses need rest before you can use Perception again.", FatigueIconItem, _pendingFatigue);
+        if (player && early && _activeEffect) player.GetSEMan().RemoveStatusEffect(_activeEffect!.NameHash(), true);
     }
 
     // Only things that can run out count: a portal or crafting station nearby never ends Perception early.
@@ -177,12 +189,13 @@ internal static class Perception
             if (PingTargetResolver.ResolveInstance(id, instance.transform.position) is { } target && IsPerceivable(target))
                 Outline(target, until);
         }
-        if (!PerceptionCreaturesEnabled.IsOn()) return;
         foreach (ZDOID id in creatureIds)
         {
             GameObject instance = ZNetScene.instance.FindInstance(id);
-            if (instance && instance.TryGetComponent(out Character character) && !character.IsPlayer())
-                MobHighlight.Highlight(sender, id, user, unlimited: true, duration: duration);
+            if (!instance || !instance.TryGetComponent(out Character character) || character == Player.m_localPlayer) continue;
+            bool isPlayer = character.IsPlayer();
+            if (isPlayer || PerceptionCreaturesEnabled.IsOn())
+                MobHighlight.Highlight(sender, id, user, isPlayer, unlimited: true, duration: duration);
         }
     }
 
@@ -192,9 +205,14 @@ internal static class Perception
             if (outline) OutlineManager.AddTimedOutline(outline, target.Color, until);
     }
 
-    // Same rules as a ping, so exactly what a ping would outline: enabled sections and drops.
-    private static bool IsPerceivable(PingTarget target) => target.OutlineTargets.Length > 0
-        && target.Category is PingCategory.Drop or PingCategory.PrefabSection;
+    // Same rules as a ping, so exactly what a ping would outline with the Ping Targets toggles. Players and creatures
+    // are highlighted instead, by CollectCreatures.
+    private static bool IsPerceivable(PingTarget target) => target.OutlineTargets.Length > 0 && target.Category switch
+    {
+        PingCategory.Player => false,
+        PingCategory.Other => !target.OutlineTargets[0].GetComponentInParent<Character>(),
+        _ => true
+    };
 
     private static void Collect(Player player)
     {
@@ -224,19 +242,22 @@ internal static class Perception
         return Mathf.Min(fatigue, Mathf.Max(PerceptionMaxFatigue.Value, PerceptionFatigueDuration.Value));
     }
 
-    // Hostile and tamed creatures alike, nearest first; players are left to the Ping Shortcut.
+    // Hostile and tamed creatures alike with Perceive Creatures, and other players with Enable Other Players, nearest first.
     private static void CollectCreatures(Player player)
     {
         Creatures.Clear();
         CreatureIds.Clear();
         _enemyCount = 0;
-        if (!PerceptionCreaturesEnabled.IsOn() || !MobHighlightEnabled.IsOn()) return;
+        bool creatures = PerceptionCreaturesEnabled.IsOn() && MobHighlightEnabled.IsOn();
+        bool players = PlayersEnabled.IsOn();
+        if (!creatures && !players) return;
         Vector3 center = player.GetCenterPoint();
         float range = PerceptionRange.Value;
         foreach (Character character in Character.GetAllCharacters())
         {
+            if (!character || character == player || character.IsDead() || !(character.IsPlayer() ? players : creatures)) continue;
             // Merchants are outlined as listed objects instead.
-            if (!character || character.IsPlayer() || character.IsDead() || PingTargetResolver.IsMerchant(character.gameObject)) continue;
+            if (PingTargetResolver.IsMerchant(character.gameObject)) continue;
             float distance = (character.GetCenterPoint() - center).sqrMagnitude;
             ZDOID id = character.GetZDOID();
             // Tamed creatures, neutral Dvergr and other non-hostiles count as allies.
@@ -246,7 +267,7 @@ internal static class Perception
         int count = Mathf.Min(Creatures.Count, PerceptionMaxTargets.Value);
         for (int index = 0; index < count; index++)
         {
-            CreatureIds.Add(Creatures[index].Character.GetZDOID());
+            CreatureIds.Add((Creatures[index].Character.GetZDOID(), Creatures[index].Character.IsPlayer()));
             if (!Creatures[index].Enemy) continue;
             _enemyCount++;
             Remaining.Add(Creatures[index].Character);
@@ -254,7 +275,7 @@ internal static class Perception
     }
 
     private static void ApplyEffect(Player player, ref StatusEffect? effect, string name, string displayName, string tooltip,
-        string iconItem, float duration)
+        float duration)
     {
         if (duration <= 0f) return;
         if (!effect)
@@ -265,8 +286,8 @@ internal static class Perception
             effect.m_tooltip = tooltip;
             effect.hideFlags = HideFlags.HideAndDontSave;
         }
-        // The HUD only lists effects with an icon; ObjectDB may not be ready on the first use after loading.
-        if (!effect!.m_icon) effect.m_icon = FindIcon(iconItem);
+        // The HUD only lists effects with an icon.
+        if (!effect!.m_icon) effect.m_icon = Icon;
         effect.m_ttl = duration;
         player.GetSEMan().AddStatusEffect(effect, true, 0, 0f, 0);
     }

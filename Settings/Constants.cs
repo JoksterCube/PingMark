@@ -10,7 +10,7 @@ internal static class Constants
     internal static class Plugin
     {
         internal const string ModName = "PingMark";
-        internal const string ModVersion = "1.4.0";
+        internal const string ModVersion = "1.5.0";
         internal const string Author = "JoksterCube";
         internal const string ModGUID = $"{Author}.{ModName}";
         internal const string Description = "Mark loot, creatures, and locations with named pings, colored outlines, and live distances. Sense what's hidden around you and share discoveries with your party.";
@@ -325,7 +325,7 @@ internal static class Constants
             internal static readonly ConfigInfo<Toggle> Enabled = new(
                 Group,
                 "Enable Perception",
-                "Let players outline nearby listed objects and dropped items with the Perception Shortcut. Nearby PingMark players within the Z Ping Broadcast Distance see the same outlines.",
+                "Let players outline nearby listed objects with the Perception Shortcut, plus whatever else Ping Targets enables for pings: drops, gravestones, other players (highlighted) and all other objects. Nearby PingMark players within the Z Ping Broadcast Distance see the same outlines.",
                 Toggle.On,
                 true);
 
@@ -339,9 +339,9 @@ internal static class Constants
             internal static readonly ConfigInfo<float> Duration = new(
                 Group,
                 "Perception Duration",
-                new ConfigDescription("Seconds Perception keeps nearby objects and creatures outlined, shown as the Perception status effect. Perception Fatigue starts when it ends.",
+                new ConfigDescription("Seconds Perception keeps nearby objects and creatures outlined, shown as the Perception status effect. In Relative mode, Perception Fatigue starts when it ends.",
                     new AcceptableValueRange<float>(1f, 60f)),
-                10f,
+                15f,
                 true);
 
             internal static readonly ConfigInfo<Toggle> EarlyEnd = new(
@@ -362,16 +362,16 @@ internal static class Constants
             internal static readonly ConfigInfo<float> FatigueDuration = new(
                 Group,
                 "Perception Fatigue Duration",
-                new ConfigDescription("Seconds of Perception Fatigue once Perception ends; in Relative mode, the base that the found objects and creatures add to. Perception cannot be used again until the fatigue ends. Set to 0 (and every cost to 0 in Relative mode) to disable.",
+                new ConfigDescription("Fixed mode: seconds from using Perception until it can be used again, including Perception Duration, like a Guardian Power cooldown. Relative mode: seconds of fatigue once Perception ends, the base that the found objects and creatures add to. The Perception slot next to the Guardian Power counts it down. Set to 0 (and every cost to 0 in Relative mode) to disable.",
                     new AcceptableValueRange<float>(0f, 300f)),
-                5f,
+                60f,
                 true);
 
             internal static readonly ConfigInfo<FatigueMode> Mode = new(
                 Group,
                 "Perception Fatigue Mode",
-                "Fixed: every use causes Perception Fatigue Duration. Relative: the more Perception finds, the longer the fatigue, using the costs below up to Perception Max Fatigue.",
-                FatigueMode.Relative,
+                "Fixed: Perception can be used again Perception Fatigue Duration after the last use. Relative: fatigue starts once Perception ends, and the more Perception finds, the longer it lasts, using the costs below up to Perception Max Fatigue.",
+                FatigueMode.Fixed,
                 true);
 
             internal static readonly ConfigInfo<float> ObjectCost = new(
