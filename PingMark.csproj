@@ -124,6 +124,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <!-- Shared ability slots beside the Guardian Power; merged into PingMark.dll by ILRepack (see ILRepack.targets). -->
+    <ProjectReference Include="..\AbilityKit\AbilityKit\AbilityKit.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <!-- Source-level validation harnesses; not part of the plugin. -->
     <Compile Remove="Tests\**" />
   </ItemGroup>

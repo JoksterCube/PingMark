@@ -26,6 +26,7 @@ internal static class MobHighlightNamePatch
         internal readonly List<(Transform Transform, Vector3 Position)> Markers = [];
         internal TMP_Text? Label;
         internal string? Distance;
+        internal string? Status;
         internal (ZDOID Id, long Order, string Distance, bool ShowName, bool ShowDistance)? TextKey;
         internal string Text = string.Empty;
         internal (Bounds Bounds, Rect Rect)? Layout;
@@ -67,7 +68,7 @@ internal static class MobHighlightNamePatch
         if (_distanceTimer >= RefreshInterval.Value)
         {
             _distanceTimer = 0f;
-            foreach (Nameplate nameplate in Nameplates.Values) nameplate.Distance = null;
+            foreach (Nameplate nameplate in Nameplates.Values) nameplate.Distance = nameplate.Status = null;
         }
 
         Player localPlayer = Player.m_localPlayer;
@@ -104,7 +105,9 @@ internal static class MobHighlightNamePatch
     private static void UpdateNameplate(Character character, EnemyHud.HudData hud, TMP_Text name, Nameplate nameplate, Player localPlayer)
     {
         nameplate.Distance ??= PingLabelFormatter.FormatDistance(character.transform.position, localPlayer);
-        if (name.text != nameplate.OriginalName) name.text = nameplate.OriginalName;
+        nameplate.Status ??= PingLabelFormatter.GetTameStatus(character);
+        string shownName = nameplate.OriginalName + nameplate.Status;
+        if (name.text != shownName) name.text = shownName;
 
         if (PingLabelFormatter.MapFont && !nameplate.Label) CreateLabel(hud, name, nameplate);
         TMP_Text? label = nameplate.Label;

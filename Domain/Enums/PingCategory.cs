@@ -4,6 +4,7 @@ internal enum PingCategory
 {
     PrefabSection,
     Drop,
+    Fish,
     Gravestone,
     Player,
     Other

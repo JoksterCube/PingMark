@@ -10,7 +10,7 @@ using static JoksterCube.PingMark.Settings.PluginConfig;
 
 namespace JoksterCube.PingMark.Domain;
 
-// Ping and Perception rows in the game's Controls tab. The game binds a single key, so a row sets the main key of
+// Ping, Perception and Fishsight rows in the game's Controls tab. The game binds a single key, so a row sets the main key of
 // its config shortcut and keeps the modifiers (Left Shift stays on Perception). Like the vanilla rows, a new key is
 // only kept when the settings are confirmed.
 internal static class ControlsMenu
@@ -18,7 +18,8 @@ internal static class ControlsMenu
     private static readonly (string Name, string Label, Func<ConfigEntry<KeyboardShortcut>> Entry)[] Rows =
     [
         ("PingMark_Ping", "Ping", () => PingShortcut),
-        ("PingMark_Perception", "Perception", () => PerceptionShortcut)
+        ("PingMark_Perception", "Perception", () => PerceptionShortcut),
+        ("PingMark_FishOutline", "Fishsight", () => FishsightShortcut)
     ];
 
     private static Dictionary<string, KeyCode>? _keyCodes;
@@ -43,7 +44,12 @@ internal static class ControlsMenu
             row.name = Rows[index].Name;
             row.SetSiblingIndex(sibling + index);
             Transform label = row.Find("Label");
-            if (label && label.TryGetComponent(out TMP_Text text)) text.text = Rows[index].Label;
+            // The mod's name in front, smaller and grey, so players know where the row is from.
+            if (label && label.TryGetComponent(out TMP_Text text))
+            {
+                text.richText = true;
+                text.text = "<size=85%><color=#A8A8A8>PingMark ·</color></size> " + Rows[index].Label;
+            }
             keys.Insert(insertAt + index, new KeySetting
             {
                 m_keyName = Rows[index].Name,

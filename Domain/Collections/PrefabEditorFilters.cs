@@ -49,9 +49,10 @@ internal static class PrefabEditorFilters
         (PrefabBrowserKind.Ruin, "Ruins / structural parts", "Non-player structural wear components and damaged world locations"),
         (PrefabBrowserKind.Container, "Containers / treasure", "Container and loot-cache components and destroyed-loot containers"),
         (PrefabBrowserKind.Merchant, "Merchants", "Traders, modded merchant NPCs and the locations they stand in"),
-        (PrefabBrowserKind.Useful, "Utility objects", "Traders, portals, navigation stones, altars, spawners, doors, crafting and processing stations, beds, fires and map tables"),
+        (PrefabBrowserKind.Useful, "Utility objects", "Traders, portals, navigation stones, altars, spawners, doors, crafting and processing stations (not their upgrades), beds, fires and map tables"),
         (PrefabBrowserKind.Resource, "Trees / resource sources", "Harvestable trees, logs, beehives, sap collectors and material ItemDrop prefabs"),
         (PrefabBrowserKind.BuildingPiece, "Building pieces", "Piece or WearNTear models, including village roofs and walls; whole locations are separate"),
+        (PrefabBrowserKind.Producer, "Beehives / sap collectors", "Objects that fill up with something to collect, the only player-built valuables besides storage"),
         (PrefabBrowserKind.Log, "Cut logs", "Felled logs that drop wood, pinged as valuables unlike standing trees"),
         (PrefabBrowserKind.Tree, "Harvestable trees / logs", "TreeBase, TreeLog and tree-type destructibles, excluding decorative vegetation"),
         (PrefabBrowserKind.Uncategorized, "Other / scenery", "Prefabs without a recognized category, including unknown modded names")

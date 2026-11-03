@@ -157,6 +157,41 @@ public class PrefabAutoSortTests
         Assert.Equal(0, PrefabAutoSort.Category("MineRock_Tin", PrefabBrowserKind.Geology | PrefabBrowserKind.Mineable));
     }
 
+    // Useful holds only things you can use; landmarks you cannot use are places to find instead.
+    [Theory]
+    [InlineData("Waymarker01", 1)]
+    [InlineData("Mistlands_Statue1", 1)]
+    [InlineData("StatueEvil", 1)]
+    [InlineData("caverock_ice_pillar_wall", -1)]
+    [InlineData("forge_ext1", -1)]
+    [InlineData("piece_workbench_ext1", -1)]
+    [InlineData("piece_workbench", 2)]
+    [InlineData("Runestone_Meadows", 2)]
+    [InlineData("Vegvisir_Eikthyr", 2)]
+    public void Decorations_are_not_useful(string name, int expected) =>
+        Assert.Equal(expected, PrefabAutoSort.DefaultCategory(name));
+
+    // Player build pieces are not valuables even when breaking them gives materials; storage and beehives are.
+    [Fact]
+    public void Player_built_pieces_are_valuables_only_for_storage_and_producers()
+    {
+        const PrefabBrowserKind built = PrefabBrowserKind.Buildable | PrefabBrowserKind.BuildingPiece;
+        Assert.Equal(-1, PrefabAutoSort.Category("ModdedBirdNest", built | PrefabBrowserKind.Resource));
+        Assert.Equal(-1, PrefabAutoSort.Category("ModdedPlaceableRock", built | PrefabBrowserKind.Pickable));
+        Assert.Equal(0, PrefabAutoSort.Category("ModdedChest", built | PrefabBrowserKind.Container));
+        Assert.Equal(0, PrefabAutoSort.Category("ModdedBeehive", built | PrefabBrowserKind.Resource | PrefabBrowserKind.Producer));
+        Assert.Equal(2, PrefabAutoSort.Category("ModdedForge", built | PrefabBrowserKind.Useful));
+        Assert.Equal(-1, PrefabAutoSort.Category("prop_piece_cauldron", PrefabBrowserKind.Lod | PrefabBrowserKind.Resource));
+        Assert.Equal(-1, PrefabAutoSort.Category("Placeable_Stone", built | PrefabBrowserKind.Pickable));
+        Assert.Equal(0, PrefabAutoSort.DefaultCategory("piece_beehive"));
+        Assert.Equal(0, PrefabAutoSort.DefaultCategory("piece_chest_wood"));
+        Assert.Equal(0, PrefabAutoSort.DefaultCategory("piece_birdnest"));
+        // Trophy stands drop their trophy, and village fires can be lit and fed.
+        Assert.Equal(0, PrefabAutoSort.DefaultCategory("prop_itemstand_TrophyGoblinBrute"));
+        Assert.Equal(2, PrefabAutoSort.DefaultCategory("CastleKit_brazier"));
+        Assert.Equal(2, PrefabAutoSort.DefaultCategory("prop_bonfire"));
+    }
+
     [Fact]
     public void Heuristic_category_ignores_the_curated_defaults()
     {

@@ -47,14 +47,16 @@ internal static class PrefabAutoSort
 
     // Vanilla prefabs the rules would misplace: an environment helper registered like a location, spreading fires
     // that look like campfires (fire component and cinder spawner) but are hazards, developer test locations that
-    // never spawn, and plain bushes whose few drops would outline every forest bush as a valuable.
+    // never spawn, plain bushes whose few drops would outline every forest bush as a valuable, and village copies of
+    // cauldrons that only give materials when broken.
     private static readonly HashSet<string> ExcludedPrefabNames = new(System.StringComparer.OrdinalIgnoreCase)
     {
         "InteriorEnvironmentZoneForce", "Fire", "HouseFire",
         "DevBedchamber", "DevCombatRange", "DevCombatRing", "DevDressingRoom", "DevFloor1", "DevForge", "DevGarden",
         "DevGround1", "DevGround2", "DevHouse1", "DevHouse2", "DevHouse3", "DevHouse4", "DevHouse5", "DevHouseStart",
         "DevKitchen", "DevMageRoom", "DevSoundTest", "DevWall1", "DevWall2", "DevWallAsh", "Hugintest",
-        "Rock_destructible_test", "Bush01", "Bush01_deepnorth", "Bush01_heath", "shrub_2", "shrub_2_heath"
+        "Rock_destructible_test", "Bush01", "Bush01_deepnorth", "Bush01_heath", "shrub_2", "shrub_2_heath",
+        "prop_cauldron_ext5_mortarandpestle", "prop_piece_cauldron", "prop_piece_MeadCauldron"
     };
 
     private const PrefabBrowserKind NotWorldTargets = PrefabBrowserKind.BuildingPiece | PrefabBrowserKind.Buildable
@@ -89,6 +91,17 @@ internal static class PrefabAutoSort
     private static int Category(string name, PrefabBrowserKind kind, bool useDefaults)
     {
         if (ExcludedPrefabNames.Contains(name)) return Unassigned;
+        int category = RuleCategory(name, kind, useDefaults);
+        // Player-built pieces are never valuables, even when breaking them gives materials back: only storage and
+        // things that fill up to be collected (beehives, sap collectors) are.
+        return category == Valuables && IsPlayerBuilt(kind) ? Unassigned : category;
+    }
+
+    private static bool IsPlayerBuilt(PrefabBrowserKind kind) =>
+        Any(kind, PrefabBrowserKind.Buildable) && !Any(kind, PrefabBrowserKind.Container | PrefabBrowserKind.Producer);
+
+    private static int RuleCategory(string name, PrefabBrowserKind kind, bool useDefaults)
+    {
         // Standing trees are everywhere, but a felled log is wood already on the ground.
         if (Any(kind, PrefabBrowserKind.Log) && !Any(kind, NeverPinned & ~PrefabBrowserKind.Tree)) return Valuables;
         if (Any(kind, NeverPinned)) return Unassigned;

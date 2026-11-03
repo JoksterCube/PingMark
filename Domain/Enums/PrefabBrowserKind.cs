@@ -49,9 +49,10 @@ internal enum PrefabBrowserKind : ulong
     CommonDropsOnly = 1UL << 42,
     Merchant = 1UL << 43,
     Log = 1UL << 44,
+    Producer = 1UL << 45,
     All = DroppedItem | Craftable | Buildable | Pickable | Prop | Stack | Vehicle | Creature | AmbientCreature
         | Ragdoll | Spawner | TriggerPoint | Projectile | Particle | VisualFx | Audio | Destruction | Fracture
         | Lod | Planting | Seed | TerrainTool | SystemController | Development | PlayerDeath | BossTrigger | Cinematic | Uncategorized
         | Location | Dungeon | Vegetation | Geology | Mineable | Ruin | Container | Useful | Resource | BuildingPiece | Tree | Portal | Turret
-        | DungeonRoom | CommonDropsOnly | Merchant | Log
+        | DungeonRoom | CommonDropsOnly | Merchant | Log | Producer
 }

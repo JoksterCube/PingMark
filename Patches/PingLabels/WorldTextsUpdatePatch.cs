@@ -18,20 +18,27 @@ internal static class WorldTextsUpdatePatch
     private static readonly List<Chat.WorldTextInstance> Expired = [];
     private static TMP_FontAsset? _mapFont;
 
-    private static void Prefix(float dt)
+    private static void Prefix(float dt, List<Chat.WorldTextInstance> ___m_worldTexts, float ___m_worldTextTTL)
     {
         if (PatchGuard.IsDisabled(Feature)) return;
-        try { PrefixCore(dt); }
+        try { PrefixCore(dt, ___m_worldTexts, ___m_worldTextTTL); }
         catch (Exception exception) { PatchGuard.Fail(Feature, exception); }
     }
 
-    private static void PrefixCore(float dt)
+    private static void PrefixCore(float dt, List<Chat.WorldTextInstance> worldTexts, float ttl)
     {
         if (!Enabled.IsOn())
         {
             GroundPingLabelAnchors.Anchors.Clear();
             return;
         }
+
+        // Vanilla removes every world text (pings and shouts alike) after the same few seconds. Pings run their timer
+        // slower or faster instead, so they last Ping Duration and shouts keep the vanilla time.
+        float extra = dt * (ttl / Mathf.Max(PingDuration.Value, 0.1f) - 1f);
+        if (!Mathf.Approximately(extra, 0f))
+            foreach (Chat.WorldTextInstance worldText in worldTexts)
+                if (worldText.m_type == Talker.Type.Ping) worldText.m_timer += extra;
 
         // Pre-compensate vanilla's upward drift so the label stays below its anchor this frame.
         foreach (KeyValuePair<Chat.WorldTextInstance, Vector3> entry in GroundPingLabelAnchors.Anchors)

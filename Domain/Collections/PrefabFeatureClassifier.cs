@@ -177,15 +177,17 @@ internal sealed class PrefabFeatureClassifier(PrefabBrowserFilter filter)
         if (Has<Turret>()) kind |= PrefabBrowserKind.Turret | PrefabBrowserKind.Useful;
         if (components.Any(component => component is MonoBehaviour && PingTargetResolver.IsMerchantType(component.GetType())))
             kind |= PrefabBrowserKind.Merchant | PrefabBrowserKind.Useful;
+        // Station upgrades (chopping block, forge bellows) are left out: they cannot be used, only upgrade a station.
         if (Has<Trader>() || Has<TeleportWorld>() || Has<Teleport>() || Has<RuneStone>()
             || Has<Vegvisir>() || Has<BossStone>() || Has<Door>() || Has<OfferingBowl>()
-            || Has<CraftingStation>() || Has<StationExtension>() || Has<CreatureSpawner>() || Has<SpawnArea>()
+            || Has<CraftingStation>() || Has<CreatureSpawner>() || Has<SpawnArea>()
             || Has<TriggerSpawner>() || Has<CinderSpawner>() || Has<WispSpawner>() || Has<EggGrow>()
             || Has<Smelter>() || Has<Fermenter>() || Has<CookingStation>() || Has<Incinerator>()
             || Has<Bed>() || Has<Fireplace>() || Has<MapTable>())
             kind |= PrefabBrowserKind.Useful;
         if (Has<TreeBase>() || Has<TreeLog>() || Has<Beehive>() || Has<SapCollector>() || components.OfType<ItemDrop>().Any(item =>
             item.m_itemData.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Material)) kind |= PrefabBrowserKind.Resource;
+        if (Has<Beehive>() || Has<SapCollector>()) kind |= PrefabBrowserKind.Producer;
         if (Has<Character>()) kind |= PrefabBrowserKind.Creature;
         if (Has<RandomFlyingBird>() || Has<Fish>()) kind |= PrefabBrowserKind.AmbientCreature;
         if (Has<Ragdoll>()) kind |= PrefabBrowserKind.Ragdoll;

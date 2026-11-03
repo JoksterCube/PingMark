@@ -14,6 +14,7 @@ internal readonly struct PingTarget(PingCategory category, string name, GameObje
     {
         PingCategory.PrefabSection => PingAnythingColor.Value,
         PingCategory.Drop => PingDropColor.Value,
+        PingCategory.Fish => PingFishColor.Value,
         PingCategory.Gravestone or PingCategory.Player => PingPlayerColor.Value,
         _ => PingAnythingColor.Value
     });

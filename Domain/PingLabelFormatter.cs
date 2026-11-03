@@ -80,4 +80,17 @@ internal static class PingLabelFormatter
         }
         return ShowDistance.IsOn() ? distance : string.Empty;
     }
+
+    // " (Hungry)" / " (Happy)" for tamed creatures, " (15%)" while taming; empty for wild or untameable ones.
+    internal static string GetTameStatus(Character character)
+    {
+        if (!character.TryGetComponent(out Tameable tameable)) return string.Empty;
+        if (tameable.IsTamed())
+        {
+            string status = Localization.instance?.Localize(tameable.GetStatusString()) ?? string.Empty;
+            return string.IsNullOrWhiteSpace(status) || status.StartsWith("$") ? string.Empty : $" ({status.Trim()})";
+        }
+        int tameness = tameable.GetTameness();
+        return tameness > 0 ? $" ({tameness}%)" : string.Empty;
+    }
 }

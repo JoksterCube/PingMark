@@ -15,8 +15,6 @@ namespace JoksterCube.PingMark.Domain;
 internal static class Perception
 {
     private const string ActiveEffectName = "PingMark_Perception";
-    // An eye for sensing.
-    private const string IconItem = "GreydwarfEye";
     // Checking a few dozen references twice a second costs nothing noticeable.
     private const float EarlyEndCheckInterval = 0.5f;
 
@@ -26,6 +24,7 @@ internal static class Perception
     private static readonly List<(Character Character, float Distance, bool Enemy)> Creatures = [];
     private static readonly List<(ZDOID Id, bool IsPlayer)> CreatureIds = [];
     private static readonly List<ZDOID> SharedCreatureIds = [];
+    private static readonly RaycastHit[] SightHits = new RaycastHit[32];
     // What can run out before Perception does: drops, pickables, chests, deposits and enemies.
     private static readonly List<Object> Remaining = [];
     private static int _enemyCount;
@@ -38,13 +37,12 @@ internal static class Perception
     private static float _activatedAt;
     private static float _readyAt;
     private static StatusEffect? _activeEffect;
-    private static Sprite? _icon;
 
     // Seconds until Perception can be used again, counting its active time like a Guardian Power cooldown.
     internal static float Cooldown => Mathf.Max(0f, _readyAt - Time.time);
 
-    // ObjectDB may not be ready on the first look after loading, so it is looked up until found.
-    internal static Sprite? Icon => _icon ? _icon : _icon = FindIcon(IconItem);
+    // The same picture on the status and on the slot next to the Guardian Power.
+    internal static Sprite Icon => PerceptionIcon.Get();
 
     internal static void Clear()
     {
@@ -98,7 +96,7 @@ internal static class Perception
         int drops = 0;
         for (int index = 0; index < count; index++)
         {
-            if (Found[index].Target.Category == PingCategory.Drop) drops++;
+            if (Found[index].Target.Category is PingCategory.Drop or PingCategory.Fish) drops++;
             Outline(Found[index].Target, until);
             // Anything else nearby (trees, rocks, building pieces) would keep Perception from ever ending early.
             if (Found[index].Target.Category != PingCategory.Other) TrackRemaining(Found[index].Target);
@@ -219,6 +217,8 @@ internal static class Perception
         Found.Clear();
         Seen.Clear();
         Vector3 center = player.GetCenterPoint();
+        bool sight = PerceptionLineOfSight.IsOn();
+        Vector3 eye = player.GetEyePoint();
         foreach (Collider collider in Physics.OverlapSphere(center, PerceptionRange.Value,
                      Settings.Constants.LayerMasks.MobHighlight, QueryTriggerInteraction.Collide))
         {
@@ -226,11 +226,31 @@ internal static class Perception
             if (collider.transform.IsChildOf(player.transform)) continue;
             if (!Seen.Add(PingTargetResolver.GetPrefabRoot(collider))) continue;
 
-            Vector3 point = collider.bounds.center;
+            Bounds bounds = collider.bounds;
+            Vector3 point = bounds.center;
+            if (sight && !InSight(eye, PingTargetResolver.GetPrefabRoot(collider).transform, point,
+                    point + Vector3.up * (bounds.extents.y * 0.9f))) continue;
             if (PingTargetResolver.Resolve(collider, point) is not { } target || !IsPerceivable(target)) continue;
             Found.Add((target, PingTargetResolver.GetNetworkId(collider), (point - center).sqrMagnitude));
         }
         Found.Sort((left, right) => left.Distance.CompareTo(right.Distance));
+    }
+
+    // Seen when either the middle or the top is in view, so a deposit half sunk in the ground or a creature behind a low
+    // wall still counts. The target's own colliders never hide it.
+    private static bool InSight(Vector3 eye, Transform root, Vector3 middle, Vector3 top) =>
+        IsClear(eye, middle, root) || IsClear(eye, top, root);
+
+    private static bool IsClear(Vector3 eye, Vector3 point, Transform root)
+    {
+        Vector3 direction = point - eye;
+        float distance = direction.magnitude;
+        if (distance < 0.01f) return true;
+        int count = Physics.RaycastNonAlloc(eye, direction / distance, SightHits, distance,
+            Settings.Constants.LayerMasks.SightBlockers, QueryTriggerInteraction.Ignore);
+        for (int index = 0; index < count; index++)
+            if (SightHits[index].collider && !SightHits[index].collider.transform.IsChildOf(root)) return false;
+        return true;
     }
 
     // Relative mode charges for what was sensed: a busy room or a pack of enemies tires the senses for longer.
@@ -252,6 +272,8 @@ internal static class Perception
         bool players = PlayersEnabled.IsOn();
         if (!creatures && !players) return;
         Vector3 center = player.GetCenterPoint();
+        bool sight = PerceptionLineOfSight.IsOn();
+        Vector3 eye = player.GetEyePoint();
         float range = PerceptionRange.Value;
         foreach (Character character in Character.GetAllCharacters())
         {
@@ -260,8 +282,10 @@ internal static class Perception
             if (PingTargetResolver.IsMerchant(character.gameObject)) continue;
             float distance = (character.GetCenterPoint() - center).sqrMagnitude;
             ZDOID id = character.GetZDOID();
+            if (distance > range * range || id.IsNone()) continue;
+            if (sight && !InSight(eye, character.transform, character.GetCenterPoint(), character.GetEyePoint())) continue;
             // Tamed creatures, neutral Dvergr and other non-hostiles count as allies.
-            if (distance <= range * range && !id.IsNone()) Creatures.Add((character, distance, BaseAI.IsEnemy(player, character)));
+            Creatures.Add((character, distance, BaseAI.IsEnemy(player, character)));
         }
         Creatures.Sort((left, right) => left.Distance.CompareTo(right.Distance));
         int count = Mathf.Min(Creatures.Count, PerceptionMaxTargets.Value);
@@ -290,13 +314,5 @@ internal static class Perception
         if (!effect!.m_icon) effect.m_icon = Icon;
         effect.m_ttl = duration;
         player.GetSEMan().AddStatusEffect(effect, true, 0, 0f, 0);
-    }
-
-    private static Sprite? FindIcon(string itemName)
-    {
-        if (!ObjectDB.instance) return null;
-        GameObject? item = ObjectDB.instance.GetItemPrefab(itemName);
-        ItemDrop? drop = item ? item!.GetComponent<ItemDrop>() : null;
-        return drop ? drop!.m_itemData.GetIcon() : null;
     }
 }

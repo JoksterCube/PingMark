@@ -20,7 +20,12 @@ internal static class PingTargetResolver
         if (!collider || IsTerrain(collider!)) return ResolveLocation(position);
 
         GameObject root = GetPrefabRoot(collider!);
-        if (DropsEnabled.IsOn() && root.TryGetComponent(out ItemDrop _))
+        // Fish are items too, but have their own toggle and color.
+        if (root.TryGetComponent(out Fish _))
+        {
+            if (FishEnabled.IsOn()) return new PingTarget(PingCategory.Fish, GetObjectName(collider!), root);
+        }
+        else if (DropsEnabled.IsOn() && root.TryGetComponent(out ItemDrop _))
             return new PingTarget(PingCategory.Drop, GetObjectName(collider!), root);
 
         if (GetGravestone(collider) is { } tombStone)
@@ -282,8 +287,15 @@ internal static class PingTargetResolver
             if (!string.IsNullOrWhiteSpace(charHover))
             {
                 string name = Clean(Localize(charHover!));
-                if (!string.IsNullOrWhiteSpace(name)) return name;
+                if (!string.IsNullOrWhiteSpace(name)) return name + PingLabelFormatter.GetTameStatus(character);
             }
+        }
+
+        // Swimming and caught fish carry their quality on the item.
+        if (root.TryGetComponent(out Fish fish) && root.TryGetComponent(out ItemDrop fishDrop))
+        {
+            string name = Clean(Localize(fish.GetHoverName()));
+            if (!string.IsNullOrWhiteSpace(name)) return $"{name} • {fishDrop.m_itemData.m_quality}";
         }
 
         Hoverable? hoverable = root.GetComponent<Hoverable>();

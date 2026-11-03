@@ -59,6 +59,7 @@ public class Plugin : BaseUnityPlugin
         {
             ZPingNetwork.Update();
             MobHighlight.Update();
+            HookedFish.Update();
             InputManager.Update();
             Perception.Update();
         }

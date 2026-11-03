@@ -8,46 +8,49 @@ See **how far away** every ping is, something vanilla Valheim never shows. Aim, 
 
 ### 📸 Screenshots
 
-**See what matters at a glance.** Live distances, item names and creature highlights.
+**Everyone sees what you found, and how far away it is.**
 
 <p align="center">
-	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Distance.jpg" alt="World ping with a live distance label" width="248">
-	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Items.jpg" alt="Named dropped items with colored outlines" width="549">
-	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Deer.jpg" alt="Wildlife highlight with a moving nameplate" width="358">
-	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Boar.jpg" alt="Friendly creature highlights with names and distances" width="323">
+	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Items.jpg" alt="Dropped weapons named and outlined, with who pinged them and their distance" width="549">
 </p>
 
+**Sense the loot hidden in the dark.** One press of Perception outlines every coin, gem and chest around you.
+
 <p align="center">
-	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/RuneStone.jpg" alt="Runestone marked with a colored outline and distance label" width="330">
-	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Spawner.jpg" alt="Greydwarf nest marked with a colored outline and distance label" width="281">
-	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Treasure.jpg" alt="Treasure chest and hostile skeleton highlighted with distinct colors" width="497">
+	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/PerceptionDark.jpg" alt="Perception outlining coins, gems and chests in a dark forest" width="600">
 </p>
 
-**Sense what's hidden.** Perception has its own slot next to your Guardian Power, showing when it's ready again.
+**Read creatures and fish from afar.** Taming progress and fish quality, without walking up to them.
 
 <p align="center">
-	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Perception.jpg" alt="Perception slot next to the Guardian Power on the HUD, both ready" width="393">
-</p>
-
-**Choose what your party can mark.** Objects and locations are sorted into searchable, color-coded collections.
-
-<p align="center">
-	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Menu.jpg" alt="Prefab Collections admin menu" width="1520">
+	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Taming.jpg" alt="Wolf being tamed, showing Wolf (2%) and its distance" width="360">
+	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Fish.jpg" alt="Pinged pufferfish showing its quality and distance" width="340">
 </p>
 
 ---
 
 ### 🧭 Features
 
+**📍 Pinging**
 - **📏 Distance on every ping:** world and map pings show who pinged and how far away it is, updating as you move. Works on regular map pings too.
-- **Aim and ping:** mark what you are looking at with its name and an outline, even while running.
-- **Find the loot:** dropped weapons, armor and materials glow so they're easy to spot in the grass, and so do cut logs and broken ore deposits.
-- **Track creatures:** highlight a mob with a nameplate and distance that follow it, colored red (hostile) or green (friendly).
-- **🔮 Perception:** stand still and press **Left Shift + Z** to outline loot around you for 15 seconds, handy for coins and gems in dark dungeons. It senses whatever a ping could mark (listed objects, drops, and gravestones or players if enabled under **Ping Targets**), and nearby PingMark players see it too.
-- **Sense creatures:** Perception also highlights every hostile and friendly creature around you, beyond the usual highlight limit (turn off **Perceive Creatures** to sense only objects).
-- **Like a Guardian Power:** a Perception slot next to your power shows **Ready** or the time left; it's ready again 60 s after each use. Prefer a cost that grows with what you sensed? Switch **Perception Fatigue Mode** to `Relative`.
-- **Mark teammates:** optionally highlight players instead of the spot they stood on (off by default).
-- **Your rules:** pick which objects count as **Valuables**, **Locations** or **Useful**, and customize colors, labels, shortcuts and range.
+- **🎯 Aim and ping:** mark what you are looking at with its name and an outline, even while running.
+- **💎 Find the loot:** dropped weapons, armor and materials glow so they're easy to spot in the grass, and so do cut logs and broken ore deposits.
+- **⏱️ Longer pings:** set how long pings stay with **Ping Duration** (vanilla 5 s).
+
+**🐺 Creatures & fish**
+- **🎯 Track creatures:** highlight a mob with a nameplate and distance that follow it, red for hostile, green for friendly.
+- **🐗 Taming from afar:** ping an animal from across the field to see how its taming is going, like **Wolf (15%)**, or how a tamed one feels, like **Boar (Hungry)**.
+- **🐟 Fish quality:** pinged fish show their quality before you cast, like **Pufferfish • 5**, in their own color.
+- **🎣 Watch your catch:** ping a fish before it bites and it stays outlined until you land it or it gets away. While a fish is hooked, the **Fishsight** slot next to your power appears: press **Left Alt + Z** to switch the outline on or off. **Auto Outline Hooked Fish** outlines every catch.
+
+**🔮 Perception**
+- **👁️ Sense what's near:** stand still and press **Left Shift + Z** to outline loot around you for 15 s, handy for coins and gems in dark dungeons. Nearby PingMark players see it too.
+- **🐺 Sense creatures:** it also highlights every hostile and friendly creature in range, beyond the usual highlight limit.
+- **⏳ Like a Guardian Power:** its own slot shows **Ready** or the time left, and it's ready again 60 s after each use. Prefer a cost that grows with what you sensed? Set **Perception Fatigue Mode** to `Relative`.
+
+**🎨 Your rules**
+- **👥 Mark teammates:** optionally highlight players instead of the spot they stood on (off by default).
+- **🗂️ Choose what counts:** pick which objects are **Valuables**, **Locations** or **Useful**, and change colors, labels, keys and range.
 
 ---
 
@@ -55,12 +58,13 @@ See **how far away** every ping is, something vanilla Valheim never shows. Aim, 
 
 | Shortcut | Action |
 | --- | --- |
-| **Z** | Highlight the creature you aim at, or ping the spot/object. |
-| **Left Shift + Z** | Perception (standing still): sense objects, drops and creatures near you (nearby PingMark players see them too). |
+| **Z** | Ping the spot or object you aim at, or highlight a creature. |
+| **Left Shift + Z** | Perception (standing still): sense loot and creatures near you. |
+| **Left Alt + Z** | While a fish is hooked: switch its outline on or off. |
 | **Right Ctrl + P** | Turn PingMark on or off. |
 | **Right Ctrl + Right Shift + P** | Open the Prefab Collections menu (admins only on servers). |
 
-🎛️ **Ping** and **Perception** can be rebound right in the game's **Settings > Controls**. The new key keeps the shortcut's modifier, so Perception stays on Left Shift. Every shortcut can also be changed in the config under **9 - Inputs**.
+🎛️ **Ping**, **Perception** and **Fishsight** can be rebound in the game's **Settings > Controls** (the modifier stays, so Perception keeps Left Shift). Every shortcut is also in the config under **9 - Inputs**.
 
 ---
 
@@ -70,14 +74,15 @@ Decide which objects get a name and outline when pinged.
 
 - **Search and filter** every object and location in the game, including modded ones.
 - **Move** objects between colored sections, or add, rename and remove sections.
-- **Find an object's ID:** turn on **Debug Ping Names** (1 - General, shown with Advanced settings in Configuration Manager) and press **Z** on it; its IDs appear in the top-left corner.
-- **Auto Sort** rebuilds the default Valuables, Locations and Useful sections, sorting modded objects too: traders and trader outposts, cut logs and deposits are listed, while rocks, roots and props that only drop wood or stone are left out. **Undo** reverts changes, **Apply** saves them. **Copy YAML** copies every section, including unapplied changes; **Import YAML** replaces all sections from the clipboard. A section's **Import** button replaces just that section from a copied CSV list or YAML section. **Export Report** writes every prefab's detected kinds and auto sort result to `BepInEx/config/JoksterCube.PingMark.AutoSortReport.csv`, useful for checking modded prefabs.
+- **Auto Sort** rebuilds the default **Valuables**, **Locations** and **Useful** sections, modded objects included. **Undo** reverts, **Apply** saves.
+- **Find an object's ID:** turn on **Debug Ping Names** (an Advanced setting) and press **Z** on it.
+- **For admins sharing lists:** **Copy YAML** / **Import YAML** move every section through the clipboard, a section's **Import** takes a CSV list, and **Export Report** writes how every object was sorted to `BepInEx/config/JoksterCube.PingMark.AutoSortReport.csv`.
 
 > 🔒 On a server with PingMark, only admins can change collections, and the server checks every change. Collections are saved in `BepInEx/config/JoksterCube.PingMark.Collections.yml` and synced to all players.
 
 ---
 
-## ⚙️ Installation
+### 📦 Installation
 
 Install with a mod manager (r2modman, Thunderstore App), or manually:
 
@@ -128,6 +133,7 @@ Most players never need to change anything. These are the settings worth knowing
 | Z Ping Broadcast Distance | 200 m | ✔ | Sender-to-recipient range (0–10,000 m, `0` = unlimited). Without a modded server, the shorter of both players' ranges applies. |
 | Send Z Pings To Unmodded Players | On | ✔ | Send ordinary pings to players without PingMark, at any distance. |
 | Debug Ping Names ⚙️ | Off | | Show the detected object/location IDs when pinging. Useful for editing collections. |
+| Show Ability Names | On | | Show the names above the Guardian Power and the ability slots beside it. Turn off to hide them and bring the slots closer. |
 
 #### 2 - Ping Label
 
@@ -140,6 +146,7 @@ Most players never need to change anything. These are the settings worth knowing
 | Empty Label Text ⚙️ | PING | | Text shown when everything above is hidden. |
 | Ping Color | White | | Label color. |
 | Match Ping Text To Outline | Off | | Use the outline color for the label instead. |
+| Ping Duration | 5 s | ✔ | How long a location or object ping stays: label, outline and map marker (1–120 s). |
 
 #### 3 - Camera Ping
 
@@ -153,6 +160,7 @@ Most players never need to change anything. These are the settings worth knowing
 | Setting | Default | Synced | What it does |
 | --- | --- | :---: | --- |
 | Enable Drops | On | ✔ | Name and outline dropped items. |
+| Enable Fish | On | ✔ | Name and outline fish, with their quality. |
 | Enable Gravestones | On | ✔ | Name and outline gravestones. |
 | Enable Other Players | Off | ✔ | Highlight players instead of pinging their position (Perception highlights them too). |
 | Enable All Other | Off | ✔ | Name and outline anything not in a collection (Perception outlines it too). |
@@ -164,6 +172,7 @@ Most players never need to change anything. These are the settings worth knowing
 | Enable Ping Outline | On | | Outline pinged objects and players. |
 | Outline Width | 2 px | | 0–10 px, visible through walls. `0` hides outlines. |
 | Ping Drop Color | Purple | | Dropped items. |
+| Ping Fish Color | Pink | | Fish, and the fish on your line. |
 | Ping Gravestone/Player Color | Orange | | Gravestones and players. |
 | Ping Anything Color | White | | Other objects. |
 | Hostile / Ally Outline Color | Red / Green | | Highlighted creatures. |
@@ -199,6 +208,7 @@ Most players never need to change anything. These are the settings worth knowing
 | Toggle Mod Shortcut | Right Ctrl + P | | Turn PingMark on or off. |
 | Prefab Editor Shortcut | Right Ctrl + Right Shift + P | | Open the Prefab Collections menu. |
 | Perception Shortcut | Left Shift + Z | | Use Perception. Only while standing still (no other key held). Its main key can also be set in Settings > Controls. |
+| Fishsight Shortcut | Left Alt + Z | | While a fish is hooked, switch its outline. Empty hides the Fishsight slot. Also in Settings > Controls. |
 | Enable Prefab Editor Shortcut ⚙️ | On | | Turn the menu shortcut on or off. |
 
 #### 10 - Perception
@@ -207,6 +217,7 @@ Most players never need to change anything. These are the settings worth knowing
 | --- | --- | :---: | --- |
 | Enable Perception | On | ✔ | Allow Perception and show its slot next to the Guardian Power. It senses what Ping Targets allows. |
 | Perception Range | 10 m | ✔ | How far around you Perception looks. |
+| Perception Line Of Sight | On | ✔ | Only sense what you can see: things behind walls, rock or buildings, or buried underground, are left out. |
 | Perception Duration | 15 s | ✔ | How long Perception keeps things outlined (the Perception status). |
 | End Perception Early | On | ✔ | End Perception and start fatigue once every drop, pickable, chest, deposit and enemy it found is gone. |
 | Perception Max Outlines | 64 | ✔ | Most objects outlined per use, nearest first. |
@@ -222,7 +233,46 @@ Most players never need to change anything. These are the settings worth knowing
 | Perception Effect Color | Light blue | | Color of that burst, for your Perception and other players'. |
 | Perception Sound | sfx_WishbonePing_near | | Sound played with the burst (any sound prefab, e.g. `sfx_secretfound`). Empty = silent. |
 
+#### 11 - Fishing
+
+| Setting | Default | Synced | What it does |
+| --- | --- | :---: | --- |
+| Auto Outline Hooked Fish | Off | | Outline every fish you hook until it's caught or gets away. Off: only a fish you pinged before it bit; the rest wait for Left Alt + Z. |
+
 </details>
+
+---
+
+### 🖼️ Gallery
+
+**Outlines in their own colors:** treasure and a hostile skeleton, a runestone, a Greydwarf nest.
+
+<p align="center">
+	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Treasure.jpg" alt="Treasure chest and hostile skeleton highlighted with distinct colors" width="300">
+	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/RuneStone.jpg" alt="Runestone marked with a colored outline and distance label" width="200">
+	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Spawner.jpg" alt="Greydwarf nest marked with a colored outline and distance label" width="170">
+</p>
+
+**Creature nameplates and distances that follow them.**
+
+<p align="center">
+	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Deer.jpg" alt="Wildlife highlight with a moving nameplate" width="215">
+	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Boar.jpg" alt="Friendly creature highlights with names and distances" width="195">
+	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Distance.jpg" alt="World ping with a live distance label" width="150">
+</p>
+
+**Fishing:** the fish you pinged stays outlined on your line, and the Perception and Fishsight slots sit beside your power.
+
+<p align="center">
+	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Fishing.jpg" alt="Hooked fish outlined in pink while fishing from a boat" width="340">
+	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Perception.jpg" alt="Guardian Power, Perception and Fishsight slots on the HUD" width="393">
+</p>
+
+**Prefab Collections menu:** searchable, color-coded sections of everything that can be pinged.
+
+<p align="center">
+	<img src="https://raw.githubusercontent.com/JoksterCube/PingMark/refs/heads/main/Screenshots/Menu.jpg" alt="Prefab Collections admin menu" width="600">
+</p>
 
 ---
 
@@ -233,5 +283,5 @@ Report bugs or suggest improvements on [GitHub](https://github.com/JoksterCube/P
 ---
 
 **Author:** JoksterCube<br>
-**Version:** 1.5.0<br>
-**License:** MIT
+**Version:** 1.6.0<br>
+**License:** GNU GPL v3 or later

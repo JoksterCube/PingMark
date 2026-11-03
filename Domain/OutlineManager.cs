@@ -18,6 +18,7 @@ internal static class OutlineManager
     private const int MaxRenderersPerTarget = 128;
     private const float RendererRefreshInterval = 1f;
     private const float HierarchyCheckInterval = 0.25f;
+    private const string ProtectSpawnerFarmsBubble = "ProtectSpawnerFarms_Bubble";
 
     private static readonly int ColorId = Shader.PropertyToID("_Color");
 
@@ -32,6 +33,7 @@ internal static class OutlineManager
     private static readonly HashSet<GameObject> ActiveOutlineTargets = [];
     private static readonly List<GameObject> ExpiredOutlineTargets = [];
     private static readonly HashSet<Renderer> CollectedRenderers = [];
+    private static readonly List<Transform> ShieldRoots = [];
     private static readonly List<(Renderer Renderer, int SubMeshCount)> Targets = [];
     private static readonly Dictionary<Color32, Material> OutlineMaterials = [];
     private static readonly Dictionary<Chat.WorldTextInstance, PingTarget> PingTargets = [];
@@ -74,6 +76,18 @@ internal static class OutlineManager
             if (!entry.Key || entry.Value.Until <= now) ExpiredTimedOutlines.Add(entry.Key!);
         foreach (GameObject target in ExpiredTimedOutlines) TimedOutlines.Remove(target);
         ExpiredTimedOutlines.Clear();
+    }
+
+    // Whether a ping showing now outlines the object.
+    internal static bool IsPinged(GameObject target)
+    {
+        foreach (KeyValuePair<Chat.WorldTextInstance, PingTarget> entry in PingTargets)
+        {
+            if (!entry.Key.m_gui || entry.Key.m_type != Talker.Type.Ping) continue;
+            foreach (GameObject outline in entry.Value.OutlineTargets)
+                if (outline == target) return true;
+        }
+        return false;
     }
 
     internal static bool TryGetPingColor(Chat.WorldTextInstance ping, out Color color)
@@ -167,7 +181,8 @@ internal static class OutlineManager
         bool drawPings = PingOutlineEnabled.IsOn() && PingTargets.Count > 0;
         RemoveExpiredTimedOutlines(Time.time);
         bool drawTimed = TimedOutlines.Count > 0;
-        if ((MarkedIds.Count == 0 && !drawPings && !drawTimed) || !EnsureMaterials())
+        bool drawFish = HookedFish.ShowOutline;
+        if ((MarkedIds.Count == 0 && !drawPings && !drawTimed && !drawFish) || !EnsureMaterials())
         {
             RendererCaches.Clear();
             return;
@@ -196,6 +211,8 @@ internal static class OutlineManager
 
         foreach (KeyValuePair<GameObject, (Color Color, float Until)> entry in TimedOutlines)
             DrawOutline(entry.Key, entry.Value.Color, view, projection, pixel);
+
+        if (drawFish) DrawOutline(HookedFish.Current!.gameObject, HookedFish.Color, view, projection, pixel);
 
         foreach (ZDOID id in MarkedIds)
         {
@@ -293,11 +310,44 @@ internal static class OutlineManager
         cache.Transforms.Clear();
         cache.ChildCounts.Clear();
         target.GetComponentsInChildren(true, cache.Renderers);
+        RemoveShieldRenderers(target, cache.Renderers);
         target.GetComponentsInChildren(true, cache.Transforms);
         foreach (Transform transform in cache.Transforms) cache.ChildCounts.Add(transform.childCount);
         cache.NextRefresh = now + RendererRefreshInterval;
         cache.NextHierarchyCheck = now + HierarchyCheckInterval;
         return cache;
+    }
+
+    // Shield bubbles (Shield generator dome, creature shield effects) would hide the outline of what they protect.
+    private static void RemoveShieldRenderers(GameObject target, List<Renderer> renderers)
+    {
+        ShieldRoots.Clear();
+        if (target.TryGetComponent(out ShieldGenerator generator) && generator.m_shieldDome)
+            ShieldRoots.Add(generator.m_shieldDome.transform);
+        if (target.TryGetComponent(out Character character) && character.GetSEMan() is { } seman)
+            foreach (StatusEffect effect in seman.GetStatusEffects())
+            {
+                if (effect is not SE_Shield || effect.m_startEffectInstances == null) continue;
+                foreach (GameObject instance in effect.m_startEffectInstances)
+                    if (instance) ShieldRoots.Add(instance.transform);
+            }
+        Transform targetTransform = target.transform;
+        renderers.RemoveAll(renderer =>
+        {
+            if (!renderer) return false;
+            foreach (Transform root in ShieldRoots)
+                if (renderer.transform.IsChildOf(root)) return true;
+            return IsNamedShield(renderer.transform, targetTransform);
+        });
+        ShieldRoots.Clear();
+    }
+
+    // ProtectSpawnerFarms hangs its bubble under protected spawners by name, with no component to look for.
+    private static bool IsNamedShield(Transform transform, Transform target)
+    {
+        for (Transform current = transform; current && current != target; current = current.parent)
+            if (current.name == ProtectSpawnerFarmsBubble) return true;
+        return false;
     }
 
     private static void DrawOffsets(Material material, Matrix4x4 view, Matrix4x4 projection, Vector2 pixel)

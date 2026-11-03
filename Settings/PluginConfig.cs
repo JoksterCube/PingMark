@@ -17,6 +17,7 @@ internal static class PluginConfig
     internal static ConfigEntry<float> ZPingBroadcastDistance = null!;
     internal static ConfigEntry<Toggle> SendZPingsToUnmoddedPlayers = null!;
     internal static ConfigEntry<Toggle> DebugPrefabId = null!;
+    internal static ConfigEntry<Toggle> ShowAbilityNames = null!;
 
     internal static ConfigEntry<Toggle> ShowPingerName = null!;
     internal static ConfigEntry<Toggle> ShowDistance = null!;
@@ -25,11 +26,13 @@ internal static class PluginConfig
     internal static ConfigEntry<Toggle> ShowTargetName = null!;
     internal static ConfigEntry<Color> PingColor = null!;
     internal static ConfigEntry<Toggle> MatchTextToOutline = null!;
+    internal static ConfigEntry<float> PingDuration = null!;
 
     internal static ConfigEntry<float> CameraPingMaxDistance = null!;
     internal static ConfigEntry<float> MaxUnderwaterDepth = null!;
 
     internal static ConfigEntry<Toggle> DropsEnabled = null!;
+    internal static ConfigEntry<Toggle> FishEnabled = null!;
     internal static ConfigEntry<Toggle> GravestonesEnabled = null!;
     internal static ConfigEntry<Toggle> PlayersEnabled = null!;
     internal static ConfigEntry<float> PlayerHighlightDuration = null!;
@@ -39,6 +42,7 @@ internal static class PluginConfig
     internal static ConfigEntry<Toggle> PingOutlineEnabled = null!;
     internal static ConfigEntry<float> OutlineWidth = null!;
     internal static ConfigEntry<Color> PingDropColor = null!;
+    internal static ConfigEntry<Color> PingFishColor = null!;
     internal static ConfigEntry<Color> PingPlayerColor = null!;
     internal static ConfigEntry<Color> PingAnythingColor = null!;
     internal static ConfigEntry<Color> HostileOutlineColor = null!;
@@ -56,9 +60,13 @@ internal static class PluginConfig
     internal static ConfigEntry<KeyboardShortcut> PingShortcut = null!;
     internal static ConfigEntry<Toggle> PrefabEditorShortcutEnabled = null!;
     internal static ConfigEntry<KeyboardShortcut> PerceptionShortcut = null!;
+    internal static ConfigEntry<KeyboardShortcut> FishsightShortcut = null!;
+
+    internal static ConfigEntry<Toggle> AutoOutlineHookedFish = null!;
 
     internal static ConfigEntry<Toggle> PerceptionEnabled = null!;
     internal static ConfigEntry<float> PerceptionRange = null!;
+    internal static ConfigEntry<Toggle> PerceptionLineOfSight = null!;
     internal static ConfigEntry<float> PerceptionDuration = null!;
     internal static ConfigEntry<Toggle> PerceptionEarlyEnd = null!;
     internal static ConfigEntry<int> PerceptionMaxTargets = null!;
@@ -86,6 +94,7 @@ internal static class PluginConfig
         ZPingBroadcastDistance = ConfigOptions.Config(General.ZPingBroadcastDistance);
         SendZPingsToUnmoddedPlayers = ConfigOptions.Config(General.SendZPingsToUnmoddedPlayers);
         DebugPrefabId = ConfigOptions.Config(General.DebugPrefabId);
+        ShowAbilityNames = ConfigOptions.Config(General.ShowAbilityNames);
 
         ShowPingerName = ConfigOptions.Config(PingLabel.ShowPingerName);
         ShowDistance = ConfigOptions.Config(PingLabel.ShowDistance);
@@ -94,11 +103,13 @@ internal static class PluginConfig
         ShowTargetName = ConfigOptions.Config(PingLabel.ShowTargetName);
         PingColor = ConfigOptions.Config(PingLabel.PingColor);
         MatchTextToOutline = ConfigOptions.Config(PingLabel.MatchTextToOutline);
+        PingDuration = ConfigOptions.Config(PingLabel.Duration);
 
         CameraPingMaxDistance = ConfigOptions.Config(CameraPing.MaxDistance);
         MaxUnderwaterDepth = ConfigOptions.Config(CameraPing.MaxUnderwaterDepth);
 
         DropsEnabled = ConfigOptions.Config(PingTargets.DropsEnabled);
+        FishEnabled = ConfigOptions.Config(PingTargets.FishEnabled);
         GravestonesEnabled = ConfigOptions.Config(PingTargets.GravestonesEnabled);
         PlayersEnabled = ConfigOptions.Config(PingTargets.PlayersEnabled);
         PlayerHighlightDuration = ConfigOptions.Config(PlayerHighlight.Duration);
@@ -108,6 +119,7 @@ internal static class PluginConfig
         PingOutlineEnabled = ConfigOptions.Config(Outlines.PingOutlineEnabled);
         OutlineWidth = ConfigOptions.Config(Outlines.OutlineWidth);
         PingDropColor = ConfigOptions.Config(Outlines.PingDropColor);
+        PingFishColor = ConfigOptions.Config(Outlines.PingFishColor);
         PingPlayerColor = ConfigOptions.Config(Outlines.PingPlayerColor);
         PingAnythingColor = ConfigOptions.Config(Outlines.PingAnythingColor);
         HostileOutlineColor = ConfigOptions.Config(Outlines.HostileOutlineColor);
@@ -140,10 +152,14 @@ internal static class PluginConfig
         PingShortcut = ConfigOptions.Config(Inputs.PingShortcut);
         MigrateRenamedShortcut(config);
         PerceptionShortcut = ConfigOptions.Config(Inputs.PerceptionShortcut);
+        FishsightShortcut = ConfigOptions.Config(Inputs.FishsightShortcut);
         PrefabEditorShortcutEnabled = ConfigOptions.Config(Inputs.PrefabEditorShortcutEnabled);
+
+        AutoOutlineHookedFish = ConfigOptions.Config(Fishing.AutoOutlineHookedFish);
 
         PerceptionEnabled = ConfigOptions.Config(Perception.Enabled);
         PerceptionRange = ConfigOptions.Config(Perception.Range);
+        PerceptionLineOfSight = ConfigOptions.Config(Perception.LineOfSight);
         PerceptionDuration = ConfigOptions.Config(Perception.Duration);
         PerceptionEarlyEnd = ConfigOptions.Config(Perception.EarlyEnd);
         PerceptionMaxTargets = ConfigOptions.Config(Perception.MaxTargets);

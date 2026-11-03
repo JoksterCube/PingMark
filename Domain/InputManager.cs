@@ -23,6 +23,7 @@ internal static class InputManager
             PrefabCollectionEditor.Open();
             return;
         }
+        if (Enabled.IsOn() && FishsightShortcut.Value.IsDownWhileMoving() && HookedFish.TryToggle()) return;
         if (PerceptionShortcut.Value.IsDown())
         {
             Perception.TryActivate();
