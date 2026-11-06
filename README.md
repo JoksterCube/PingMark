@@ -283,5 +283,5 @@ Report bugs or suggest improvements on [GitHub](https://github.com/JoksterCube/P
 ---
 
 **Author:** JoksterCube<br>
-**Version:** 1.6.1<br>
+**Version:** 1.6.2<br>
 **License:** GNU GPL v3 or later

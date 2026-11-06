@@ -1,6 +1,6 @@
 {
   "name": "PingMark",
-  "version_number": "1.6.1",
+  "version_number": "1.6.2",
   "website_url": "https://github.com/JoksterCube/PingMark",
   "description": "Mark loot, creatures, and locations with named pings, colored outlines, and live distances. Sense what's hidden around you and share discoveries with your party.",
   "dependencies": [

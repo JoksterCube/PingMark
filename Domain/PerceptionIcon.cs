@@ -24,17 +24,19 @@ internal static class PerceptionIcon
     private const float EyeRadius = EyeOffset + EyeHalfHeight;
 
     // Runes cut into the ring, each as strokes from (x, y) to (z, w): x across the ring, y outward, from -3 to 3.
-    // Kaunan, Algiz, Ansuz, Isa, Sowilo, Tiwaz, Isa, Algiz.
+    // Kaunan, Dagaz, Ansuz, Isa, Raidho, Berkanan, Isa, Fehu (no runes that extremist groups use, such as Algiz,
+    // Sowilo or Tiwaz).
     private static readonly Vector4[][] Runes =
     [
         [new(1f, 3f, -1.2f, 0f), new(-1.2f, 0f, 1f, -3f)],
-        [new(0f, -3f, 0f, 3f), new(0f, 0.6f, -1.7f, 3f), new(0f, 0.6f, 1.7f, 3f)],
+        [new(-1.4f, -3f, -1.4f, 3f), new(1.4f, -3f, 1.4f, 3f), new(-1.4f, 3f, 1.4f, -3f), new(-1.4f, -3f, 1.4f, 3f)],
         [new(-1f, -3f, -1f, 3f), new(-1f, 3f, 1.3f, 1.5f), new(-1f, 1f, 1.3f, -0.5f)],
         [new(0f, -3f, 0f, 3f)],
-        [new(-1.3f, 3f, 1f, 1f), new(1f, 1f, -1f, -1f), new(-1f, -1f, 1.3f, -3f)],
-        [new(0f, -3f, 0f, 3f), new(0f, 3f, -1.7f, 1.2f), new(0f, 3f, 1.7f, 1.2f)],
+        [new(-1f, -3f, -1f, 3f), new(-1f, 3f, 1.2f, 1.5f), new(1.2f, 1.5f, -1f, 0f), new(-1f, 0f, 1.2f, -3f)],
+        [new(-1f, -3f, -1f, 3f), new(-1f, 3f, 1.2f, 1.5f), new(1.2f, 1.5f, -1f, 0f), new(-1f, 0f, 1.2f, -1.5f),
+            new(1.2f, -1.5f, -1f, -3f)],
         [new(0f, -3f, 0f, 3f)],
-        [new(0f, -3f, 0f, 3f), new(0f, 0.6f, -1.7f, 3f), new(0f, 0.6f, 1.7f, 3f)],
+        [new(-1f, -3f, -1f, 3f), new(-1f, -0.2f, 1.3f, 1.6f), new(-1f, 1.4f, 1.3f, 3f)],
     ];
 
     private static Sprite? _sprite;
